@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { EditVisaServiceFormValues } from "@/hooks/useEditVisaServiceForm";
-import { FlagImageUpload } from "../../FlagImageUpload";
+import { FlagDropdown } from "../../FlagDropdown";
 import { Fingerprint } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -139,15 +139,15 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
             name="flag"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Flag Image</FormLabel>
+                <FormLabel>Country Flag</FormLabel>
                 <FormControl>
-                  <FlagImageUpload
-                    currentImage={field.value}
-                    onImageUploaded={(url) => field.onChange(url)}
+                  <FlagDropdown
+                    currentFlag={field.value}
+                    onFlagSelected={(flagUrl) => field.onChange(flagUrl)}
                   />
                 </FormControl>
                 <FormDescription>
-                  Upload a flag image or country icon
+                  Select a country flag from the dropdown
                 </FormDescription>
                 <FormMessage />
               </FormItem>

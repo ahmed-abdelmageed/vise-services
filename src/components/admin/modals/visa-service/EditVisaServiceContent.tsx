@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -10,7 +9,9 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { Save } from "lucide-react";
 
 interface EditVisaServiceContentProps {
-  form: ReturnType<typeof import("@/hooks/useEditVisaServiceForm").useEditVisaServiceForm>["form"];
+  form: ReturnType<
+    typeof import("@/hooks/useEditVisaServiceForm").useEditVisaServiceForm
+  >["form"];
   isSubmitting: boolean;
   onSubmit: (data: any) => Promise<void>;
   onCancelClick: () => void;
@@ -20,10 +21,13 @@ export const EditVisaServiceContent = ({
   form,
   isSubmitting,
   onSubmit,
-  onCancelClick
+  onCancelClick,
 }: EditVisaServiceContentProps) => {
   const [activeTab, setActiveTab] = useState<string>("english");
-  const { isTranslating, handleAutoTranslate } = useVisaServiceTranslation(form, setActiveTab);
+  const { isTranslating, handleAutoTranslate } = useVisaServiceTranslation(
+    form,
+    setActiveTab
+  );
 
   return (
     <Form {...form}>
@@ -37,17 +41,21 @@ export const EditVisaServiceContent = ({
             className="w-full flex items-center justify-center"
           >
             {isTranslating ? (
-              <><Loader className="mr-2 h-4 w-4 animate-spin" /> Translating...</>
+              <>
+                <Loader className="mr-2 h-4 w-4 animate-spin" /> Translating...
+              </>
             ) : (
-              <><Languages className="mr-2 h-4 w-4" /> Auto-Translate to Arabic</>
+              <>
+                <Languages className="mr-2 h-4 w-4" /> Auto-Translate to Arabic
+              </>
             )}
           </Button>
         </div>
-        
-        <GeneralFields 
-          form={form} 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab} 
+
+        <GeneralFields
+          form={form}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
         />
         <RequirementToggles form={form} />
 
@@ -60,15 +68,19 @@ export const EditVisaServiceContent = ({
           >
             Cancel
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={isSubmitting || isTranslating}
             className="bg-visa-gold hover:bg-visa-gold/90"
           >
             {isSubmitting ? (
-              <><Loader className="mr-2 h-4 w-4 animate-spin" /> Saving...</>
+              <>
+                <Loader className="mr-2 h-4 w-4 animate-spin" /> Saving...
+              </>
             ) : (
-              <><Save className="mr-2 h-4 w-4" /> Save Changes</>
+              <>
+                <Save className="mr-2 h-4 w-4" /> Save Changes
+              </>
             )}
           </Button>
         </DialogFooter>

@@ -29,6 +29,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { FlagDropdown } from "../FlagDropdown";
 
 interface AddVisaServiceDialogProps {
   open: boolean;
@@ -95,10 +96,6 @@ export const AddVisaServiceDialog = ({
     try {
       setIsSubmitting(true);
       
-      // If the title includes a country name, attempt to set a default flag
-      const countryName = data.title.split(' ')[0].toLowerCase();
-      const defaultFlag = data.flag || `https://flagcdn.com/w80/${countryName.slice(0, 2)}.png`;
-      
       // Create default visa cities for USA visas
       const usaVisaCities = data.requiresVisaCitySelection ? ["Riyadh", "Jeddah", "Dhahran"] : null;
       
@@ -110,7 +107,7 @@ export const AddVisaServiceDialog = ({
           formtitle: data.formTitle,
           formdescription: data.formDescription,
           baseprice: data.basePrice,
-          flag: defaultFlag,
+          flag: data.flag,
           processingtime: data.processingTime || "Processing time: 5-7 days",
           active: data.active,
           requiresmothersname: data.requiresMothersName,
@@ -250,16 +247,15 @@ export const AddVisaServiceDialog = ({
                     name="flag"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Flag URL</FormLabel>
+                        <FormLabel>Country Flag</FormLabel>
                         <FormControl>
-                          <Input 
-                            placeholder="https://flagcdn.com/w80/us.png" 
-                            {...field} 
-                            value={field.value || ""}
+                          <FlagDropdown
+                            currentFlag={field.value}
+                            onFlagSelected={(flagUrl) => field.onChange(flagUrl)}
                           />
                         </FormControl>
                         <FormDescription>
-                          URL to the country flag image. Will be auto-generated if left empty.
+                          Select a country flag from the dropdown
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
