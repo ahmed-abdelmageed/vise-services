@@ -1,0 +1,153 @@
+
+#root {
+  max-width: 100%;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/* Add responsive styles for components */
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  .popover-content {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    transform: none !important;
+  }
+
+  /* Improve form spacing on mobile */
+  .form-card {
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 0.5rem 0.25rem;
+  }
+
+  /* Ensure adequate touch targets */
+  button, a, .clickable, [role="button"] {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  /* Improve form elements spacing */
+  label {
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  /* Better spacing between form inputs */
+  .form-inputs > div {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Define text sizes for very small text on mobile */
+.text-2xs {
+  font-size: 0.65rem;
+  line-height: 0.85rem;
+}
+
+/* Mobile-optimized cards */
+.mobile-card {
+  padding: 1rem;
+  margin: 0.5rem 0;
+  border-radius: 0.75rem;
+}
+
+/* Mobile navigation styles */
+.mobile-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  z-index: 50;
+  display: flex;
+  justify-content: space-around;
+  padding: 0.5rem;
+  transition: transform 0.3s ease;
+}
+
+.mobile-nav.hidden {
+  transform: translateY(100%);
+}
+
+/* Mobile-optimized dropdowns */
+.mobile-dropdown {
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  border-radius: 0.75rem 0.75rem 0 0;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+}
+
+/* Mobile-specific hamburger menu */
+.hamburger-menu {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 24px;
+  height: 18px;
+}
+
+.hamburger-menu div {
+  height: 2px;
+  background-color: currentColor;
+  border-radius: 1px;
+  transition: all 0.3s ease;
+}
+
+.hamburger-menu.open div:nth-child(1) {
+  transform: translateY(8px) rotate(45deg);
+}
+
+.hamburger-menu.open div:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-menu.open div:nth-child(3) {
+  transform: translateY(-8px) rotate(-45deg);
+}

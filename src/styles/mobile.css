@@ -1,0 +1,92 @@
+
+/* Mobile-specific styles */
+@media (max-width: 640px) {
+  .form-container {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+  
+  .form-card {
+    padding: 1rem !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border-radius: 0.75rem !important;
+  }
+  
+  .form-inputs > div {
+    margin-bottom: 0.75rem;
+  }
+  
+  .form-buttons {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+  
+  .form-buttons button {
+    width: 100% !important;
+    min-height: 48px !important;
+  }
+
+  /* Ensure adequate spacing between inputs */
+  input, select, textarea {
+    margin-bottom: 0.5rem;
+  }
+
+  /* Improve readability on small screens */
+  label {
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem;
+    display: block;
+  }
+
+  /* Better touch targets for form elements */
+  input, select, textarea, button {
+    min-height: 48px;
+  }
+
+  /* Optimize spacing in mobile forms */
+  .card-content {
+    padding: 0.75rem !important;
+  }
+
+  /* Responsive tables */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  /* Improve modal/dialog experience */
+  .modal-content, 
+  .dialog-content {
+    width: 95% !important;
+    max-width: 95% !important;
+    margin: 0 auto;
+    padding: 1rem !important;
+  }
+  
+  /* Mobile service card specific styles */
+  .mobile-card {
+    width: 100%;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  /* Mobile view optimizations */
+  .mobile-view .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    width: 100%;
+  }
+  
+  /* Mobile optimize class for specific mobile optimizations */
+  .mobile-optimize {
+    overflow-x: hidden;
+  }
+  
+  /* Extra small text size for very small screens */
+  .text-2xs {
+    font-size: 0.65rem;
+    line-height: 1rem;
+  }
+}

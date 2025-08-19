@@ -1,0 +1,25 @@
+
+/* Device preview styles */
+html.preview-mobile #root {
+  max-width: 375px !important;
+  margin: 0 auto;
+  border-left: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+html.preview-tablet #root {
+  max-width: 768px !important;
+  margin: 0 auto;
+  border-left: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+html.preview-desktop #root {
+  max-width: 100% !important;
+  width: 100%;
+  min-height: 100vh;
+}

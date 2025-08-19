@@ -1,0 +1,61 @@
+
+/* Mobile optimized classes */
+@layer components {
+  .mobile-safe-area {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .touch-target {
+    @apply min-w-[48px] min-h-[48px];
+  }
+
+  /* Responsive typography */
+  .mobile-text-xs {
+    @apply text-xs sm:text-sm;
+  }
+
+  .mobile-text-sm {
+    @apply text-sm sm:text-base;
+  }
+
+  .mobile-text-base {
+    @apply text-base sm:text-lg;
+  }
+
+  .mobile-text-lg {
+    @apply text-lg sm:text-xl;
+  }
+
+  /* Better form spacing on mobile */
+  .mobile-form-group {
+    @apply space-y-1 sm:space-y-2 mb-3 sm:mb-4;
+  }
+
+  /* Mobile friendly buttons */
+  .mobile-button {
+    @apply w-full sm:w-auto min-h-[48px] flex items-center justify-center;
+  }
+  
+  /* Mobile card styles */
+  .mobile-card-grid {
+    @apply grid grid-cols-1 gap-4;
+  }
+  
+  /* Mobile text sizing */
+  @media (max-width: 640px) {
+    .mobile-title {
+      @apply text-lg font-semibold;
+    }
+    
+    .mobile-description {
+      @apply text-sm;
+    }
+    
+    .mobile-meta {
+      @apply text-xs text-gray-500;
+    }
+  }
+}
