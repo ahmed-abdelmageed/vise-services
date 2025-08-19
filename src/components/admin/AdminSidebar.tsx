@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Sidebar, SidebarContent, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
 import { 
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
+import { useSearchParams } from "react-router-dom";
 
 type AdminSection = "dashboard" | "clients" | "invoices" | "analytics" | "settings" | "visaServices" | "footerEditor";
 
@@ -25,6 +26,38 @@ interface AdminSidebarProps {
 
 export const AdminSidebar = ({ activeSection, setActiveSection, className }: AdminSidebarProps) => {
   const { t, language } = useLanguage();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Initialize active section from URL params on component mount
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab') as AdminSection;
+    if (tabFromUrl && isValidAdminSection(tabFromUrl)) {
+      setActiveSection(tabFromUrl);
+    } else if (!searchParams.get('tab')) {
+      // Set default tab in URL if none exists
+      setSearchParams(prev => {
+        prev.set('tab', activeSection);
+        return prev;
+      });
+    }
+  }, []);
+
+  // Helper function to validate admin section
+  const isValidAdminSection = (section: string): section is AdminSection => {
+    const validSections: AdminSection[] = [
+      "dashboard", "clients", "invoices", "analytics", "settings", "visaServices", "footerEditor"
+    ];
+    return validSections.includes(section as AdminSection);
+  };
+
+  // Update URL when active section changes
+  const handleSetActiveSection = (section: AdminSection) => {
+    setActiveSection(section);
+    setSearchParams(prev => {
+      prev.set('tab', section);
+      return prev;
+    });
+  };
   
   const menuItems = [
     {
@@ -95,7 +128,7 @@ export const AdminSidebar = ({ activeSection, setActiveSection, className }: Adm
                   ? "bg-visa-gold text-white hover:bg-visa-gold/90 hover:text-white"
                   : "text-visa-dark hover:bg-visa-light"
               }`}
-              onClick={() => setActiveSection(item.id)}
+              onClick={() => handleSetActiveSection(item.id)}
             >
               {language === 'ar' ? (
                 <>
