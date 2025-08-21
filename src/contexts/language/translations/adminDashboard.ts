@@ -28,6 +28,10 @@ export const adminDashboardTranslations: TranslationDictionary = {
     'setStatus': 'Set Status',
     'delete': 'Delete',
     'cancel': 'Cancel',
+    
+    // Flag Dropdown
+    'searchCountries': 'Search countries...',
+    'selectCountry': 'Select a country',
     'processing': 'Processing...',
     'deleteClient': 'Delete Client?',
     'deleteClients': 'Delete Clients?',
@@ -101,6 +105,10 @@ export const adminDashboardTranslations: TranslationDictionary = {
     'setStatus': 'تعيين الحالة',
     'delete': 'حذف',
     'cancel': 'إلغاء',
+    
+    // Flag Dropdown
+    'searchCountries': 'البحث عن البلدان...',
+    'selectCountry': 'اختر دولة',
     'processing': 'جاري المعالجة...',
     'deleteClient': 'حذف العميل؟',
     'deleteClients': 'حذف العملاء؟',

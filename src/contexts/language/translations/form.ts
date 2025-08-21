@@ -25,6 +25,35 @@ export const formTranslations: TranslationDictionary = {
     'submit': 'Submit Application',
     'selectCity': 'Select Visa City',
     'total': 'Total Price',
+    
+    // Documents Step
+    'uploadDocuments': 'Upload Documents',
+    'uploadDocumentsDesc': 'Please upload the required documents for all travellers.',
+    'uploadFailWarning': 'You can proceed even if uploads fail - documents can be provided later.',
+    'traveller': 'Traveller',
+    'unnamedTraveller': 'Unnamed Traveller',
+    'passportCopy': 'Passport Copy',
+    'passportPhoto': 'Passport Photo',
+    'clickToUpload': 'Click to upload',
+    'fileFormats': 'JPEG, PNG or PDF (max 10MB)',
+    'localPreview': 'Local Preview',
+    'replace': 'Replace',
+    'deleting': 'Deleting...',
+    'uploading': 'Uploading',
+    'continueToAccount': 'Continue to Account Setup',
+    
+    // Upload Messages
+    'uploadInvalidType': 'Please upload a JPEG, PNG, or PDF file',
+    'uploadTooLarge': 'File size should be less than 10MB',
+    'uploadSuccess': 'uploaded successfully!',
+    'uploadError': 'Error uploading',
+    'uploadLocalWarning': 'File is available for preview only. It will be uploaded during form submission.',
+    'deleteSuccess': 'deleted successfully',
+    'deleteError': 'Error deleting file',
+    'fileRemoved': 'removed',
+    'passport': 'Passport',
+    'photo': 'Photo',
+    'forTraveller': 'for traveller',
   },
   ar: {
     // Form Labels
@@ -49,5 +78,34 @@ export const formTranslations: TranslationDictionary = {
     'submit': 'تقديم الطلب',
     'selectCity': 'اختر مدينة التأشيرة',
     'total': 'السعر الإجمالي',
+    
+    // Documents Step
+    'uploadDocuments': 'رفع المستندات',
+    'uploadDocumentsDesc': 'يرجى رفع المستندات المطلوبة لجميع المسافرين.',
+    'uploadFailWarning': 'يمكنك المتابعة حتى لو فشل الرفع - يمكن تقديم المستندات لاحقاً.',
+    'traveller': 'المسافر',
+    'unnamedTraveller': 'مسافر غير مسمى',
+    'passportCopy': 'نسخة الجواز',
+    'passportPhoto': 'صورة شخصية',
+    'clickToUpload': 'اضغط لرفع',
+    'fileFormats': 'JPEG، PNG أو PDF (حد أقصى 10 ميجابايت)',
+    'localPreview': 'معاينة محلية',
+    'replace': 'استبدال',
+    'deleting': 'جاري الحذف...',
+    'uploading': 'جاري الرفع',
+    'continueToAccount': 'المتابعة لإعداد الحساب',
+    
+    // Upload Messages
+    'uploadInvalidType': 'يرجى رفع ملف JPEG أو PNG أو PDF',
+    'uploadTooLarge': 'يجب أن يكون حجم الملف أقل من 10 ميجابايت',
+    'uploadSuccess': 'تم الرفع بنجاح!',
+    'uploadError': 'خطأ في رفع',
+    'uploadLocalWarning': 'الملف متاح للمعاينة فقط. سيتم رفعه أثناء تقديم النموذج.',
+    'deleteSuccess': 'تم الحذف بنجاح',
+    'deleteError': 'خطأ في حذف الملف',
+    'fileRemoved': 'تم الإزالة',
+    'passport': 'الجواز',
+    'photo': 'الصورة',
+    'forTraveller': 'للمسافر',
   }
 };

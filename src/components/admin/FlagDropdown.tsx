@@ -9,6 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { POPULAR_COUNTRIES } from "@/data/flags";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Country {
   code: string;
@@ -25,6 +26,7 @@ export const FlagDropdown = ({
   currentFlag,
   onFlagSelected,
 }: FlagDropdownProps) => {
+  const { t } = useLanguage();
   const [countries, setCountries] = useState<Country[]>([]);
   const [filteredCountries, setFilteredCountries] = useState<Country[]>([]);
   const [selectedCountry, setSelectedCountry] = useState<string>("");
@@ -102,7 +104,7 @@ export const FlagDropdown = ({
                 className="w-6 h-4 object-cover rounded"
               />
             )}
-            <SelectValue placeholder="Select a country">
+            <SelectValue placeholder={t('selectCountry')}>
               {getSelectedCountryName()}
             </SelectValue>
           </div>
@@ -112,7 +114,7 @@ export const FlagDropdown = ({
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search countries..."
+                placeholder={t('searchCountries')}
                 value={searchQuery}
                 onChange={handleSearchChange}
                 className="pl-8"

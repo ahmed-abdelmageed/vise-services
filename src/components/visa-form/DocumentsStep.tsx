@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { StepProps } from "./types";
 // import { uploadToVisaDocuments } from "@/utils/googleCloudService";
 import { useUploadImage, useDeleteImage, UPLOAD_FOLDERS } from "@/hooks/useUpload";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const DocumentsStep = ({
   formData,
@@ -36,6 +37,8 @@ export const DocumentsStep = ({
   basePrice,
   totalPrice,
 }: StepProps) => {
+  const { t } = useLanguage();
+  
   const [uploading, setUploading] = useState<{
     passports: boolean[];
     photos: boolean[];
@@ -74,13 +77,13 @@ export const DocumentsStep = ({
     // Check file type
     const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
     if (!allowedTypes.includes(file.type)) {
-      toast.error("Please upload a JPEG, PNG, or PDF file");
+      toast.error(t('uploadInvalidType'));
       return;
     }
 
     // Check file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("File size should be less than 10MB");
+      toast.error(t('uploadTooLarge'));
       return;
     }
 
@@ -118,17 +121,15 @@ export const DocumentsStep = ({
 
           // Show success message
           toast.success(
-            `${fileType === "passports" ? "Passport" : "Photo"} for traveller ${
+            `${t(fileType === "passports" ? "passport" : "photo")} ${t('forTraveller')} ${
               index + 1
-            } uploaded successfully!`
+            } ${t('uploadSuccess')}`
           );
         },
         onError: async (error) => {
           console.error("Upload failed:", error);
           toast.error(
-            `Error uploading ${
-              fileType === "passports" ? "passport" : "photo"
-            }: ${error.message}`
+            `${t('uploadError')} ${t(fileType === "passports" ? "passport" : "photo")}: ${error.message}`
           );
 
           const newFiles = [...uploadedFiles[fileType]];
@@ -146,12 +147,12 @@ export const DocumentsStep = ({
 
           // Set error message but don't stop the form flow - we'll handle the actual upload later
           newUploadErrors[fileType][index] =
-            "Unable to upload to cloud storage (will be processed later)";
+            t('uploadLocalWarning');
           setUploadErrors(newUploadErrors);
 
           // Show warning toast but don't block the user
           toast.warning(
-            "File is available for preview only. It will be uploaded during form submission."
+            t('uploadLocalWarning')
           );
 
           newUploading[fileType][index] = false;
@@ -218,7 +219,7 @@ export const DocumentsStep = ({
                   <div className="flex flex-col items-center text-white">
                     <Loader2 className="h-8 sm:h-12 w-8 sm:w-12 animate-spin mb-2" />
                     <span className="text-xs sm:text-sm font-medium">
-                      Deleting...
+                      {t('deleting')}
                     </span>
                   </div>
                 </div>
@@ -237,7 +238,7 @@ export const DocumentsStep = ({
                   {/* Show local preview indicator if needed */}
                   {file.isLocalPreview && (
                     <div className="absolute bottom-0 right-0 text-2xs sm:text-xs bg-yellow-400 text-black px-1 py-0.5 rounded">
-                      Local Preview
+                      {t('localPreview')}
                     </div>
                   )}
                 </div>
@@ -299,7 +300,7 @@ export const DocumentsStep = ({
                             newDeletingFiles[fileType][index] = false;
                             setDeletingFiles(newDeletingFiles);
                             
-                            toast.success(`${fileType === "passports" ? "Passport" : "Photo"} deleted successfully`);
+                            toast.success(`${t(fileType === "passports" ? "passport" : "photo")} ${t('deleteSuccess')}`);
                           },
                           onError: (error) => {
                             console.error("Error deleting file:", error);
@@ -308,7 +309,7 @@ export const DocumentsStep = ({
                             newDeletingFiles[fileType][index] = false;
                             setDeletingFiles(newDeletingFiles);
                             
-                            toast.error(`Error deleting file: ${error.message}`);
+                            toast.error(`${t('deleteError')}: ${error.message}`);
                           }
                         });
                       } else {
@@ -325,17 +326,17 @@ export const DocumentsStep = ({
                         newErrors[fileType][index] = null;
                         setUploadErrors(newErrors);
                         
-                        toast.success(`${fileType === "passports" ? "Passport" : "Photo"} removed`);
+                        toast.success(`${t(fileType === "passports" ? "passport" : "photo")} ${t('fileRemoved')}`);
                       }
                     }}
                   >
                     {isCurrentlyDeleting ? (
                       <>
                         <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                        Deleting...
+                        {t('deleting')}
                       </>
                     ) : (
-                      "Replace"
+                      t('replace')
                     )}
                   </Button>
                 </div>
@@ -355,7 +356,7 @@ export const DocumentsStep = ({
                 <div className="flex flex-col items-center">
                   <Loader2 className="h-6 sm:h-8 w-6 sm:w-8 text-visa-gold animate-spin" />
                   <span className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-500">
-                    Uploading...
+                    {t('uploading')}...
                   </span>
                 </div>
               ) : (
@@ -363,10 +364,10 @@ export const DocumentsStep = ({
                   <div className="flex flex-col items-center">
                     {icon}
                     <span className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-500">
-                      Click to upload {label.toLowerCase()}
+                      {t('clickToUpload')} {label.toLowerCase()}
                     </span>
                     <span className="mt-1 text-2xs sm:text-xs text-gray-400">
-                      JPEG, PNG or PDF (max 10MB)
+                      {t('fileFormats')}
                     </span>
                   </div>
                   <input
@@ -389,14 +390,14 @@ export const DocumentsStep = ({
     <div>
       <div className="mb-4 sm:mb-6">
         <h2 className="text-base sm:text-lg font-bold text-visa-dark mb-1">
-          Upload Documents
+          {t('uploadDocuments')}
         </h2>
         <p className="text-xs sm:text-sm text-gray-600">
-          Please upload the required documents for all travellers.
+          {t('uploadDocumentsDesc')}
         </p>
         <p className="text-amber-600 text-2xs sm:text-xs mt-1">
           <AlertCircle className="h-2 sm:h-3 w-2 sm:w-3 inline mr-1" />
-          You can proceed even if uploads fail - documents can be provided
+          {t('uploadFailWarning')}
           later.
         </p>
       </div>
@@ -411,8 +412,8 @@ export const DocumentsStep = ({
           <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6">
             <div className="mb-3 sm:mb-4">
               <h3 className="font-medium text-sm sm:text-base text-visa-dark">
-                Traveller {index + 1}:{" "}
-                {travellers[index]?.fullName || "Unnamed Traveller"}
+                {t('traveller')} {index + 1}:{" "}
+                {travellers[index]?.fullName || t('unnamedTraveller')}
               </h3>
             </div>
 
@@ -420,14 +421,14 @@ export const DocumentsStep = ({
               {renderFileUploader(
                 "passports",
                 index,
-                "Passport Copy",
+                t('passportCopy'),
                 <FileText className="h-6 sm:h-8 w-6 sm:w-8 text-visa-gold" />
               )}
 
               {renderFileUploader(
                 "photos",
                 index,
-                "Passport Photo",
+                t('passportPhoto'),
                 <Image className="h-6 sm:h-8 w-6 sm:w-8 text-visa-gold" />
               )}
             </div>
@@ -442,14 +443,14 @@ export const DocumentsStep = ({
           onClick={handlePrevStep}
           className="w-full sm:w-auto"
         >
-          Back
+          {t('back')}
         </Button>
         <Button
           type="button"
           onClick={handleNextStep}
           className="w-full sm:w-auto bg-visa-gold hover:bg-visa-gold/90"
         >
-          Continue to Account Setup
+          {t('continueToAccount')}
         </Button>
       </CardFooter>
     </div>
