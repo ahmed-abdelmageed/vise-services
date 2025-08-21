@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { StepProps } from "./types";
-import { uploadToVisaDocuments } from "@/utils/googleCloudService";
-import { useUploadImage } from "@/hooks/useUpload";
+// import { uploadToVisaDocuments } from "@/utils/googleCloudService";
+import { useUploadImage, useDeleteImage, UPLOAD_FOLDERS } from "@/hooks/useUpload";
 
 export const DocumentsStep = ({
   formData,
@@ -53,6 +53,15 @@ export const DocumentsStep = ({
   });
 
   const { mutate: uploadDocument, isPending: isUploading } = useUploadImage();
+  const { mutate: deleteDocument, isPending: isDeleting } = useDeleteImage();
+
+  const [deletingFiles, setDeletingFiles] = useState<{
+    passports: boolean[];
+    photos: boolean[];
+  }>({
+    passports: Array(formData.numberOfTravellers).fill(false),
+    photos: Array(formData.numberOfTravellers).fill(false),
+  });
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -184,6 +193,7 @@ export const DocumentsStep = ({
   ) => {
     const file = uploadedFiles[fileType][index];
     const isUploading = uploading[fileType][index];
+    const isCurrentlyDeleting = deletingFiles[fileType][index];
     const error = uploadErrors[fileType][index];
 
     return (
@@ -202,6 +212,18 @@ export const DocumentsStep = ({
         >
           {file ? (
             <div className="relative">
+              {/* Show deleting overlay if file is being deleted */}
+              {isCurrentlyDeleting && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
+                  <div className="flex flex-col items-center text-white">
+                    <Loader2 className="h-8 sm:h-12 w-8 sm:w-12 animate-spin mb-2" />
+                    <span className="text-xs sm:text-sm font-medium">
+                      Deleting...
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {file.type.startsWith("image/") && file.preview && (
                 <div className="relative h-28 sm:h-36 w-full">
                   <img
@@ -243,21 +265,78 @@ export const DocumentsStep = ({
                     variant="ghost"
                     size="sm"
                     className="text-2xs sm:text-xs h-5 sm:h-6 px-1 sm:px-2"
+                    disabled={isCurrentlyDeleting || isUploading}
                     onClick={() => {
-                      const newFiles = [...uploadedFiles[fileType]];
-                      newFiles[index] = null as any;
-                      setUploadedFiles({
-                        ...uploadedFiles,
-                        [fileType]: newFiles,
-                      });
+                      const currentFile = uploadedFiles[fileType][index];
+                      
+                      // If there's a file with a preview URL and it's not a local preview, delete from Supabase
+                      if (currentFile?.preview && !currentFile.isLocalPreview) {
+                        console.log(`🗑️ Deleting file from Supabase: ${currentFile.preview}`);
+                        
+                        // Set deleting state for this specific file
+                        const newDeletingFiles = { ...deletingFiles };
+                        newDeletingFiles[fileType][index] = true;
+                        setDeletingFiles(newDeletingFiles);
+                        
+                        deleteDocument(currentFile.preview, {
+                          onSuccess: () => {
+                            console.log(`✅ Successfully deleted file from Supabase`);
+                            
+                            // Only remove file from local state after successful deletion
+                            const newFiles = [...uploadedFiles[fileType]];
+                            newFiles[index] = null as any;
+                            setUploadedFiles({
+                              ...uploadedFiles,
+                              [fileType]: newFiles,
+                            });
 
-                      // Clear error
-                      const newErrors = { ...uploadErrors };
-                      newErrors[fileType][index] = null;
-                      setUploadErrors(newErrors);
+                            // Clear error
+                            const newErrors = { ...uploadErrors };
+                            newErrors[fileType][index] = null;
+                            setUploadErrors(newErrors);
+                            
+                            // Clear deleting state
+                            newDeletingFiles[fileType][index] = false;
+                            setDeletingFiles(newDeletingFiles);
+                            
+                            toast.success(`${fileType === "passports" ? "Passport" : "Photo"} deleted successfully`);
+                          },
+                          onError: (error) => {
+                            console.error("Error deleting file:", error);
+                            
+                            // Clear deleting state on error
+                            newDeletingFiles[fileType][index] = false;
+                            setDeletingFiles(newDeletingFiles);
+                            
+                            toast.error(`Error deleting file: ${error.message}`);
+                          }
+                        });
+                      } else {
+                        // For local files, just remove immediately
+                        const newFiles = [...uploadedFiles[fileType]];
+                        newFiles[index] = null as any;
+                        setUploadedFiles({
+                          ...uploadedFiles,
+                          [fileType]: newFiles,
+                        });
+
+                        // Clear error
+                        const newErrors = { ...uploadErrors };
+                        newErrors[fileType][index] = null;
+                        setUploadErrors(newErrors);
+                        
+                        toast.success(`${fileType === "passports" ? "Passport" : "Photo"} removed`);
+                      }
                     }}
                   >
-                    Replace
+                    {isCurrentlyDeleting ? (
+                      <>
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      "Replace"
+                    )}
                   </Button>
                 </div>
 
@@ -295,6 +374,7 @@ export const DocumentsStep = ({
                     className="hidden"
                     onChange={(e) => handleFileUpload(e, fileType, index)}
                     accept=".jpg,.jpeg,.png,.pdf"
+                    disabled={isUploading || isCurrentlyDeleting}
                   />
                 </>
               )}
