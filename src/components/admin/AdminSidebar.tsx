@@ -171,17 +171,10 @@ export const AdminSidebar = ({
           className="w-full justify-start text-red-600 hover:bg-red-50 hover:text-red-700 text-sm py-1.5"
           onClick={handleLogout}
         >
-          {language === "ar" ? (
-            <>
-              <span className="ms-2">{t("logout")}</span>
-              <LogOut className="h-5 w-5" />
-            </>
-          ) : (
-            <>
-              <LogOut className="h-5 w-5" />
-              <span className="ml-2">{t("logout")}</span>
-            </>
-          )}
+          <div className="flex gap-2">
+            <LogOut className="h-5 w-5" />
+            <span className="">{t("logout")}</span>
+          </div>
         </Button>
       </SidebarFooter>
     </Sidebar>

@@ -7,6 +7,7 @@ import { GeneralFields } from "./GeneralFields";
 import { RequirementToggles } from "./RequirementToggles";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Save } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface EditVisaServiceContentProps {
   form: ReturnType<
@@ -23,6 +24,7 @@ export const EditVisaServiceContent = ({
   onSubmit,
   onCancelClick,
 }: EditVisaServiceContentProps) => {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<string>("english");
   const { isTranslating, handleAutoTranslate } = useVisaServiceTranslation(
     form,
@@ -42,11 +44,11 @@ export const EditVisaServiceContent = ({
           >
             {isTranslating ? (
               <>
-                <Loader className="mr-2 h-4 w-4 animate-spin" /> Translating...
+                <Loader className="mr-2 h-4 w-4 animate-spin" /> {t('translating')}
               </>
             ) : (
               <>
-                <Languages className="mr-2 h-4 w-4" /> Auto-Translate to Arabic
+                <Languages className="mr-2 h-4 w-4" /> {t('autoTranslateToArabic')}
               </>
             )}
           </Button>
@@ -59,14 +61,14 @@ export const EditVisaServiceContent = ({
         />
         <RequirementToggles form={form} />
 
-        <DialogFooter>
+        <DialogFooter className="flex gap-2">
           <Button
             type="button"
             variant="outline"
             onClick={onCancelClick}
             disabled={isSubmitting || isTranslating}
           >
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             type="submit"
@@ -75,11 +77,11 @@ export const EditVisaServiceContent = ({
           >
             {isSubmitting ? (
               <>
-                <Loader className="mr-2 h-4 w-4 animate-spin" /> Saving...
+                <Loader className="mr-2 h-4 w-4 animate-spin" /> {t('saving')}
               </>
             ) : (
               <>
-                <Save className="mr-2 h-4 w-4" /> Save Changes
+                <Save className="mr-2 h-4 w-4" /> {t('saveChanges')}
               </>
             )}
           </Button>

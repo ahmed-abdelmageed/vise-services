@@ -16,6 +16,7 @@ import { FlagDropdown } from "../../FlagDropdown";
 import { Fingerprint } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface GeneralFieldsProps {
   form: UseFormReturn<EditVisaServiceFormValues>;
@@ -24,6 +25,7 @@ interface GeneralFieldsProps {
 }
 
 export const GeneralFields = ({ form, activeTab = "english", onTabChange }: GeneralFieldsProps) => {
+  const { t } = useLanguage();
   // Check if this is the Home Fingerprints service based on the title
   const isHomeFingerprints = form.watch('title').toLowerCase().includes('home fingerprints');
 
@@ -48,8 +50,8 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <TabsList className="grid w-full grid-cols-2 mb-6">
-        <TabsTrigger value="english">English</TabsTrigger>
-        <TabsTrigger value="arabic">العربية</TabsTrigger>
+        <TabsTrigger value="english">{t('english')}</TabsTrigger>
+        <TabsTrigger value="arabic">{t('arabic')}</TabsTrigger>
       </TabsList>
       
       <TabsContent value="english" className="space-y-6">
@@ -59,9 +61,9 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Service Title</FormLabel>
+                <FormLabel>{t('serviceTitle')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="E.g., USA Visa" {...field} />
+                  <Input placeholder={t('serviceTitlePlaceholder')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -73,7 +75,7 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
             name="basePrice"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Base Price (SAR)</FormLabel>
+                <FormLabel>{t('basePrice')}</FormLabel>
                 <FormControl>
                   <Input type="number" min="0" step="50" {...field} />
                 </FormControl>
@@ -88,12 +90,12 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
           name="formTitle"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Form Title</FormLabel>
+              <FormLabel>{t('formTitle')}</FormLabel>
               <FormControl>
-                <Input placeholder="E.g., USA Visa Application" {...field} />
+                <Input placeholder={t('formTitlePlaceholder')} {...field} />
               </FormControl>
               <FormDescription>
-                This title appears at the top of the application form.
+                {t('formTitleDesc')}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -105,16 +107,16 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
           name="formDescription"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Form Description</FormLabel>
+              <FormLabel>{t('formDescription')}</FormLabel>
               <FormControl>
                 <Textarea 
-                  placeholder="Provide your information to apply for a USA Visa" 
+                  placeholder={t('formDescriptionPlaceholder')} 
                   {...field} 
                   rows={3}
                 />
               </FormControl>
               <FormDescription>
-                Brief description shown below the form title.
+                {t('formDescriptionDesc')}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -123,13 +125,13 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
         
         {isHomeFingerprints ? (
           <FormItem>
-            <FormLabel>Icon</FormLabel>
+            <FormLabel>{t('icon')}</FormLabel>
             <div className="flex items-center gap-2">
               <div className="w-12 h-12 rounded-lg bg-[#001524] flex items-center justify-center text-[#00e5e0]">
                 <Fingerprint size={32} />
               </div>
               <FormDescription>
-                Home Fingerprints service uses a special fingerprint icon.
+                {t('homeFingerprints')}
               </FormDescription>
             </div>
           </FormItem>
@@ -139,7 +141,7 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
             name="flag"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Country Flag</FormLabel>
+                <FormLabel>{t('countryFlag')}</FormLabel>
                 <FormControl>
                   <FlagDropdown
                     currentFlag={field.value}
@@ -147,7 +149,7 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
                   />
                 </FormControl>
                 <FormDescription>
-                  Select a country flag from the dropdown
+                  {t('countryFlagDesc')}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -160,10 +162,10 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
           name="processingTime"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Processing Time</FormLabel>
+              <FormLabel>{t('processingTime')}</FormLabel>
               <FormControl>
                 <Input 
-                  placeholder="Processing time: 3-5 days" 
+                  placeholder={t('processingTimePlaceholder')} 
                   {...field} 
                   value={field.value || ""}
                 />
@@ -179,7 +181,7 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
           onClick={copyToArabic}
           className="w-full"
         >
-          Copy English Content to Arabic Fields
+          {t('copyToArabic')}
         </Button>
       </TabsContent>
       
@@ -189,10 +191,10 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
           name="title_ar"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Service Title (Arabic)</FormLabel>
+              <FormLabel>{t('serviceTitleArabic')}</FormLabel>
               <FormControl>
                 <Input 
-                  placeholder="مثال: تأشيرة أمريكا" 
+                  placeholder={t('serviceTitleArabicPlaceholder')} 
                   {...field} 
                   className="text-right" 
                   dir="rtl"
@@ -200,7 +202,7 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
                 />
               </FormControl>
               <FormDescription>
-                Arabic translation of the service title.
+                {t('serviceTitleArabicDesc')}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -212,10 +214,10 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
           name="formTitle_ar"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Form Title (Arabic)</FormLabel>
+              <FormLabel>{t('formTitleArabic')}</FormLabel>
               <FormControl>
                 <Input 
-                  placeholder="مثال: طلب تأشيرة أمريكا" 
+                  placeholder={t('formTitleArabicPlaceholder')} 
                   {...field} 
                   className="text-right" 
                   dir="rtl"
@@ -223,7 +225,7 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
                 />
               </FormControl>
               <FormDescription>
-                Arabic translation of the form title.
+                {t('formTitleArabicDesc')}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -235,10 +237,10 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
           name="formDescription_ar"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Form Description (Arabic)</FormLabel>
+              <FormLabel>{t('formDescriptionArabic')}</FormLabel>
               <FormControl>
                 <Textarea 
-                  placeholder="قدم معلوماتك للتقديم على تأشيرة أمريكا" 
+                  placeholder={t('formDescriptionArabicPlaceholder')} 
                   {...field} 
                   rows={3}
                   className="text-right"
@@ -247,7 +249,7 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
                 />
               </FormControl>
               <FormDescription>
-                Arabic translation of the form description.
+                {t('formDescriptionArabicDesc')}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -259,10 +261,10 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
           name="processingTime_ar"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Processing Time (Arabic)</FormLabel>
+              <FormLabel>{t('processingTimeArabic')}</FormLabel>
               <FormControl>
                 <Input 
-                  placeholder="وقت المعالجة: 3-5 أيام" 
+                  placeholder={t('processingTimeArabicPlaceholder')} 
                   {...field} 
                   value={field.value || ""}
                   className="text-right"
@@ -270,7 +272,7 @@ export const GeneralFields = ({ form, activeTab = "english", onTabChange }: Gene
                 />
               </FormControl>
               <FormDescription>
-                Arabic translation of the processing time.
+                {t('processingTimeArabicDesc')}
               </FormDescription>
               <FormMessage />
             </FormItem>

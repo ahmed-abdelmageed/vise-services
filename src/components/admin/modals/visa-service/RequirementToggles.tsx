@@ -10,12 +10,15 @@ import {
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { EditVisaServiceFormValues } from "@/hooks/useEditVisaServiceForm";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface RequirementTogglesProps {
   form: UseFormReturn<EditVisaServiceFormValues>;
 }
 
 export const RequirementToggles = ({ form }: RequirementTogglesProps) => {
+  const { t } = useLanguage();
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="space-y-4">
@@ -25,9 +28,9 @@ export const RequirementToggles = ({ form }: RequirementTogglesProps) => {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>Active Status</FormLabel>
+                <FormLabel>{t('activeStatus')}</FormLabel>
                 <FormDescription>
-                  Display this visa service on the website.
+                  {t('activeStatusDesc')}
                 </FormDescription>
               </div>
               <FormControl>
@@ -46,9 +49,9 @@ export const RequirementToggles = ({ form }: RequirementTogglesProps) => {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>Mother's Name Required</FormLabel>
+                <FormLabel>{t('mothersNameRequired')}</FormLabel>
                 <FormDescription>
-                  Require mother's name in the application form.
+                  {t('mothersNameRequiredDesc')}
                 </FormDescription>
               </div>
               <FormControl>
@@ -67,9 +70,9 @@ export const RequirementToggles = ({ form }: RequirementTogglesProps) => {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>Nationality Selection</FormLabel>
+                <FormLabel>{t('nationalitySelection')}</FormLabel>
                 <FormDescription>
-                  Show nationality selection page (e.g., GCC or Others).
+                  {t('nationalitySelectionDesc')}
                 </FormDescription>
               </div>
               <FormControl>
@@ -88,9 +91,9 @@ export const RequirementToggles = ({ form }: RequirementTogglesProps) => {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>Service Selection Required</FormLabel>
+                <FormLabel>{t('serviceSelectionRequired')}</FormLabel>
                 <FormDescription>
-                  Allow selecting between different service options.
+                  {t('serviceSelectionRequiredDesc')}
                 </FormDescription>
               </div>
               <FormControl>
@@ -111,9 +114,9 @@ export const RequirementToggles = ({ form }: RequirementTogglesProps) => {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>Appointment Selection</FormLabel>
+                <FormLabel>{t('appointmentSelection')}</FormLabel>
                 <FormDescription>
-                  Enable selection of appointment types.
+                  {t('appointmentSelectionDesc')}
                 </FormDescription>
               </div>
               <FormControl>
@@ -132,9 +135,9 @@ export const RequirementToggles = ({ form }: RequirementTogglesProps) => {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>Location Selection Required</FormLabel>
+                <FormLabel>{t('locationSelectionRequired')}</FormLabel>
                 <FormDescription>
-                  Allow selecting application location.
+                  {t('locationSelectionRequiredDesc')}
                 </FormDescription>
               </div>
               <FormControl>
@@ -153,9 +156,9 @@ export const RequirementToggles = ({ form }: RequirementTogglesProps) => {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>Visa City Selection</FormLabel>
+                <FormLabel>{t('visaCitySelection')}</FormLabel>
                 <FormDescription>
-                  Allow selecting visa application city.
+                  {t('visaCitySelectionDesc')}
                 </FormDescription>
               </div>
               <FormControl>
@@ -174,9 +177,9 @@ export const RequirementToggles = ({ form }: RequirementTogglesProps) => {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
               <div className="space-y-0.5">
-                <FormLabel>Saudi ID/Iqama Required</FormLabel>
+                <FormLabel>{t('saudiIdIqamaRequired')}</FormLabel>
                 <FormDescription>
-                  Require Saudi ID or Iqama number.
+                  {t('saudiIdIqamaRequiredDesc')}
                 </FormDescription>
               </div>
               <FormControl>

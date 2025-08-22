@@ -10,6 +10,7 @@ import {
 import { VisaConfig } from "@/types/visa";
 import { useEditVisaServiceForm } from "@/hooks/useEditVisaServiceForm";
 import { EditVisaServiceContent } from "./visa-service/EditVisaServiceContent";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface EditVisaServiceDialogProps {
   open: boolean;
@@ -24,6 +25,7 @@ export const EditVisaServiceDialog = ({
   service,
   onServiceUpdated,
 }: EditVisaServiceDialogProps) => {
+  const { t } = useLanguage();
   const { form, isSubmitting, onSubmit } = useEditVisaServiceForm(
     service,
     onServiceUpdated,
@@ -38,9 +40,9 @@ export const EditVisaServiceDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[650px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Visa Service</DialogTitle>
+          <DialogTitle>{t('editVisaService')}</DialogTitle>
           <DialogDescription>
-            Update visa service details. Changes will be reflected on the website immediately.
+            {t('updateVisaServiceDesc')}
           </DialogDescription>
         </DialogHeader>
         

@@ -155,9 +155,9 @@ export const AddVisaServiceDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[650px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Visa Service</DialogTitle>
+          <DialogTitle>{t('addNewVisaService')}</DialogTitle>
           <DialogDescription>
-            Create a new visa service to be displayed on the website.
+            {t('createNewVisaService')}
           </DialogDescription>
         </DialogHeader>
         
@@ -165,8 +165,8 @@ export const AddVisaServiceDialog = ({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <Tabs defaultValue="english" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="english">English</TabsTrigger>
-                <TabsTrigger value="arabic">العربية</TabsTrigger>
+                <TabsTrigger value="english">{t('english')}</TabsTrigger>
+                <TabsTrigger value="arabic">{t('arabic')}</TabsTrigger>
               </TabsList>
               
               <TabsContent value="english" className="space-y-6">
@@ -176,12 +176,12 @@ export const AddVisaServiceDialog = ({
                     name="title"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Service Title</FormLabel>
+                        <FormLabel>{t('serviceTitle')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="E.g., USA Visa" {...field} />
+                          <Input placeholder={t('serviceTitlePlaceholder')} {...field} />
                         </FormControl>
                         <FormDescription>
-                          Country name followed by "Visa" (e.g., USA Visa).
+                          {t('serviceTitleDesc')}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -193,7 +193,7 @@ export const AddVisaServiceDialog = ({
                     name="basePrice"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Base Price (SAR)</FormLabel>
+                        <FormLabel>{t('basePrice')}</FormLabel>
                         <FormControl>
                           <Input type="number" min="0" step="50" {...field} />
                         </FormControl>
@@ -208,12 +208,12 @@ export const AddVisaServiceDialog = ({
                   name="formTitle"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Form Title</FormLabel>
+                      <FormLabel>{t('formTitle')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="E.g., USA Visa Application" {...field} />
+                        <Input placeholder={t('formTitlePlaceholder')} {...field} />
                       </FormControl>
                       <FormDescription>
-                        This title appears at the top of the application form.
+                        {t('formTitleDesc')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -225,16 +225,16 @@ export const AddVisaServiceDialog = ({
                   name="formDescription"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Form Description</FormLabel>
+                      <FormLabel>{t('formDescription')}</FormLabel>
                       <FormControl>
-                        <Textarea 
-                          placeholder="Provide your information to apply for a USA Visa" 
-                          {...field} 
-                          rows={3}
+                        <textarea
+                          placeholder={t('formDescriptionPlaceholder')}
+                          className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                          {...field}
                         />
                       </FormControl>
                       <FormDescription>
-                        Brief description shown below the form title.
+                        {t('formDescriptionDesc')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -267,10 +267,10 @@ export const AddVisaServiceDialog = ({
                     name="processingTime"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Processing Time</FormLabel>
+                        <FormLabel>{t('processingTime')}</FormLabel>
                         <FormControl>
                           <Input 
-                            placeholder="Processing time: 3-5 days" 
+                            placeholder={t('processingTimePlaceholder')} 
                             {...field} 
                             value={field.value || ""}
                           />
@@ -287,7 +287,7 @@ export const AddVisaServiceDialog = ({
                   onClick={copyToArabic}
                   className="w-full"
                 >
-                  Copy English Content to Arabic Fields
+                  {t('copyEnglishToArabic')}
                 </Button>
               </TabsContent>
               
@@ -298,12 +298,12 @@ export const AddVisaServiceDialog = ({
                     name="title_ar"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Service Title (Arabic)</FormLabel>
+                        <FormLabel>{t('serviceTitleArabic')}</FormLabel>
                         <FormControl>
-                          <Input placeholder="مثال: تأشيرة أمريكا" {...field} className="text-right" dir="rtl" />
+                          <Input placeholder={t('serviceTitleArabicPlaceholder')} {...field} className="text-right" dir="rtl" />
                         </FormControl>
                         <FormDescription>
-                          Arabic translation of the service title.
+                          {t('serviceTitleArabicDesc')}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -316,12 +316,12 @@ export const AddVisaServiceDialog = ({
                   name="formTitle_ar"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Form Title (Arabic)</FormLabel>
+                      <FormLabel>{t('formTitleArabic')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="مثال: طلب تأشيرة أمريكا" {...field} className="text-right" dir="rtl" />
+                        <Input placeholder={t('formTitleArabicPlaceholder')} {...field} className="text-right" dir="rtl" />
                       </FormControl>
                       <FormDescription>
-                        Arabic translation of the form title.
+                        {t('formTitleArabicDesc')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -333,10 +333,10 @@ export const AddVisaServiceDialog = ({
                   name="formDescription_ar"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Form Description (Arabic)</FormLabel>
+                      <FormLabel>{t('formDescriptionArabic')}</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="قدم معلوماتك للتقديم على تأشيرة أمريكا" 
+                          placeholder={t('formDescriptionArabicPlaceholder')} 
                           {...field} 
                           rows={3}
                           className="text-right"
@@ -344,7 +344,7 @@ export const AddVisaServiceDialog = ({
                         />
                       </FormControl>
                       <FormDescription>
-                        Arabic translation of the form description.
+                        {t('formDescriptionArabicDesc')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -356,10 +356,10 @@ export const AddVisaServiceDialog = ({
                   name="processingTime_ar"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Processing Time (Arabic)</FormLabel>
+                      <FormLabel>{t('processingTimeArabic')}</FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder="وقت المعالجة: 3-5 أيام" 
+                          placeholder={t('processingTimeArabicPlaceholder')} 
                           {...field} 
                           value={field.value || ""}
                           className="text-right"
@@ -367,7 +367,7 @@ export const AddVisaServiceDialog = ({
                         />
                       </FormControl>
                       <FormDescription>
-                        Arabic translation of the processing time.
+                        {t('processingTimeArabicDesc')}
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -384,9 +384,9 @@ export const AddVisaServiceDialog = ({
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                       <div className="space-y-0.5">
-                        <FormLabel>Active Status</FormLabel>
+                        <FormLabel>{t('activeStatus')}</FormLabel>
                         <FormDescription>
-                          Display this visa service on the website.
+                          {t('activeStatusDesc')}
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -405,9 +405,9 @@ export const AddVisaServiceDialog = ({
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                       <div className="space-y-0.5">
-                        <FormLabel>Mother's Name Required</FormLabel>
+                        <FormLabel>{t('mothersNameRequired')}</FormLabel>
                         <FormDescription>
-                          Require mother's name in the application form.
+                          {t('mothersNameRequiredDesc')}
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -426,9 +426,9 @@ export const AddVisaServiceDialog = ({
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                       <div className="space-y-0.5">
-                        <FormLabel>Nationality Selection</FormLabel>
+                        <FormLabel>{t('nationalitySelection')}</FormLabel>
                         <FormDescription>
-                          Show nationality selection page (e.g., GCC or Others).
+                          {t('nationalitySelectionDesc')}
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -447,9 +447,9 @@ export const AddVisaServiceDialog = ({
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                       <div className="space-y-0.5">
-                        <FormLabel>Service Selection Required</FormLabel>
+                        <FormLabel>{t('serviceSelectionRequired')}</FormLabel>
                         <FormDescription>
-                          Allow selecting between different service options.
+                          {t('serviceSelectionRequiredDesc')}
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -470,9 +470,9 @@ export const AddVisaServiceDialog = ({
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                       <div className="space-y-0.5">
-                        <FormLabel>Appointment Selection</FormLabel>
+                        <FormLabel>{t('appointmentSelection')}</FormLabel>
                         <FormDescription>
-                          Enable selection of appointment types.
+                          {t('appointmentSelectionDesc')}
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -491,9 +491,9 @@ export const AddVisaServiceDialog = ({
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                       <div className="space-y-0.5">
-                        <FormLabel>Location Selection Required</FormLabel>
+                        <FormLabel>{t('locationSelectionRequired')}</FormLabel>
                         <FormDescription>
-                          Allow selecting application location.
+                          {t('locationSelectionRequiredDesc')}
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -512,9 +512,9 @@ export const AddVisaServiceDialog = ({
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                       <div className="space-y-0.5">
-                        <FormLabel>Visa City Selection</FormLabel>
+                        <FormLabel>{t('visaCitySelection')}</FormLabel>
                         <FormDescription>
-                          Allow selecting visa application city.
+                          {t('visaCitySelectionDesc')}
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -533,9 +533,9 @@ export const AddVisaServiceDialog = ({
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                       <div className="space-y-0.5">
-                        <FormLabel>Saudi ID/Iqama Required</FormLabel>
+                        <FormLabel>{t('saudiIdIqamaRequired')}</FormLabel>
                         <FormDescription>
-                          Require Saudi ID or Iqama number.
+                          {t('saudiIdIqamaRequiredDesc')}
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -550,14 +550,14 @@ export const AddVisaServiceDialog = ({
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="flex gap-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={isSubmitting}
               >
-                Cancel
+                {t('cancel')}
               </Button>
               <Button 
                 type="submit" 
@@ -565,9 +565,9 @@ export const AddVisaServiceDialog = ({
                 className="bg-visa-gold hover:bg-visa-gold/90"
               >
                 {isSubmitting ? (
-                  <><Loader className="mr-2 h-4 w-4 animate-spin" /> Adding...</>
+                  <><Loader className="mr-2 h-4 w-4 animate-spin" /> {t('adding')}</>
                 ) : (
-                  <><PlusCircle className="mr-2 h-4 w-4" /> Add Service</>
+                  <><PlusCircle className="mr-2 h-4 w-4" /> {t('addService')}</>
                 )}
               </Button>
             </DialogFooter>

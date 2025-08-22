@@ -13,6 +13,7 @@ import {
 import { VisaConfig } from "@/types/visa";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DeleteVisaServiceDialogProps {
   open: boolean;
@@ -27,11 +28,12 @@ export const DeleteVisaServiceDialog = ({
   service,
   onServiceDeleted,
 }: DeleteVisaServiceDialogProps) => {
+  const { t } = useLanguage();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
     if (!service?.id) {
-      toast.error("Service ID is missing");
+      toast.error(t('serviceIdMissing'));
       return;
     }
 
@@ -45,16 +47,16 @@ export const DeleteVisaServiceDialog = ({
 
       if (error) {
         console.error("Error deleting visa service:", error);
-        toast.error("Failed to delete visa service");
+        toast.error(t('failedToDeleteVisaService'));
         return;
       }
 
-      toast.success("Visa service deleted successfully");
+      toast.success(t('visaServiceDeletedSuccessfully'));
       onServiceDeleted();
       onOpenChange(false);
     } catch (error) {
       console.error("Error in handleDelete:", error);
-      toast.error("An unexpected error occurred");
+      toast.error(t('unexpectedErrorOccurred'));
     } finally {
       setIsDeleting(false);
     }
@@ -64,14 +66,14 @@ export const DeleteVisaServiceDialog = ({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogTitle>{t('areYouSure')}</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete the visa service{" "}
-            <strong>{service?.title}</strong>. This action cannot be undone.
+            {t('deleteVisaServiceWarning')}{" "}
+            <strong>{service?.title}</strong>. {t('thisActionCannotBeUndone')}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+        <AlertDialogFooter className="flex gap-2">
+          <AlertDialogCancel disabled={isDeleting}>{t('cancel')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault();
@@ -80,7 +82,7 @@ export const DeleteVisaServiceDialog = ({
             disabled={isDeleting}
             className="bg-red-600 text-white hover:bg-red-700"
           >
-            {isDeleting ? "Deleting..." : "Delete"}
+            {isDeleting ? t('deleting') : t('delete')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
