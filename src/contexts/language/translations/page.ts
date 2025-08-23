@@ -45,6 +45,23 @@ export const pageTranslations: TranslationDictionary = {
     'valueInnovationDesc': 'We continuously innovate to improve our services and client experience.',
     'whyChooseUs': 'Why Choose Us',
     'whyChooseUsDesc': 'With years of experience and a proven track record, we are committed to making your visa journey as smooth as possible.',
+    
+    // Privacy Policy
+    'privacyIntro': 'Global Visa Services is committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy outlines how we collect, use, and safeguard your data.',
+    'informationWeCollect': 'Information We Collect',
+    'informationWeCollectDesc': 'We collect personal information required for visa applications, including but not limited to names, addresses, passport details, travel history, employment information, and financial information as required by specific visa applications.',
+    'howWeUseInfo': 'How We Use Your Information',
+    'howWeUseInfoDesc': 'We use your information to process visa applications, provide customer service, improve our services, and comply with legal obligations. We do not sell or rent your personal information to third parties.',
+    'informationSharing': 'Information Sharing',
+    'informationSharingDesc': 'We share your information with relevant government authorities as required for visa applications. We may also share information with service providers who assist us in our operations, subject to confidentiality agreements.',
+    'dataSecurity': 'Data Security',
+    'dataSecurityDesc': 'We implement appropriate security measures to protect your personal information from unauthorized access, alteration, disclosure, or destruction. These measures include encryption, secure servers, and regular security assessments.',
+    'dataRetention': 'Data Retention',
+    'dataRetentionDesc': 'We retain your information for as long as necessary to fulfill the purposes outlined in this policy, unless a longer retention period is required or permitted by law.',
+    'yourRights': 'Your Rights',
+    'yourRightsDesc': 'You have the right to access, correct, or delete your personal information, subject to certain limitations. Contact us at visa@gvsksa.com to exercise these rights.',
+    'policyChanges': 'Changes to This Policy',
+    'policyChangesDesc': 'We may update this Privacy Policy periodically. We will notify you of significant changes by posting a notice on our website or sending you an email.',
   },
   ar: {
     // Pages
@@ -89,5 +106,22 @@ export const pageTranslations: TranslationDictionary = {
     'valueInnovationDesc': 'نبتكر باستمرار لتحسين خدماتنا وتجربة العملاء.',
     'whyChooseUs': 'لماذا تختارنا',
     'whyChooseUsDesc': 'مع سنوات من الخبرة وسجل حافل بالإنجازات، نحن ملتزمون بجعل رحلة التأشيرة الخاصة بك سلسة قدر الإمكان.',
+    
+    // Privacy Policy
+    'privacyIntro': 'خدمات التأشيرات العالمية ملتزمة بحماية خصوصيتك وضمان أمان معلوماتك الشخصية. تحدد سياسة الخصوصية هذه كيفية جمع واستخدام وحماية بياناتك.',
+    'informationWeCollect': 'المعلومات التي نجمعها',
+    'informationWeCollectDesc': 'نجمع المعلومات الشخصية المطلوبة لطلبات التأشيرة، بما في ذلك على سبيل المثال لا الحصر الأسماء والعناوين وتفاصيل جواز السفر وتاريخ السفر ومعلومات التوظيف والمعلومات المالية حسب ما تتطلبه طلبات التأشيرة المحددة.',
+    'howWeUseInfo': 'كيف نستخدم معلوماتك',
+    'howWeUseInfoDesc': 'نستخدم معلوماتك لمعالجة طلبات التأشيرة وتقديم خدمة العملاء وتحسين خدماتنا والامتثال للالتزامات القانونية. نحن لا نبيع أو نؤجر معلوماتك الشخصية لأطراف ثالثة.',
+    'informationSharing': 'مشاركة المعلومات',
+    'informationSharingDesc': 'نشارك معلوماتك مع السلطات الحكومية ذات الصلة حسب ما تتطلبه طلبات التأشيرة. قد نشارك أيضاً المعلومات مع مقدمي الخدمات الذين يساعدوننا في عملياتنا، وفقاً لاتفاقيات السرية.',
+    'dataSecurity': 'أمان البيانات',
+    'dataSecurityDesc': 'ننفذ تدابير أمنية مناسبة لحماية معلوماتك الشخصية من الوصول غير المصرح به أو التغيير أو الكشف أو التدمير. تتضمن هذه التدابير التشفير والخوادم الآمنة والتقييمات الأمنية المنتظمة.',
+    'dataRetention': 'الاحتفاظ بالبيانات',
+    'dataRetentionDesc': 'نحتفظ بمعلوماتك للمدة اللازمة لتحقيق الأغراض المحددة في هذه السياسة، ما لم تكن هناك حاجة لفترة احتفاظ أطول أو مسموح بها بموجب القانون.',
+    'yourRights': 'حقوقك',
+    'yourRightsDesc': 'لديك الحق في الوصول إلى معلوماتك الشخصية أو تصحيحها أو حذفها، وفقاً لقيود معينة. اتصل بنا على visa@gvsksa.com لممارسة هذه الحقوق.',
+    'policyChanges': 'التغييرات على هذه السياسة',
+    'policyChangesDesc': 'قد نحدث سياسة الخصوصية هذه بشكل دوري. سنخطرك بالتغييرات المهمة عن طريق نشر إشعار على موقعنا الإلكتروني أو إرسال بريد إلكتروني إليك.',
   }
 };
