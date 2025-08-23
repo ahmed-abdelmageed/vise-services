@@ -62,6 +62,21 @@ export const pageTranslations: TranslationDictionary = {
     'yourRightsDesc': 'You have the right to access, correct, or delete your personal information, subject to certain limitations. Contact us at visa@gvsksa.com to exercise these rights.',
     'policyChanges': 'Changes to This Policy',
     'policyChangesDesc': 'We may update this Privacy Policy periodically. We will notify you of significant changes by posting a notice on our website or sending you an email.',
+    
+    // Terms and Conditions
+    'termsIntro': 'Welcome to Global Visa Services. By accessing or using our services, you agree to the following terms and conditions.',
+    'services': 'Services',
+    'servicesDesc': 'Global Visa Services provides visa application assistance and processing services. We are not a government agency and do not issue visas directly. Our role is to facilitate the application process and provide guidance.',
+    'applicationProcess': 'Application Process',
+    'applicationProcessDesc': 'By submitting an application through our service, you confirm that all information provided is accurate and complete. You understand that providing false information may result in application rejection and potential legal consequences.',
+    'feesAndPayments': 'Fees and Payments',
+    'feesAndPaymentsDesc': 'Our fees are for service provision and are separate from government visa fees. All fees must be paid in advance. Refunds are subject to our refund policy outlined below.',
+    'refundPolicy': 'Refund Policy',
+    'refundPolicyDesc': 'Service fees are non-refundable once we have begun processing your application. If your visa application is rejected, government fees are not refundable through our service.',
+    'liability': 'Liability',
+    'liabilityDesc': 'Global Visa Services is not responsible for visa rejections, delays in processing, or changes in visa requirements by government authorities. Our liability is limited to the service fees paid.',
+    'privacy': 'Privacy',
+    'privacyDesc': 'We collect and process personal information as necessary for visa applications. By using our services, you consent to this processing. For details, please see our Privacy Policy.',
   },
   ar: {
     // Pages
@@ -123,5 +138,20 @@ export const pageTranslations: TranslationDictionary = {
     'yourRightsDesc': 'لديك الحق في الوصول إلى معلوماتك الشخصية أو تصحيحها أو حذفها، وفقاً لقيود معينة. اتصل بنا على visa@gvsksa.com لممارسة هذه الحقوق.',
     'policyChanges': 'التغييرات على هذه السياسة',
     'policyChangesDesc': 'قد نحدث سياسة الخصوصية هذه بشكل دوري. سنخطرك بالتغييرات المهمة عن طريق نشر إشعار على موقعنا الإلكتروني أو إرسال بريد إلكتروني إليك.',
+    
+    // Terms and Conditions
+    'termsIntro': 'مرحباً بكم في خدمات التأشيرات العالمية. من خلال الوصول أو استخدام خدماتنا، فإنك توافق على الشروط والأحكام التالية.',
+    'services': 'الخدمات',
+    'servicesDesc': 'تقدم خدمات التأشيرات العالمية خدمات المساعدة في طلبات التأشيرة ومعالجتها. نحن لسنا وكالة حكومية ولا نصدر التأشيرات مباشرة. دورنا هو تسهيل عملية التقديم وتقديم التوجيه.',
+    'applicationProcess': 'عملية التقديم',
+    'applicationProcessDesc': 'من خلال تقديم طلب من خلال خدمتنا، فإنك تؤكد أن جميع المعلومات المقدمة دقيقة وكاملة. أنت تفهم أن تقديم معلومات خاطئة قد يؤدي إلى رفض الطلب وعواقب قانونية محتملة.',
+    'feesAndPayments': 'الرسوم والمدفوعات',
+    'feesAndPaymentsDesc': 'رسومنا مخصصة لتقديم الخدمة وهي منفصلة عن رسوم التأشيرة الحكومية. يجب دفع جميع الرسوم مقدماً. المبالغ المستردة تخضع لسياسة الاسترداد المحددة أدناه.',
+    'refundPolicy': 'سياسة الاسترداد',
+    'refundPolicyDesc': 'رسوم الخدمة غير قابلة للاسترداد بمجرد أن نبدأ في معالجة طلبك. إذا تم رفض طلب التأشيرة الخاص بك، فإن الرسوم الحكومية غير قابلة للاسترداد من خلال خدمتنا.',
+    'liability': 'المسؤولية',
+    'liabilityDesc': 'خدمات التأشيرات العالمية ليست مسؤولة عن رفض التأشيرات أو التأخير في المعالجة أو التغييرات في متطلبات التأشيرة من قبل السلطات الحكومية. مسؤوليتنا مقتصرة على رسوم الخدمة المدفوعة.',
+    'privacy': 'الخصوصية',
+    'privacyDesc': 'نجمع ونعالج المعلومات الشخصية حسب الضرورة لطلبات التأشيرة. باستخدام خدماتنا، فإنك توافق على هذه المعالجة. للحصول على التفاصيل، يرجى الاطلاع على سياسة الخصوصية الخاصة بنا.',
   }
 };
