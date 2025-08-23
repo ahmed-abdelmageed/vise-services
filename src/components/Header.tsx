@@ -23,7 +23,7 @@ export const Header = ({ className }: HeaderProps) => {
   };
 
   return (
-    <header className={cn(
+    <header dir="rtl" className={cn(
       "bg-white shadow-sm py-3 z-50 h-fit sticky top-0 flex items-center justify-center",
       className
     )}>
