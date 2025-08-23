@@ -43,15 +43,17 @@ export const Footer: React.FC = () => {
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-visa-dark rounded-full blur-3xl"></div>
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-6 py-16">
+      <div className="relative z-10 max-w-6xl mx-auto px-6 py-10">
         {/* Main Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-12">
           {/* Brand Section */}
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-visa-dark via-visa-gold to-visa-gold bg-clip-text text-transparent mb-3">
-                {footerSettings.websiteName}
-              </h2>
+              <div className="flex items-center w-full">
+                <h1 className="text-2xl font-bold text-visa-dark truncate mt-2 w-full">
+                  VISA<span className="text-visa-gold">Services</span>
+                </h1>
+              </div>
               <p className="text-visa-dark text-sm leading-relaxed">
                 {language === "ar"
                   ? "خدماتك للحصول على التأشيرات بسهولة وسرعة"
@@ -79,7 +81,7 @@ export const Footer: React.FC = () => {
               {t("getInTouch")}
             </h3>
 
-            <div className="space-y-4">
+            <div className="space-y-4 w-fit">
               <button
                 onClick={openEmail}
                 className="group flex items-center gap-3 text-visa-dark hover:text-visa-gold transition-all duration-300 w-full text-left"
@@ -103,7 +105,7 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* Quick Links Section */}
-          <div className="space-y-6">
+          <div className="space-y-6 w-fit">
             <h3 className="text-lg font-semibold text-visa-dark flex items-center gap-2">
               <div className="w-1 h-6 bg-gradient-to-b from-visa-gold to-visa-dark rounded-full"></div>
               {t("quickLinks")}
