@@ -25,7 +25,17 @@ export const footerTranslations: TranslationDictionary = {
     'legalInformation': 'Legal Information',
     'vatNo': 'VAT No',
     'crNo': 'CR No',
-    'contactUs':"Contact Us"
+    'contactUs': 'Contact Us',
+    'getInTouch': 'Get in Touch',
+    'followUs': 'Follow Us',
+    'letsConnect': "Let's Connect",
+    'about': 'About Us',
+    'contact': 'Contact Us',
+    'terms': 'Terms & Conditions',
+    'privacy': 'Privacy Policy',
+    'builtWith': 'Built with',
+    'love': 'love',
+    'by': 'by'
   },
   ar: {
     // Footer
@@ -50,6 +60,16 @@ export const footerTranslations: TranslationDictionary = {
     'legalInformation': 'المعلومات القانونية',
     'vatNo': 'رقم ضريبة القيمة المضافة',
     'crNo': 'رقم السجل التجاري',
-    'contactUs':"تواصل معنا"
+    'contactUs': 'تواصل معنا',
+    'getInTouch': 'تواصل معنا',
+    'followUs': 'تابعنا',
+    'letsConnect': 'لنتواصل',
+    'about': 'من نحن',
+    'contact': 'تواصل معنا',
+    'terms': 'الشروط والأحكام',
+    'privacy': 'سياسة الخصوصية',
+    'builtWith': 'صُنع بـ',
+    'love': 'حب',
+    'by': 'من قبل'
   }
 };

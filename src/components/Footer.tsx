@@ -1,16 +1,16 @@
 import React from "react";
-import { Mail, Phone, ExternalLink } from "lucide-react";
+import { Mail, Phone, ExternalLink, Heart, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 // Default footer settings - would be replaced by admin settings in a real implementation
 const defaultFooterSettings = {
-  websiteName: "Global Visa Services",
+  websiteName: "VISA Services",
   email: "visa@gvsksa.com",
   phone: "053199242",
   vatNumber: "000000000",
   crNumber: "000000000",
-  tradeName: "Global Visa Services",
+  tradeName: "VISA Services",
   quickLinks: [
     { id: "about", label: "About Us", url: "/about" },
     { id: "contact", label: "Contact Us", url: "/contact" },
@@ -20,7 +20,7 @@ const defaultFooterSettings = {
 };
 
 export const Footer: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   // In a real implementation, this would fetch from the database
   const footerSettings = defaultFooterSettings;
@@ -33,88 +33,119 @@ export const Footer: React.FC = () => {
     window.open(`mailto:${footerSettings.email}`, "_blank");
   };
 
+  const isRTL = language === "ar";
+
   return (
-    <footer className="bg-gray-50 border-t border-gray-200 pt-10 pb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Left Column */}
-          <div className="flex flex-col items-center text-center">
+    <footer className="relative bg-gradient-to-br from-visa-light via-visa-light to-visa-light text-visa-dark overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-visa-gold rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-visa-dark rounded-full blur-3xl"></div>
+      </div>
 
-          <div className="space-y-4">
-            <h3 className="text-xl text-start font-bold text-visa-dark">
-              {t("contactUs")}
+      <div className="relative z-10 max-w-6xl mx-auto px-6 py-16">
+        {/* Main Content */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-12">
+          {/* Brand Section */}
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-visa-dark via-visa-gold to-visa-gold bg-clip-text text-transparent mb-3">
+                {footerSettings.websiteName}
+              </h2>
+              <p className="text-visa-dark text-sm leading-relaxed">
+                {language === "ar"
+                  ? "خدماتك للحصول على التأشيرات بسهولة وسرعة"
+                  : "Your trusted partner for visa services, making travel dreams come true."}
+              </p>
+            </div>
+
+            {/* Legal Info */}
+            {/* <div className="space-y-2 text-xs text-slate-400">
+              <div className="flex items-center gap-2">
+                <span className="font-medium">{t("vatNo")}:</span>
+                <span>{footerSettings.vatNumber}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-medium">{t("crNo")}:</span>
+                <span>{footerSettings.crNumber}</span>
+              </div>
+            </div> */}
+          </div>
+
+          {/* Contact Section */}
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-visa-dark flex items-center gap-2">
+              <div className="w-1 h-6 bg-gradient-to-b from-visa-gold to-yellow-400 rounded-full"></div>
+              {t("getInTouch")}
             </h3>
 
-            <button
-              onClick={openEmail}
-              className="flex gap-4 items-center text-gray-600 hover:text-visa-gold transition-colors"
-            >
-              <Mail className="w-5 h-5 mr-1 text-visa-gold" />
-              {footerSettings.email}
-            </button>
+            <div className="space-y-4">
+              <button
+                onClick={openEmail}
+                className="group flex items-center gap-3 text-visa-dark hover:text-visa-gold transition-all duration-300 w-full text-left"
+              >
+                <Mail className="w-5 h-5 group-hover:text-visa-gold transition-colors text-visa-dark" />
+                <span className="text-sm group-hover:translate-x-1 transition-transform duration-300">
+                  {footerSettings.email}
+                </span>
+              </button>
 
-            <button
-              onClick={openWhatsApp}
-              className="flex gap-4 items-center text-gray-600 hover:text-visa-gold transition-colors"
-            >
-              <Phone className="w-5 h-5 mr-1 text-visa-gold" />
-              {footerSettings.phone}
-            </button>
-          </div>
+              <button
+                onClick={openWhatsApp}
+                className="group flex items-center gap-3 text-visa-dark hover:text-visa-gold transition-all duration-300 w-full text-left"
+              >
+                <Phone className="w-5 h-5 group-hover:text-visa-gold transition-colors text-visa-dark" />
+                <span className="text-sm group-hover:translate-x-1 transition-transform duration-300">
+                  {footerSettings.phone}
+                </span>
+              </button>
+            </div>
           </div>
 
-          {/* Middle Column */}
-          <div className="flex flex-col items-center text-center">
-            <h3 className="text-lg font-semibold text-visa-dark mb-4">
+          {/* Quick Links Section */}
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-visa-dark flex items-center gap-2">
+              <div className="w-1 h-6 bg-gradient-to-b from-visa-gold to-visa-dark rounded-full"></div>
               {t("quickLinks")}
             </h3>
-            <ul className="space-y-2">
-              {footerSettings.quickLinks.map((link) => (
-                <li key={link.id}>
-                  <Link
-                    to={link.url}
-                    target="_blank"
-                    className="text-gray-600 hover:text-visa-gold transition-colors flex items-center"
-                  >
-                    <span className="w-5 flex justify-start  ml-2">
-                      <ExternalLink className="w-4 h-4 " />
-                    </span>
-                    <span className="ml-3">{t(link.id) || link.label}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
 
-          {/* Right Column */}
-          <div className="flex flex-col items-center text-center">
-            <h3 className="text-lg font-semibold text-visa-dark mb-4">
-              {t("quickLinks")}
-            </h3>
-            <ul className="space-y-2">
+            <div className="grid grid-cols-1 gap-3">
               {footerSettings.quickLinks.map((link) => (
-                <li key={link.id}>
-                  <Link
-                    to={link.url}
-                    target="_blank"
-                    className="text-gray-600 hover:text-visa-gold transition-colors flex items-center"
-                  >
-                    <span className="w-5 flex justify-start  ml-2">
-                      <ExternalLink className="w-4 h-4 " />
-                    </span>{" "}
-                    <span className="ml-2">{t(link.id) || link.label}</span>
-                  </Link>
-                </li>
+                <Link
+                  key={link.id}
+                  to={link.url}
+                  className="group flex items-center gap-3 text-visa-dark hover:text-visa-gold transition-all duration-300"
+                >
+                  <ExternalLink className="w-4 h-4 group-hover:text-visa-gold transition-colors" />
+
+                  <span className="text-sm group-hover:translate-x-1 transition-transform duration-300">
+                    {t(link.id) || link.label}
+                  </span>
+                </Link>
               ))}
-            </ul>
+            </div>
           </div>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          <p className="text-sm text-center text-gray-500">
-            &copy; {new Date().getFullYear()} {footerSettings.websiteName}.{" "}
-            {t("allRightsReserved")}.
-          </p>
+        {/* Bottom Section */}
+        <div className="border-t border-slate-700/50 pt-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-slate-400 text-sm">
+              <span>
+                &copy; {new Date().getFullYear()} {footerSettings.websiteName}.
+              </span>
+              <span>{t("allRightsReserved")}.</span>
+            </div>
+
+            {/* <div className="flex items-center gap-2 text-slate-400 text-sm">
+              <span>{t("builtWith")}</span>
+              <Heart className="w-4 h-4 text-red-400 animate-pulse" />
+              <span>{t("by")}</span>
+              <span className="text-visa-gold font-medium">
+                Global Visa Services
+              </span>
+            </div> */}
+          </div>
         </div>
       </div>
     </footer>
