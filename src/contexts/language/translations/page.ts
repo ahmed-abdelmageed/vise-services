@@ -15,6 +15,20 @@ export const pageTranslations: TranslationDictionary = {
     'submitButton': 'Submit',
     'address': 'Address',
     
+    // Contact Form
+    'fullName': 'Full Name',
+    'email': 'Email',
+    'phone': 'Phone',
+    'subject': 'Subject',
+    'message': 'Message',
+    'submit': 'Send Message',
+    'getInTouch': 'Get in Touch',
+    'contactFormDesc': 'Have a question? We\'d love to hear from you. Send us a message and we\'ll respond as soon as possible.',
+    'officeHours': 'Office Hours',
+    'officeHoursTime': 'Sunday - Thursday: 9:00 AM - 6:00 PM',
+    'responseTime': 'Response Time',
+    'responseTimeDesc': 'We typically respond within 24 hours',
+    
     // About Page
     'aboutDescription1': 'Global Visa Services is a leading provider of visa and immigration services, specializing in helping clients navigate the complex visa application process.',
     'aboutDescription2': 'Our team of experienced professionals is dedicated to delivering personalized service and expert guidance to ensure a smooth and successful visa application experience.',
@@ -44,6 +58,20 @@ export const pageTranslations: TranslationDictionary = {
     'messageField': 'الرسالة',
     'submitButton': 'إرسال',
     'address': 'العنوان',
+    
+    // Contact Form
+    'fullName': 'الاسم الكامل',
+    'email': 'البريد الإلكتروني',
+    'phone': 'الهاتف',
+    'subject': 'الموضوع',
+    'message': 'الرسالة',
+    'submit': 'إرسال الرسالة',
+    'getInTouch': 'تواصل معنا',
+    'contactFormDesc': 'هل لديك سؤال؟ نحن نحب أن نسمع منك. أرسل لنا رسالة وسنرد في أقرب وقت ممكن.',
+    'officeHours': 'ساعات العمل',
+    'officeHoursTime': 'الأحد - الخميس: 9:00 صباحاً - 6:00 مساءً',
+    'responseTime': 'وقت الاستجابة',
+    'responseTimeDesc': 'عادة ما نرد خلال 24 ساعة',
     
     // About Page
     'aboutDescription1': 'خدمات التأشيرات العالمية هي مزود رائد لخدمات التأشيرات والهجرة، متخصصة في مساعدة العملاء على التنقل في عملية طلب التأشيرة المعقدة.',
