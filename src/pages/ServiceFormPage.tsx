@@ -3,18 +3,20 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Service } from "@/types/visa";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { ServiceForm } from "@/components/visa-form/ServiceForm";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 
 const ServiceFormPage = () => {
-  const { serviceTitle: routeServiceTitle } = useParams<{ serviceTitle: string }>();
+  const { serviceTitle: routeServiceTitle } = useParams<{
+    serviceTitle: string;
+  }>();
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const isArabic = language === 'ar';
+  const isArabic = language === "ar";
 
   useEffect(() => {
     const fetchService = async () => {
@@ -25,10 +27,10 @@ const ServiceFormPage = () => {
         const decodedTitle = decodeURIComponent(routeServiceTitle);
 
         const { data: exactMatches } = await supabase
-          .from('visa_services')
-          .select('*')
-          .eq(isArabic ? 'title_ar' : 'title', decodedTitle)
-          .eq('active', true);
+          .from("visa_services")
+          .select("*")
+          .eq(isArabic ? "title_ar" : "title", decodedTitle)
+          .eq("active", true);
 
         if (exactMatches?.length) {
           setSelectedService(transformDbServiceToService(exactMatches[0]));
@@ -36,13 +38,14 @@ const ServiceFormPage = () => {
         }
 
         const { data: allServices } = await supabase
-          .from('visa_services')
-          .select('*')
-          .eq('active', true);
+          .from("visa_services")
+          .select("*")
+          .eq("active", true);
 
-        const matchedService = allServices?.find(s =>
-          (s.title?.toLowerCase() === decodedTitle.toLowerCase()) ||
-          (s.title_ar === decodedTitle)
+        const matchedService = allServices?.find(
+          (s) =>
+            s.title?.toLowerCase() === decodedTitle.toLowerCase() ||
+            s.title_ar === decodedTitle
         );
 
         if (matchedService) {
@@ -50,7 +53,6 @@ const ServiceFormPage = () => {
         } else {
           navigate("/");
         }
-
       } catch (error) {
         console.error("Fetch error:", error);
         navigate("/");
@@ -81,7 +83,8 @@ const ServiceFormPage = () => {
     requiresMothersName: dbService.requiresmothersname,
     requiresNationalitySelection: dbService.requiresnationalityselection,
     requiresServiceSelection: dbService.requiresserviceselection,
-    requiresAppointmentTypeSelection: dbService.requiresappointmenttypeselection,
+    requiresAppointmentTypeSelection:
+      dbService.requiresappointmenttypeselection,
     requiresLocationSelection: dbService.requireslocationselection,
     requiresVisaCitySelection: dbService.requiresvisacityselection,
     requiresSaudiIdIqama: dbService.requiressaudiidiqama,
@@ -90,13 +93,17 @@ const ServiceFormPage = () => {
 
   const handleBackClick = () => navigate("/");
 
-  const displayServiceTitle = isArabic ? selectedService?.title_ar : selectedService?.title;
-  const serviceDescription = isArabic ? selectedService?.description_ar : selectedService?.description;
+  const displayServiceTitle = isArabic
+    ? selectedService?.title_ar
+    : selectedService?.title;
+  const serviceDescription = isArabic
+    ? selectedService?.description_ar
+    : selectedService?.description;
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">{t('loading')}</p>
+        <p className="text-gray-500">{t("loading")}</p>
       </div>
     );
   }
@@ -105,9 +112,9 @@ const ServiceFormPage = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center text-center">
         <div>
-          <p className="text-gray-500">{t('noData')}</p>
+          <p className="text-gray-500">{t("noData")}</p>
           <Button variant="outline" className="mt-4" onClick={handleBackClick}>
-            {t('backToServices')}
+            {t("backToServices")}
           </Button>
         </div>
       </div>
@@ -117,17 +124,21 @@ const ServiceFormPage = () => {
   return (
     <div className="min-h-screen bg-gray-50" dir={isArabic ? "rtl" : "ltr"}>
       <Header />
-      <div className="container mx-auto px-4 py-4 sm:py-8 form-container">
+      <div className="container mx-auto py-4 sm:py-8 form-container">
         <Button
           variant="ghost"
-          className={`mb-4 sm:mb-6 flex items-center ${isArabic ? "flex-row-reverse" : "flex-row"}`}
+          className={`mb-4 sm:mb-6 flex items-center`}
           onClick={handleBackClick}
         >
-          <ArrowLeft className={`${isArabic ? "ml-2" : "mr-2"}`} />
-          {t('backToServices')}
+          {isArabic ? (
+            <ArrowRight className={`${isArabic ? "ml-2" : "mr-2"}`} />
+          ) : (
+            <ArrowLeft className={`${isArabic ? "ml-2" : "mr-2"}`} />
+          )}
+          {t("backToServices")}
         </Button>
 
-        <div className="bg-white rounded-lg shadow-md p-3 sm:p-6 mb-6 sm:mb-8 form-card">
+        <div className="bg-white rounded-lg shadow-md sm:p-6 mb-6 sm:mb-8 form-card">
           {/* <div className={`flex items-center gap-2 sm:gap-4 mb-4 sm:mb-6`}>
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden bg-visa-light flex items-center justify-center">
               <img

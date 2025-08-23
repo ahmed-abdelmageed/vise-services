@@ -110,7 +110,7 @@ export const ServiceForm = ({ selectedService, onBack }: ServiceFormProps) => {
         </button> */}
 
         <Card className="max-w-3xl mx-auto bg-white/90 backdrop-blur-sm shadow-lg animate-fadeIn form-card">
-          <CardHeader className="border-b border-gray-100 bg-visa-light p-3 sm:p-6">
+          <CardHeader className="border-b border-gray-100 bg-visa-light sm:p-6">
             <div className="flex items-center gap-2 sm:gap-4">
               <div className="p-2 sm:p-3 rounded-lg bg-white/50 flex items-center justify-center">
                 <img
@@ -124,7 +124,7 @@ export const ServiceForm = ({ selectedService, onBack }: ServiceFormProps) => {
                   {displayTitle}
                 </CardTitle>
                 {formDescription && (
-                  <p className="text-xs sm:text-sm text-gray-600 mt-0 sm:mt-1">
+                  <p className="text-xs sm:text-sm text-gray-600 mt-0 sm:mt-1 text-start">
                     {formDescription}
                   </p>
                 )}

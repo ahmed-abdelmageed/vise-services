@@ -49,7 +49,7 @@ export const PersonalInfoStep = ({
   visaCity,
   setVisaCity,
 }: StepProps) => {
-const { t, language } = useLanguage();
+  const { t, language } = useLanguage();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -250,13 +250,13 @@ const { t, language } = useLanguage();
               <SelectValue placeholder="Select nationality" />
             </SelectTrigger>
             <SelectContent className="bg-white">
-            {GCC_NATIONALITIES.map((nationality) => (
-  <SelectItem key={nationality.value} value={nationality.value}>
-    {language === "ar" ? nationality.label : nationality.englishLabel}
-  </SelectItem>
-))}
-
-
+              {GCC_NATIONALITIES.map((nationality) => (
+                <SelectItem key={nationality.value} value={nationality.value}>
+                  {language === "ar"
+                    ? nationality.label
+                    : nationality.englishLabel}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -322,7 +322,7 @@ const { t, language } = useLanguage();
           </div>
         ) : (
           <div className="border rounded-md p-1 bg-white w-full">
-            <div className="flex justify-center">
+            <div className="flex justify-center w-full">
               <Calendar
                 mode="single"
                 selected={travelDate}

@@ -26,6 +26,21 @@ export const formTranslations: TranslationDictionary = {
     'selectCity': 'Select Visa City',
     'total': 'Total Price',
     
+    // Account Step
+    'createAccount': 'Create Account',
+    'createAccountDesc': 'Create an account to track your application status and for future visa applications.',
+    'phoneNumberDesc': 'This number will be used for communication about your application',
+    'processingTime': 'Processing Time',
+    'totalPrice': 'Total Price',
+    'selectedService': 'Selected Service',
+    'appointmentType': 'Appointment Type',
+    'location': 'Location',
+    'travellerSummary': 'Traveller Summary',
+    'previous': 'Previous',
+    'submitApplication': 'Submit Application',
+    'passwordsDontMatch': 'Passwords do not match',
+    'perTraveller': 'per traveller',
+    
     // Documents Step
     'uploadDocuments': 'Upload Documents',
     'uploadDocumentsDesc': 'Please upload the required documents for all travellers.',
@@ -78,6 +93,21 @@ export const formTranslations: TranslationDictionary = {
     'submit': 'تقديم الطلب',
     'selectCity': 'اختر مدينة التأشيرة',
     'total': 'السعر الإجمالي',
+    
+    // Account Step
+    'createAccount': 'إنشاء حساب',
+    'createAccountDesc': 'أنشئ حساباً لتتبع حالة طلبك وللطلبات المستقبلية.',
+    'phoneNumberDesc': 'سيتم استخدام هذا الرقم للتواصل بشأن طلبك',
+    'processingTime': 'وقت المعالجة',
+    'totalPrice': 'السعر الإجمالي',
+    'selectedService': 'الخدمة المختارة',
+    'appointmentType': 'نوع الموعد',
+    'location': 'الموقع',
+    'travellerSummary': 'ملخص المسافرين',
+    'previous': 'السابق',
+    'submitApplication': 'تقديم الطلب',
+    'passwordsDontMatch': 'كلمات المرور غير متطابقة',
+    'perTraveller': 'لكل مسافر',
     
     // Documents Step
     'uploadDocuments': 'رفع المستندات',

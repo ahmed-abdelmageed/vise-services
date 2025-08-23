@@ -36,7 +36,7 @@ export const AccountStep = ({
     
     // Make sure password and confirm password match
     if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(t("passwordsDontMatch"));
       return;
     }
     
@@ -46,14 +46,14 @@ export const AccountStep = ({
 
   return (
     <div className="space-y-3 sm:space-y-4 animate-fadeIn form-inputs">
-      <h3 className="text-lg font-medium text-visa-dark">Create Account</h3>
+      <h3 className="text-lg font-medium text-visa-dark">{t('createAccount')}</h3>
       <p className="text-xs sm:text-sm text-gray-600">
-        Create an account to track your application status and for future visa applications.
+        {t('createAccountDesc')}
       </p>
       
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-          Email Address <span className="text-red-500">*</span>
+        <label htmlFor="email" className="text-start block text-sm font-medium text-gray-700 mb-1">
+          {t('email')} <span className="text-red-500">*</span>
         </label>
         <Input 
           id="email" 
@@ -67,18 +67,18 @@ export const AccountStep = ({
       </div>
 
       <div>
-        <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
-          Phone Number <span className="text-red-500">*</span>
+        <label htmlFor="phoneNumber" className="text-start block text-sm font-medium text-gray-700 mb-1">
+          {t('phoneNumber')} <span className="text-red-500">*</span>
         </label>
-        <div className="flex">
+        <div className="grid grid-cols-3 gap-1">
           <Select 
             onValueChange={value => handleSelectChange("countryCode", value)} 
             value={formData.countryCode}
           >
-            <SelectTrigger className="w-[90px] sm:w-[120px] rounded-r-none border-r-0">
+            <SelectTrigger className="w-full rounded border">
               <SelectValue placeholder="+966" />
             </SelectTrigger>
-            <SelectContent className="max-h-60 bg-white">
+            <SelectContent className="max-h-60 bg-white col-span-1">
               {COUNTRY_CODES.map(country => (
                 <SelectItem key={country.code} value={country.code}>
                   {country.code} {country.country}
@@ -92,17 +92,17 @@ export const AccountStep = ({
             type="tel" 
             value={formData.phoneNumber} 
             onChange={handleChange} 
-            className="flex-1 rounded-l-none" 
+            className="flex-1 rounded col-span-2" 
             placeholder="Phone number" 
             required 
           />
         </div>
-        <p className="text-xs text-gray-500 mt-1">This number will be used for communication about your application</p>
+        <p className="text-start text-xs text-gray-500 mt-1">{t('phoneNumberDesc')}</p>
       </div>
       
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-          Password <span className="text-red-500">*</span>
+        <label htmlFor="password" className="text-start block text-sm font-medium text-gray-700 mb-1">
+          {t('password')} <span className="text-red-500">*</span>
         </label>
         <Input 
           id="password" 
@@ -116,8 +116,8 @@ export const AccountStep = ({
       </div>
       
       <div>
-        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-          Confirm Password <span className="text-red-500">*</span>
+        <label htmlFor="confirmPassword" className="text-start block text-sm font-medium text-gray-700 mb-1">
+          {t('confirmPassword')} <span className="text-red-500">*</span>
         </label>
         <Input 
           id="confirmPassword" 
@@ -143,14 +143,14 @@ export const AccountStep = ({
         <div className="flex items-center justify-between">
           <div>
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-              Processing Time
+              {t('processingTime')}
             </label>
             <p className="text-xs sm:text-sm text-visa-dark">{selectedService.time}</p>
           </div>
           
           <div>
             <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-              Total Price
+              {t('totalPrice')}
             </label>
             <div className="text-base sm:text-xl font-bold text-visa-gold">{totalPrice} ﷼</div>
           </div>
@@ -161,19 +161,19 @@ export const AccountStep = ({
       {selectedService.title === "Spain Visa" && (
         <div className="border p-3 sm:p-4 rounded-lg bg-gray-50">
           <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-            Selected Service
+            {t('selectedService')}
           </label>
           <div className="text-xs sm:text-sm flex justify-between">
             <span className="font-medium">
-              Appointment Type:
+              {t('appointmentType')}:
             </span>
             <span className="text-visa-dark">
-              {SPAIN_APPOINTMENT_TYPES.find(type => type.id === appointmentType)?.name} ({basePrice} ﷼ per traveller)
+              {SPAIN_APPOINTMENT_TYPES.find(type => type.id === appointmentType)?.name} ({basePrice} ﷼ {t('perTraveller')})
             </span>
           </div>
           <div className="text-xs sm:text-sm flex justify-between mt-1">
             <span className="font-medium">
-              Location:
+              {t('location')}:
             </span>
             <span className="text-visa-dark">
               {SPAIN_LOCATIONS.find(loc => loc.id === userLocation)?.name}
@@ -185,12 +185,12 @@ export const AccountStep = ({
       {/* Simple traveller summary in final step */}
       <div className="border p-3 sm:p-4 rounded-md bg-gray-50">
         <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-          Traveller Summary
+          {t('travellerSummary')}
         </label>
         <div className="space-y-1 sm:space-y-2">
           {travellers.map((traveller, index) => (
             <div key={index} className="text-xs sm:text-sm flex justify-between">
-              <span className="font-medium">Traveller {index + 1}:</span>
+              <span className="font-medium">{t('traveller')} {index + 1}:</span>
               <span className="text-visa-dark">{traveller.fullName}</span>
             </div>
           ))}
@@ -204,14 +204,14 @@ export const AccountStep = ({
           variant="outline" 
           className="w-1/2"
         >
-          Previous
+          {t('previous')}
         </Button>
         <Button 
           type="submit" 
           onClick={handleFinalSubmit}
           className="w-1/2 bg-visa-gold hover:bg-visa-gold/90 text-white"
         >
-          Submit Application
+          {t('submitApplication')}
         </Button>
       </div>
     </div>
