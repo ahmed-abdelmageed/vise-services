@@ -63,7 +63,7 @@ export const Header = ({ className }: HeaderProps) => {
               className="flex items-center justify-center border rounded-full border-gray-300 hover:bg-visa-light/20"
             >
               <Globe className="h-4 w-4" />
-              <span className={isMobile ? "sr-only" : "hidden sm:inline mt-1"}>{t('changeLanguage')}</span>
+              <span className={isMobile ? "sr-only" : "hidden sm:inline"}>{t('changeLanguage')}</span>
             </Button>
           </div>
         </div>
