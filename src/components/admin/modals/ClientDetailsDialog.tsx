@@ -75,7 +75,7 @@ export const ClientDetailsDialog = ({
   onDataChanged,
 }: ClientDetailsDialogProps) => {
   const [clientDocuments, setClientDocuments] = useState<ClientDocument[]>([]);
-  console.log("🚀 ~ ClientDetailsDialog ~ clientDocuments:", clientDocuments)
+  console.log("🚀 ~ ClientDetailsDialog ~ clientDocuments:", clientDocuments);
   const [applicationFiles, setApplicationFiles] = useState<{
     passportFiles: FileData[];
     photoFiles: FileData[];
@@ -94,9 +94,9 @@ export const ClientDetailsDialog = ({
   const [imageViewerFile, setImageViewerFile] = useState<{
     url: string;
     name: string;
-    type?: 'image' | 'pdf';
+    type?: "image" | "pdf";
   } | null>(null);
-  console.log("🚀 ~ ClientDetailsDialog ~ imageViewerFile:", imageViewerFile)
+  console.log("🚀 ~ ClientDetailsDialog ~ imageViewerFile:", imageViewerFile);
 
   useEffect(() => {
     if (open && selectedCustomer) {
@@ -162,26 +162,39 @@ export const ClientDetailsDialog = ({
   const handlePreviewDocument = (url: string, fileName?: string) => {
     try {
       const validUrl = getValidUrl(url);
-      console.log("🚀 ~ handlePreviewDocument ~ validUrl:", validUrl)
-      
+      console.log("🚀 ~ handlePreviewDocument ~ validUrl:", validUrl);
+
       // Get file extension from URL or fileName
       const getFileExtension = (str: string) => {
         const match = str.match(/\.([^.?]+)(\?|$)/);
-        return match ? match[1].toLowerCase() : '';
+        return match ? match[1].toLowerCase() : "";
       };
-      
+
       const fileExtension = getFileExtension(validUrl);
       console.log("🚀 ~ handlePreviewDocument ~ fileExtension:", fileExtension);
-      
-      const isImageFile = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(fileExtension);
-      const isPdfFile = fileExtension === 'pdf';
-      
-      console.log("🚀 ~ handlePreviewDocument ~ isImageFile:", isImageFile, "isPdfFile:", isPdfFile);
-      
+
+      const isImageFile = [
+        "jpg",
+        "jpeg",
+        "png",
+        "gif",
+        "bmp",
+        "webp",
+        "svg",
+      ].includes(fileExtension);
+      const isPdfFile = fileExtension === "pdf";
+
+      console.log(
+        "🚀 ~ handlePreviewDocument ~ isImageFile:",
+        isImageFile,
+        "isPdfFile:",
+        isPdfFile
+      );
+
       setImageViewerFile({
         url: validUrl,
         name: "Document",
-        type: isPdfFile ? 'pdf' : isImageFile ? 'image' : 'pdf' // Default to PDF for unknown types
+        type: isPdfFile ? "pdf" : isImageFile ? "image" : "pdf", // Default to PDF for unknown types
       });
       setImageViewerOpen(true);
     } catch (error) {
@@ -275,310 +288,414 @@ export const ClientDetailsDialog = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-full max-w-5xl max-h-[90vh] overflow-y-auto p-4">
-          <DialogHeader>
-            <DialogTitle className="text-xl md:text-2xl">
-              Client Details
-            </DialogTitle>
-          </DialogHeader>
+        <DialogContent className="w-full max-w-6xl max-h-[95vh] p-0 min-h-[80vh] overflow-y-auto">
+          <div className="flex flex-col h-full">
+            <DialogHeader className="px-4 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <DialogTitle className="text-xl md:text-2xl font-semibold">
+                Client Details
+              </DialogTitle>
+            </DialogHeader>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
-              <TabsTrigger value="details">Client Details</TabsTrigger>
-              <TabsTrigger value="invoices">Invoices</TabsTrigger>
-              <TabsTrigger
-                value="documents"
-                className="relative"
-                disabled={documentsFetching}
-              >
-                Documents
-                {hasFiles && (
-                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-5 h-5 text-xs flex items-center justify-center">
-                    {clientDocuments.length +
-                      applicationFiles.passportFiles.length +
-                      applicationFiles.photoFiles.length}
-                  </span>
-                )}
-              </TabsTrigger>
-            </TabsList>
+            <div className="flex-1 overflow-y-auto px-4 py-3">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid w-full grid-cols-3 mb-6 sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                  <TabsTrigger value="details" className="text-xs sm:text-sm">
+                    Details
+                  </TabsTrigger>
+                  <TabsTrigger value="invoices" className="text-xs sm:text-sm">
+                    Invoices
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="documents"
+                    className="relative text-xs sm:text-sm"
+                    disabled={documentsFetching}
+                  >
+                    Documents
+                    {hasFiles && (
+                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-4 h-4 text-xs flex items-center justify-center">
+                        {clientDocuments.length +
+                          applicationFiles.passportFiles.length +
+                          applicationFiles.photoFiles.length}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                </TabsList>
 
-            {/* === Client Details Tab === */}
-            <TabsContent value="details" className="space-y-6">
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                <Avatar className="h-16 w-16 bg-primary/10 text-primary">
-                  <AvatarFallback className="text-lg">
-                    {`${selectedCustomer.first_name?.[0] || ""}${
-                      selectedCustomer.last_name?.[0] || ""
-                    }`}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-center sm:text-left">
-                  <h3 className="text-lg md:text-xl font-semibold">{`${
-                    selectedCustomer.first_name || ""
-                  } ${selectedCustomer.last_name || ""}`}</h3>
-                  <p className="text-muted-foreground">
-                    {selectedCustomer.email}
-                  </p>
-                  <p className="text-muted-foreground">
-                    {selectedCustomer.phone || "No phone provided"}
-                  </p>
-                </div>
-              </div>
+                {/* === Client Details Tab === */}
+                <TabsContent value="details" className="space-y-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-lg border">
+                    <Avatar className="h-16 w-16 bg-primary/10 text-primary border-2 border-primary/20">
+                      <AvatarFallback className="text-lg font-semibold">
+                        {`${selectedCustomer.first_name?.[0] || ""}${
+                          selectedCustomer.last_name?.[0] || ""
+                        }`}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="text-center sm:text-left space-y-1">
+                      <h3 className="text-lg md:text-xl font-semibold text-foreground">{`${
+                        selectedCustomer.first_name || ""
+                      } ${selectedCustomer.last_name || ""}`}</h3>
+                      <p className="text-muted-foreground text-sm">
+                        {selectedCustomer.email}
+                      </p>
+                      <p className="text-muted-foreground text-sm">
+                        {selectedCustomer.phone || "No phone provided"}
+                      </p>
+                    </div>
+                  </div>
 
-              <div className="bg-muted p-4 rounded-lg">
-                <h4 className="font-medium mb-3">Application Details</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  {[
-                    ["Reference ID:", selectedCustomer.reference_id || "N/A"],
-                    [
-                      "Status:",
-                      <StatusBadge
-                        status={selectedCustomer.status || "Pending"}
-                      />,
-                    ],
-                    ["Service Type:", selectedCustomer.service_type],
-                    ["Country:", selectedCustomer.country],
-                    ["Visa Type:", selectedCustomer.visa_type || "Standard"],
-                    [
-                      "Travel Date:",
-                      selectedCustomer.travel_date
-                        ? format(
-                            new Date(selectedCustomer.travel_date),
-                            "MMM d, yyyy"
-                          )
-                        : "Not specified",
-                    ],
-                    [
-                      "Travelers:",
-                      `${selectedCustomer.adults || 1} Adults, ${
-                        selectedCustomer.children || 0
-                      } Children`,
-                    ],
-                    [
-                      "Total Price:",
-                      selectedCustomer.total_price
-                        ? `﷼${selectedCustomer.total_price}`
-                        : "N/A",
-                    ],
-                    [
-                      "Created:",
-                      selectedCustomer.created_at
-                        ? format(
-                            new Date(selectedCustomer.created_at),
-                            "MMM d, yyyy"
-                          )
-                        : "N/A",
-                    ],
-                  ].map(([label, value], index) => (
-                    <React.Fragment key={index}>
-                      <div className="text-muted-foreground">{label}</div>
-                      <div
-                        className={
-                          typeof value === "string"
-                            ? "font-medium font-mono"
-                            : ""
-                        }
-                      >
-                        {value}
-                      </div>
-                    </React.Fragment>
-                  ))}
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* === Invoices Tab === */}
-            <TabsContent value="invoices">
-              <div className="bg-muted p-4 rounded-lg">
-                <h4 className="font-medium mb-2">Invoice Information</h4>
-                {invoices.filter((inv) => inv.client_id === selectedCustomer.id)
-                  .length > 0 ? (
-                  <div className="space-y-4">
-                    {invoices
-                      .filter((inv) => inv.client_id === selectedCustomer.id)
-                      .map((invoice) => (
+                  <div className="bg-muted/50 p-4 rounded-lg border">
+                    <h4 className="font-semibold mb-4 text-foreground">
+                      Application Details
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                      {[
+                        [
+                          "Reference ID:",
+                          selectedCustomer.reference_id || "N/A",
+                        ],
+                        [
+                          "Status:",
+                          <StatusBadge
+                            key="status"
+                            status={selectedCustomer.status || "Pending"}
+                          />,
+                        ],
+                        ["Service Type:", selectedCustomer.service_type],
+                        ["Country:", selectedCustomer.country],
+                        [
+                          "Visa Type:",
+                          selectedCustomer.visa_type || "Standard",
+                        ],
+                        [
+                          "Travel Date:",
+                          selectedCustomer.travel_date
+                            ? format(
+                                new Date(selectedCustomer.travel_date),
+                                "MMM d, yyyy"
+                              )
+                            : "Not specified",
+                        ],
+                        [
+                          "Travelers:",
+                          `${selectedCustomer.adults || 1} Adults, ${
+                            selectedCustomer.children || 0
+                          } Children`,
+                        ],
+                        [
+                          "Total Price:",
+                          selectedCustomer.total_price
+                            ? `﷼${selectedCustomer.total_price}`
+                            : "N/A",
+                        ],
+                        [
+                          "Created:",
+                          selectedCustomer.created_at
+                            ? format(
+                                new Date(selectedCustomer.created_at),
+                                "MMM d, yyyy"
+                              )
+                            : "N/A",
+                        ],
+                      ].map(([label, value], index) => (
                         <div
-                          key={invoice.id}
-                          className="bg-background p-4 rounded border"
+                          key={index}
+                          className="bg-background p-3 rounded border space-y-1"
                         >
-                          <div className="flex justify-between flex-wrap gap-2">
-                            <span className="font-medium">
-                              #{invoice.invoice_number}
-                            </span>
-                            <span
-                              className={cn(
-                                "px-2 py-0.5 rounded text-xs font-medium",
-                                invoice.status === "Paid"
-                                  ? "bg-green-100 text-green-800"
-                                  : invoice.status === "Unpaid"
-                                  ? "bg-amber-100 text-amber-800"
-                                  : "bg-red-100 text-red-800"
-                              )}
-                            >
-                              {invoice.status}
-                            </span>
+                          <div className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+                            {label}
                           </div>
-                          <div className="mt-1 text-sm text-muted-foreground">
-                            {invoice.issue_date
-                              ? format(
-                                  new Date(invoice.issue_date),
-                                  "MMM d, yyyy"
-                                )
-                              : "No issue date"}
-                          </div>
-                          <div className="mt-2 flex justify-between items-center flex-wrap gap-2">
-                            <span>
-                              {invoice.service_description || "Visa Services"}
-                            </span>
-                            <span className="font-medium">
-                              {invoice.currency || "﷼"}
-                              {invoice.amount}
-                            </span>
+                          <div
+                            className={cn(
+                              "font-medium",
+                              typeof value === "string" && "font-mono text-sm"
+                            )}
+                          >
+                            {value}
                           </div>
                         </div>
                       ))}
+                    </div>
                   </div>
-                ) : (
-                  <div className="text-center py-6 text-muted-foreground">
-                    No invoices found for this client
-                  </div>
-                )}
-              </div>
-            </TabsContent>
+                </TabsContent>
 
-            {/* === Documents Tab === */}
-            <TabsContent value="documents">
-              {documentsFetching ? (
-                <div className="flex justify-center py-8">
-                  <Loader className="h-8 w-8 animate-spin text-muted-foreground" />
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {[
-                    {
-                      title: "Client Documents",
-                      files: clientDocuments,
-                      keyPrefix: "doc",
-                      type: "document",
-                    },
-                    {
-                      title: "Passports",
-                      files: applicationFiles.passportFiles,
-                      keyPrefix: "passport",
-                      type: "passport",
-                    },
-                    {
-                      title: "Photos",
-                      files: applicationFiles.photoFiles,
-                      keyPrefix: "photo",
-                      type: "photo",
-                    },
-                  ].map(
-                    ({ title, files, keyPrefix, type }) =>
-                      files.length > 0 && (
-                        <div key={title} className="bg-muted p-4 rounded-lg">
-                          <h4 className="font-medium mb-2">{title}</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {files.map((file, index) => (
-                              <div
-                                key={`${keyPrefix}-${index}`}
-                                className="bg-background p-3 rounded border flex justify-between items-center hover:bg-gray-50 transition-colors flex-wrap"
-                              >
-                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                  <FileIcon className="h-8 w-8 text-muted-foreground" />
-                                  <div className="truncate">
-                                    <div className="font-medium truncate">
-                                      {file.document_name ||
-                                        `${title} Document`}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {file.document_type}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                      {format(
-                                        new Date(file.uploaded_at || ""),
-                                        "MMM d, yyyy"
+                {/* === Invoices Tab === */}
+                <TabsContent value="invoices">
+                  <div className="bg-muted/50 p-4 rounded-lg border">
+                    <h4 className="font-semibold mb-4 text-foreground">
+                      Invoice Information
+                    </h4>
+                    {invoices.filter(
+                      (inv) => inv.client_id === selectedCustomer.id
+                    ).length > 0 ? (
+                      <div className="space-y-4">
+                        {invoices
+                          .filter(
+                            (inv) => inv.client_id === selectedCustomer.id
+                          )
+                          .map((invoice) => (
+                            <div
+                              key={invoice.id}
+                              className="bg-background p-4 rounded-lg border shadow-sm hover:shadow-md transition-shadow"
+                            >
+                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-3">
+                                    <span className="font-semibold text-lg">
+                                      #{invoice.invoice_number}
+                                    </span>
+                                    <span
+                                      className={cn(
+                                        "px-3 py-1 rounded-full text-xs font-medium",
+                                        invoice.status === "Paid"
+                                          ? "bg-green-100 text-green-800 border border-green-200"
+                                          : invoice.status === "Unpaid"
+                                          ? "bg-amber-100 text-amber-800 border border-amber-200"
+                                          : "bg-red-100 text-red-800 border border-red-200"
                                       )}
-                                    </div>
+                                    >
+                                      {invoice.status}
+                                    </span>
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {invoice.issue_date
+                                      ? format(
+                                          new Date(invoice.issue_date),
+                                          "MMM d, yyyy"
+                                        )
+                                      : "No issue date"}
+                                  </div>
+                                  <div className="text-sm">
+                                    {invoice.service_description ||
+                                      "Visa Services"}
                                   </div>
                                 </div>
-                                <div className="flex space-x-2 mt-2 sm:mt-0">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                      handlePreviewDocument(
-                                        file.url || file.public_url,
-                                        file.document_name ||
-                                          `File_${index + 1}.pdf`
-                                      )
-                                    }
-                                  >
-                                    <ExternalLink className="h-4 w-4 mr-1" />
-                                    View
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() =>
-                                      handleDownloadDocument(
-                                        file.url || file.public_url,
-                                        file.document_name ||
-                                          `File_${index + 1}.pdf`
-                                      )
-                                    }
-                                  >
-                                    <Download className="h-4 w-4 mr-1" />
-                                    Download
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-destructive hover:bg-destructive/10"
-                                    onClick={() =>
-                                      handleDeleteClick({
-                                        url: file.url || file.public_url,
-                                        name:
-                                          file.document_name ||
-                                          `File_${index + 1}`,
-                                        path: file.storage_path,
-                                        type: "document",
-                                      })
-                                    }
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
+                                <div className="text-right">
+                                  <span className="text-xl font-bold text-primary">
+                                    {invoice.currency || "﷼"}
+                                    {invoice.amount}
+                                  </span>
                                 </div>
                               </div>
-                            ))}
-                          </div>
+                            </div>
+                          ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                          <FileIcon className="h-8 w-8 text-muted-foreground" />
                         </div>
-                      )
+                        <p className="text-muted-foreground text-lg">
+                          No invoices found for this client
+                        </p>
+                        <p className="text-muted-foreground text-sm mt-1">
+                          Invoices will appear here once created
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+
+                {/* === Documents Tab === */}
+                <TabsContent value="documents">
+                  {documentsFetching ? (
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <Loader className="h-12 w-12 animate-spin text-primary mb-4" />
+                      <p className="text-muted-foreground">
+                        Loading documents...
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {[
+                        {
+                          title: "Client Documents",
+                          files: clientDocuments,
+                          keyPrefix: "doc",
+                          type: "document",
+                          icon: FileIcon,
+                          color: "blue",
+                        },
+                        {
+                          title: "Passports",
+                          files: applicationFiles.passportFiles,
+                          keyPrefix: "passport",
+                          type: "passport",
+                          icon: FileIcon,
+                          color: "green",
+                        },
+                        {
+                          title: "Photos",
+                          files: applicationFiles.photoFiles,
+                          keyPrefix: "photo",
+                          type: "photo",
+                          icon: ImageIcon,
+                          color: "purple",
+                        },
+                      ].map(
+                        ({
+                          title,
+                          files,
+                          keyPrefix,
+                          type,
+                          icon: Icon,
+                          color,
+                        }) =>
+                          files.length > 0 && (
+                            <div
+                              key={title}
+                              className="bg-muted/50 p-4 rounded-lg border"
+                            >
+                              <div className="flex items-center gap-3 mb-4">
+                                <div
+                                  className={cn(
+                                    "p-2 rounded-lg",
+                                    color === "blue" &&
+                                      "bg-blue-100 text-blue-600",
+                                    color === "green" &&
+                                      "bg-green-100 text-green-600",
+                                    color === "purple" &&
+                                      "bg-purple-100 text-purple-600"
+                                  )}
+                                >
+                                  <Icon className="h-5 w-5" />
+                                </div>
+                                <h4 className="font-semibold text-foreground">
+                                  {title}
+                                </h4>
+                                <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                                  {files.length} file
+                                  {files.length !== 1 ? "s" : ""}
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                {files.map((file, index) => (
+                                  <div
+                                    key={`${keyPrefix}-${index}`}
+                                    className="bg-background p-4 rounded-lg border shadow-sm hover:shadow-md transition-all duration-200 group"
+                                  >
+                                    <div className="flex items-start gap-4">
+                                      <div className="flex-shrink-0">
+                                        <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                                          <Icon className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
+                                        </div>
+                                      </div>
+                                      <div className="flex-1 min-w-0 space-y-1">
+                                        <div className="font-medium text-sm truncate">
+                                          {file.document_name ||
+                                            `${title} Document`}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                          {file.document_type}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                          {format(
+                                            new Date(file.uploaded_at || ""),
+                                            "MMM d, yyyy"
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 mt-4">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1 sm:flex-none"
+                                        onClick={() =>
+                                          handlePreviewDocument(
+                                            file.url || file.public_url,
+                                            file.document_name ||
+                                              `File_${index + 1}.pdf`
+                                          )
+                                        }
+                                      >
+                                        <ExternalLink className="h-3 w-3 mr-1" />
+                                        View
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1 sm:flex-none"
+                                        onClick={() =>
+                                          handleDownloadDocument(
+                                            file.url || file.public_url,
+                                            file.document_name ||
+                                              `File_${index + 1}.pdf`
+                                          )
+                                        }
+                                      >
+                                        <Download className="h-3 w-3 mr-1" />
+                                        Download
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/20"
+                                        onClick={() =>
+                                          handleDeleteClick({
+                                            url: file.url || file.public_url,
+                                            name:
+                                              file.document_name ||
+                                              `File_${index + 1}`,
+                                            path: file.storage_path,
+                                            type: "document",
+                                          })
+                                        }
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )
+                      )}
+                      {!hasFiles && (
+                        <div className="text-center py-12">
+                          <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                            <FileIcon className="h-8 w-8 text-muted-foreground" />
+                          </div>
+                          <p className="text-muted-foreground text-lg">
+                            No documents found
+                          </p>
+                          <p className="text-muted-foreground text-sm mt-1">
+                            Documents will appear here once uploaded
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   )}
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* Delete File Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete File</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete {selectedFile?.name}? This action
-              cannot be undone.
+            <AlertDialogTitle className="text-lg">Delete File</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-muted-foreground">
+              Are you sure you want to delete{" "}
+              <span className="font-medium text-foreground">
+                "{selectedFile?.name}"
+              </span>
+              ? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deletingFile}>
+          <AlertDialogFooter className="flex flex-col sm:flex-row gap-2">
+            <AlertDialogCancel
+              disabled={deletingFile}
+              className="w-full sm:w-auto"
+            >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDeleteFile}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={deletingFile}
             >
               {deletingFile ? (
@@ -587,7 +704,10 @@ export const ClientDetailsDialog = ({
                   Deleting...
                 </>
               ) : (
-                "Delete"
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete File
+                </>
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

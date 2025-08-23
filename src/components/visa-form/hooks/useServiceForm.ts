@@ -469,7 +469,7 @@ export const useServiceForm = ({
       if (data && data.length > 0) {
         const appId = data[0].id;
         setApplicationId(appId);
-        await uploadDocuments(appId, uploadedFiles);
+        // await uploadDocuments(appId, uploadedFiles);
         await sendConfirmationEmail(appId, data[0]);
       }
     } catch (error) {
