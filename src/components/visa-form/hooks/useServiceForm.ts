@@ -1,8 +1,11 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { supabase, SUPABASE_API_URL, SUPABASE_ANON_KEY } from "@/integrations/supabase/client";
+import {
+  supabase,
+  SUPABASE_API_URL,
+  SUPABASE_ANON_KEY,
+} from "@/integrations/supabase/client";
 import { Service } from "@/types/visa";
 import { TravellerData, UploadedFiles, VisaFormData } from "../types";
 import { VISA_CONFIGS, DEFAULT_VISA_CONFIG } from "@/config/visaConfig";
@@ -13,30 +16,46 @@ export interface UseServiceFormProps {
   onBack: () => void;
 }
 
-export const useServiceForm = ({ selectedService, onBack }: UseServiceFormProps) => {
-  const visaConfig = selectedService 
-    ? VISA_CONFIGS[selectedService.title as keyof typeof VISA_CONFIGS] || DEFAULT_VISA_CONFIG 
+export const useServiceForm = ({
+  selectedService,
+  onBack,
+}: UseServiceFormProps) => {
+  const visaConfig = selectedService
+    ? VISA_CONFIGS[selectedService.title as keyof typeof VISA_CONFIGS] ||
+      DEFAULT_VISA_CONFIG
     : DEFAULT_VISA_CONFIG;
-  
-  const requiresNationalitySelection = selectedService && selectedService.title === "British Visa";
+
+  const requiresNationalitySelection =
+    selectedService && selectedService.title === "British Visa";
   const isEuropeanVisa = [
-    "Spain Visa", "France Visa", "Germany Visa", "Austria Visa", 
-    "Czech Republic Visa", "Greece Visa", "Italy Visa", "Ireland Visa", 
-    "Norway Visa", "Portugal Visa", "Poland Visa", "Switzerland Visa"
+    "Spain Visa",
+    "France Visa",
+    "Germany Visa",
+    "Austria Visa",
+    "Czech Republic Visa",
+    "Greece Visa",
+    "Italy Visa",
+    "Ireland Visa",
+    "Norway Visa",
+    "Portugal Visa",
+    "Poland Visa",
+    "Switzerland Visa",
   ].includes(selectedService?.title || "");
   const isUSAVisa = selectedService?.title === "USA Visa";
-  
-  const serviceType = 'prepare-file-only';
+
+  const serviceType = "prepare-file-only";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(null);
-  const [visaType, setVisaType] = useState<'gcc' | 'other' | null>(requiresNationalitySelection ? null : 'other');
+  const [visaType, setVisaType] = useState<"gcc" | "other" | null>(
+    requiresNationalitySelection ? null : "other"
+  );
   const [formStep, setFormStep] = useState(1);
   const [travelDate, setTravelDate] = useState<Date | undefined>(undefined);
   const [appointmentType, setAppointmentType] = useState("normal");
   const [userLocation, setUserLocation] = useState("riyadh");
   const [visaCity, setVisaCity] = useState("Riyadh");
   const [showConfirmation, setShowConfirmation] = useState(false);
-  
+
   const [formData, setFormData] = useState<VisaFormData>({
     nationality: "Saudi",
     mothersFullName: "",
@@ -46,27 +65,37 @@ export const useServiceForm = ({ selectedService, onBack }: UseServiceFormProps)
     confirmPassword: "",
     countryCode: "+966",
     phoneNumber: "",
-    visaCity: "Riyadh"
+    visaCity: "Riyadh",
   });
 
-  const [travellers, setTravellers] = useState<TravellerData[]>([{
-    fullName: "",
-    saudiIdIqama: ""
-  }]);
+  const [travellers, setTravellers] = useState<TravellerData[]>([
+    {
+      fullName: "",
+      saudiIdIqama: "",
+    },
+  ]);
 
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFiles>({
     passports: [],
-    photos: []
+    photos: [],
   });
+  console.log("🚀 ~ useServiceForm ~ uploadedFiles:", uploadedFiles);
 
   // Calculate pricing
   let basePrice = 100;
   if (isUSAVisa) {
     basePrice = visaConfig.basePrice;
   } else if (isEuropeanVisa) {
-    if (selectedService?.title === "Spain Visa" && visaConfig.requiresAppointmentTypeSelection) {
-      const selectedAppointmentType = appointmentType === "normal" ? 330 : 
-                                      appointmentType === "prime" ? 610 : 865;
+    if (
+      selectedService?.title === "Spain Visa" &&
+      visaConfig.requiresAppointmentTypeSelection
+    ) {
+      const selectedAppointmentType =
+        appointmentType === "normal"
+          ? 330
+          : appointmentType === "prime"
+          ? 610
+          : 865;
       basePrice = selectedAppointmentType;
     } else {
       basePrice = visaConfig.basePrice;
@@ -74,7 +103,7 @@ export const useServiceForm = ({ selectedService, onBack }: UseServiceFormProps)
   } else {
     basePrice = visaConfig.basePrice;
   }
-  
+
   const totalPrice = formData.numberOfTravellers * basePrice;
 
   // Reset form when visa type changes
@@ -89,16 +118,18 @@ export const useServiceForm = ({ selectedService, onBack }: UseServiceFormProps)
       confirmPassword: "",
       countryCode: "+966",
       phoneNumber: "",
-      visaCity: "Riyadh"
+      visaCity: "Riyadh",
     });
     setTravelDate(undefined);
-    setTravellers([{
-      fullName: "",
-      saudiIdIqama: ""
-    }]);
+    setTravellers([
+      {
+        fullName: "",
+        saudiIdIqama: "",
+      },
+    ]);
     setUploadedFiles({
       passports: [],
-      photos: []
+      photos: [],
     });
     setAppointmentType("normal");
     setUserLocation("riyadh");
@@ -113,7 +144,7 @@ export const useServiceForm = ({ selectedService, onBack }: UseServiceFormProps)
       for (let i = travellers.length; i < formData.numberOfTravellers; i++) {
         newTravellers.push({
           fullName: "",
-          saudiIdIqama: ""
+          saudiIdIqama: "",
         });
       }
       setTravellers(newTravellers);
@@ -125,56 +156,62 @@ export const useServiceForm = ({ selectedService, onBack }: UseServiceFormProps)
   const sendConfirmationEmail = async (appId: string, applicationData: any) => {
     try {
       console.log("Sending confirmation email for application:", appId);
-  
+
       // Include the uploaded files in the request body
       const emailData = {
         applicationId: appId,
         email: formData.email,
-        firstName: travellers[0].fullName.split(' ')[0],
-        lastName: travellers[0].fullName.split(' ').slice(1).join(' '),
-        country: selectedService?.title.split(' ')[0] || '',
+        firstName: travellers[0].fullName.split(" ")[0],
+        lastName: travellers[0].fullName.split(" ").slice(1).join(" "),
+        country: selectedService?.title.split(" ")[0] || "",
         travelDate: travelDate?.toISOString() || new Date().toISOString(),
         totalPrice: totalPrice,
-        serviceType: serviceType === 'prepare-file-only' ? 'Document Preparation' : serviceType,
-        visaCity: visaCity || 'Riyadh',
+        serviceType:
+          serviceType === "prepare-file-only"
+            ? "Document Preparation"
+            : serviceType,
+        visaCity: visaCity || "Riyadh",
         numberOfTravellers: formData.numberOfTravellers,
         travellerDetails: travellers,
-        mothersName: formData.mothersFullName || '',
+        mothersName: formData.mothersFullName || "",
         phone: `${formData.countryCode}${formData.phoneNumber}`,
         referenceId: applicationData.reference_id,
         applicationFiles: {
           passports: uploadedFiles.passports.map((file, index) => ({
             name: file.name,
-            travelerIndex: index
+            travelerIndex: index,
           })),
           photos: uploadedFiles.photos.map((file, index) => ({
             name: file.name,
-            travelerIndex: index
-          }))
-        }
+            travelerIndex: index,
+          })),
+        },
       };
-  
+
       console.log("Email data being sent:", emailData);
-  
+
       // Make sure the session is valid and get the access token
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData.session?.access_token;
-  
+
       // Send the confirmation email API request
-      const response = await fetch(`${SUPABASE_API_URL}/functions/v1/send-visa-confirmation`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken || SUPABASE_ANON_KEY}`,
-          'apikey': SUPABASE_ANON_KEY
-        },
-        body: JSON.stringify(emailData),
-      });
-  
+      const response = await fetch(
+        `${SUPABASE_API_URL}/functions/v1/send-visa-confirmation`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken || SUPABASE_ANON_KEY}`,
+            apikey: SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify(emailData),
+        }
+      );
+
       console.log("Email API response status:", response.status);
       const responseData = await response.json();
       console.log("Email API response data:", responseData);
-  
+
       if (!response.ok) {
         console.error("Failed to send confirmation email:", responseData);
         setShowConfirmation(true);
@@ -187,12 +224,14 @@ export const useServiceForm = ({ selectedService, onBack }: UseServiceFormProps)
       console.error("Error sending confirmation email:", error);
     }
   };
-  
 
-  const sendTeamNotificationEmail = async (appId: string, applicationData: any) => {
+  const sendTeamNotificationEmail = async (
+    appId: string,
+    applicationData: any
+  ) => {
     try {
       console.log("Sending team notification email for application:", appId);
-      
+
       const teamNotificationData = {
         applicationId: appId,
         referenceId: applicationData.reference_id,
@@ -203,33 +242,40 @@ export const useServiceForm = ({ selectedService, onBack }: UseServiceFormProps)
           nationality: formData.nationality,
           mothersFullName: formData.mothersFullName,
           numberOfTravellers: formData.numberOfTravellers,
-          country: selectedService?.title.split(' ')[0] || '',
+          country: selectedService?.title.split(" ")[0] || "",
           travelDate: travelDate?.toISOString(),
           travellers: travellers,
-          serviceType: serviceType === 'prepare-file-only' ? 'Document Preparation' : serviceType,
+          serviceType:
+            serviceType === "prepare-file-only"
+              ? "Document Preparation"
+              : serviceType,
           visaCity: visaCity,
-          totalPrice: totalPrice
+          totalPrice: totalPrice,
         },
         uploadedFiles: {
-          passports: uploadedFiles.passports.map(file => {
-            if (!file) return null;
-            return {
-              name: file.name,
-              size: file.size,
-              type: file.type,
-              dataUrl: file.dataUrl
-            };
-          }).filter(Boolean),
-          photos: uploadedFiles.photos.map(file => {
-            if (!file) return null;
-            return {
-              name: file.name,
-              size: file.size,
-              type: file.type,
-              dataUrl: file.dataUrl
-            };
-          }).filter(Boolean)
-        }
+          passports: uploadedFiles.passports
+            .map((file) => {
+              if (!file) return null;
+              return {
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                dataUrl: file.dataUrl,
+              };
+            })
+            .filter(Boolean),
+          photos: uploadedFiles.photos
+            .map((file) => {
+              if (!file) return null;
+              return {
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                dataUrl: file.dataUrl,
+              };
+            })
+            .filter(Boolean),
+        },
       };
 
       console.log("Team notification data being sent:", teamNotificationData);
@@ -237,15 +283,18 @@ export const useServiceForm = ({ selectedService, onBack }: UseServiceFormProps)
       const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData.session?.access_token;
 
-      const response = await fetch(`${SUPABASE_API_URL}/functions/v1/send-team-notification`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken || SUPABASE_ANON_KEY}`,
-          'apikey': SUPABASE_ANON_KEY
-        },
-        body: JSON.stringify(teamNotificationData),
-      });
+      const response = await fetch(
+        `${SUPABASE_API_URL}/functions/v1/send-team-notification`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken || SUPABASE_ANON_KEY}`,
+            apikey: SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify(teamNotificationData),
+        }
+      );
 
       console.log("Team notification API response status:", response.status);
       const responseData = await response.json();
@@ -261,23 +310,29 @@ export const useServiceForm = ({ selectedService, onBack }: UseServiceFormProps)
 
   const handleNextStep = () => {
     if (formStep === 1) {
-      const requiredFields = ['nationality'];
+      const requiredFields = ["nationality"];
 
       if (!travelDate) {
         toast.error("Please select a travel date");
         return;
       }
 
-      const incompleteTravellers = travellers.some(traveller => !traveller.fullName);
+      const incompleteTravellers = travellers.some(
+        (traveller) => !traveller.fullName
+      );
       if (incompleteTravellers) {
         toast.error("Please fill in all traveller information");
         return;
       }
-      
+
       if (isUSAVisa && visaConfig.requiresSaudiIdIqama) {
-        const missingIdIqama = travellers.some(traveller => !traveller.saudiIdIqama);
+        const missingIdIqama = travellers.some(
+          (traveller) => !traveller.saudiIdIqama
+        );
         if (missingIdIqama) {
-          toast.error("Please fill in Saudi ID/Iqama Number for all travellers");
+          toast.error(
+            "Please fill in Saudi ID/Iqama Number for all travellers"
+          );
           return;
         }
       }
@@ -287,12 +342,16 @@ export const useServiceForm = ({ selectedService, onBack }: UseServiceFormProps)
         return;
       }
 
-      if ((visaType === 'gcc' && visaConfig.requiresMothersName) || 
-          (isUSAVisa && visaConfig.requiresMothersName)) {
-        requiredFields.push('mothersFullName');
+      if (
+        (visaType === "gcc" && visaConfig.requiresMothersName) ||
+        (isUSAVisa && visaConfig.requiresMothersName)
+      ) {
+        requiredFields.push("mothersFullName");
       }
-      
-      const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
+
+      const missingFields = requiredFields.filter(
+        (field) => !formData[field as keyof typeof formData]
+      );
       if (missingFields.length > 0) {
         toast.error("Please fill in all required fields");
         return;
@@ -300,19 +359,19 @@ export const useServiceForm = ({ selectedService, onBack }: UseServiceFormProps)
     } else if (formStep === 2) {
       // Document upload step - now optional, so no validation here
     }
-    
-    setFormStep(prev => prev + 1);
+
+    setFormStep((prev) => prev + 1);
     window.scrollTo({
       top: 0,
-      behavior: "smooth"
+      behavior: "smooth",
     });
   };
 
   const handlePrevStep = () => {
-    setFormStep(prev => Math.max(1, prev - 1));
+    setFormStep((prev) => Math.max(1, prev - 1));
     window.scrollTo({
       top: 0,
-      behavior: "smooth"
+      behavior: "smooth",
     });
   };
 
@@ -328,7 +387,7 @@ export const useServiceForm = ({ selectedService, onBack }: UseServiceFormProps)
       confirmPassword: "",
       countryCode: "+966",
       phoneNumber: "",
-      visaCity: "Riyadh"
+      visaCity: "Riyadh",
     });
     setTravelDate(undefined);
     setTravellers([{ fullName: "", saudiIdIqama: "" }]);
@@ -339,7 +398,12 @@ export const useServiceForm = ({ selectedService, onBack }: UseServiceFormProps)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.email || !formData.password || !formData.confirmPassword || !formData.phoneNumber) {
+    if (
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword ||
+      !formData.phoneNumber
+    ) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -351,14 +415,16 @@ export const useServiceForm = ({ selectedService, onBack }: UseServiceFormProps)
     setIsSubmitting(true);
 
     try {
-      const passport_files = uploadedFiles.passports.map(file => file.name);
-const photo_files = uploadedFiles.photos.map(file => file.name);
+      const passport_files = uploadedFiles.passports.map(
+        (file) => file.preview
+      );
+      const photo_files = uploadedFiles.photos.map((file) => file.preview);
       const applicationData: any = {
-        first_name: travellers[0].fullName.split(' ')[0],
-        last_name: travellers[0].fullName.split(' ').slice(1).join(' '),
+        first_name: travellers[0].fullName.split(" ")[0],
+        last_name: travellers[0].fullName.split(" ").slice(1).join(" "),
         email: formData.email,
         phone: `${formData.countryCode}${formData.phoneNumber}`,
-        country: selectedService?.title.split(' ')[0] || '',
+        country: selectedService?.title.split(" ")[0] || "",
         adults: formData.numberOfTravellers,
         children: 0,
         travel_date: travelDate?.toISOString() || new Date().toISOString(),
@@ -366,30 +432,29 @@ const photo_files = uploadedFiles.photos.map(file => file.name);
         visa_type: visaType,
         service_type: serviceType,
         passport_files,
-        photo_files
-
+        photo_files,
       };
-      
+
       if (isUSAVisa) {
         applicationData.mothers_name = formData.mothersFullName;
         applicationData.visa_city = visaCity;
-        applicationData.saudi_id_iqama = travellers.map(t => ({
+        applicationData.saudi_id_iqama = travellers.map((t) => ({
           traveller_name: t.fullName,
-          id_iqama: t.saudiIdIqama
+          id_iqama: t.saudiIdIqama,
         }));
       }
 
       console.log("Submitting application data:", applicationData);
 
       const { data, error } = await supabase
-        .from('visa_applications')
+        .from("visa_applications")
         .insert([applicationData])
         .select();
-      
+
       if (error) {
         throw error;
       }
-      
+
       console.log("Form submitted:", formData);
       console.log("Travellers:", travellers);
       console.log("Travel date:", travelDate);
@@ -400,7 +465,7 @@ const photo_files = uploadedFiles.photos.map(file => file.name);
       console.log("Appointment type:", appointmentType);
       console.log("Location:", userLocation);
       console.log("Supabase response:", data);
-      
+
       if (data && data.length > 0) {
         const appId = data[0].id;
         setApplicationId(appId);
@@ -409,7 +474,9 @@ const photo_files = uploadedFiles.photos.map(file => file.name);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      toast.error("An error occurred while submitting your application. Please try again.");
+      toast.error(
+        "An error occurred while submitting your application. Please try again."
+      );
       setIsSubmitting(false);
     }
   };
@@ -435,7 +502,7 @@ const photo_files = uploadedFiles.photos.map(file => file.name);
     isSubmitting,
     setIsSubmitting,
     applicationId,
-    showConfirmation, 
+    showConfirmation,
     setShowConfirmation,
     basePrice,
     totalPrice,
@@ -447,6 +514,6 @@ const photo_files = uploadedFiles.photos.map(file => file.name);
     visaConfig,
     requiresNationalitySelection,
     isEuropeanVisa,
-    isUSAVisa
+    isUSAVisa,
   };
 };
