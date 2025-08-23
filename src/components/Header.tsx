@@ -24,7 +24,7 @@ export const Header = ({ className }: HeaderProps) => {
 
   return (
     <header className={cn(
-      "bg-white shadow-sm py-3 z-50 h-[60px] sticky top-0",
+      "bg-white shadow-sm py-3 z-50 h-fit sticky top-0 flex items-center justify-center",
       className
     )}>
       <div className="container mx-auto px-4">
@@ -51,7 +51,7 @@ export const Header = ({ className }: HeaderProps) => {
             )}
           </div>
           <div className="flex items-center">
-            <h1 className="text-xl font-bold text-visa-dark truncate">
+            <h1 className="text-xl font-bold text-visa-dark truncate mt-2">
               VISA<span className="text-visa-gold">Services</span>
             </h1>
           </div>
@@ -60,10 +60,10 @@ export const Header = ({ className }: HeaderProps) => {
               variant="outline"
               size="sm"
               onClick={toggleLanguage}
-              className="flex items-center gap-1 border border-gray-300 hover:bg-visa-light/20"
+              className="flex items-center justify-center border rounded-full border-gray-300 hover:bg-visa-light/20"
             >
               <Globe className="h-4 w-4" />
-              <span className={isMobile ? "sr-only" : "hidden sm:inline"}>{t('changeLanguage')}</span>
+              <span className={isMobile ? "sr-only" : "hidden sm:inline mt-1"}>{t('changeLanguage')}</span>
             </Button>
           </div>
         </div>

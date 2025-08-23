@@ -27,10 +27,10 @@ export const AuthDialog = ({ open, onOpenChange, onSuccess }: AuthDialogProps) =
         <Button
           variant="ghost"
           size="sm"
-          className="px-3 border border-gray-200 hover:bg-visa-light transition-colors"
+          className="px-3 border flex flex-col sm:flex-row sm:gap-1 items-center gap-0 border-gray-200 hover:bg-visa-light transition-colors"
         >
-          <User className="w-4 h-4 mr-2 text-visa-gold" />
-          <span className="text-visa-dark font-medium">{t("signIn")}</span>
+          <User className="text-visa-gold" />
+          <span className="text-visa-dark font-medium text-center mt-1">{t("signIn")}</span>
         </Button>
       </DialogTrigger>
 
