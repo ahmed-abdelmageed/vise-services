@@ -2,6 +2,7 @@ import React from "react";
 import { Mail, Phone, ExternalLink, Heart, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useFooterInfo } from "@/hooks/useFooterInfo";
 
 // Default footer settings - would be replaced by admin settings in a real implementation
 const defaultFooterSettings = {
@@ -21,9 +22,66 @@ const defaultFooterSettings = {
 
 export const Footer: React.FC = () => {
   const { t, language } = useLanguage();
+  const { data: footerData, isLoading, error } = useFooterInfo();
+  console.log("🚀 ~ Footer ~ footerData:", footerData);
 
-  // In a real implementation, this would fetch from the database
-  const footerSettings = defaultFooterSettings;
+  const footerDataRecord =
+    footerData && footerData.length > 0 ? footerData[0] : null;
+
+  // Fallback to default settings if data is not available
+  const footerSettings = footerData?.length
+    ? {
+        websiteName:
+          footerDataRecord?.web_name || defaultFooterSettings.websiteName,
+        email: footerDataRecord?.email || defaultFooterSettings.email,
+        phone: footerDataRecord?.phone || defaultFooterSettings.phone,
+        vatNumber: footerDataRecord?.vat_num || defaultFooterSettings.vatNumber,
+        crNumber: footerDataRecord?.cr_num || defaultFooterSettings.crNumber,
+        tradeName:
+          footerDataRecord?.trade_name || defaultFooterSettings.tradeName,
+        quickLinks: footerDataRecord.links.length
+          ? footerDataRecord.links.map((item) => ({
+              label_ar: item.label_ar,
+              label_en: item.label_en,
+              url: item.link,
+            }))
+          : defaultFooterSettings.quickLinks,
+      }
+    : defaultFooterSettings;
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <footer className="relative bg-gradient-to-br from-visa-light via-visa-light to-visa-light text-visa-dark overflow-hidden">
+        <div className="relative z-10 max-w-6xl mx-auto px-6 py-10">
+          <div className="animate-pulse">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-12">
+              <div className="space-y-4">
+                <div className="h-8 bg-gray-300 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-300 rounded w-full"></div>
+                <div className="h-4 bg-gray-300 rounded w-2/3"></div>
+              </div>
+              <div className="space-y-4">
+                <div className="h-6 bg-gray-300 rounded w-1/2"></div>
+                <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-300 rounded w-2/3"></div>
+              </div>
+              <div className="space-y-4">
+                <div className="h-6 bg-gray-300 rounded w-1/2"></div>
+                <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-300 rounded w-2/3"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+    );
+  }
+
+  // Log error but continue with default settings
+  if (error) {
+    console.error("Failed to load footer data:", error);
+  }
 
   const openWhatsApp = () => {
     window.open(`https://wa.me/${footerSettings.phone}`, "_blank");
@@ -62,7 +120,7 @@ export const Footer: React.FC = () => {
             </div>
 
             {/* Legal Info */}
-            {/* <div className="space-y-2 text-xs text-slate-400">
+            <div className="space-y-2 text-xs text-slate-400">
               <div className="flex items-center gap-2">
                 <span className="font-medium">{t("vatNo")}:</span>
                 <span>{footerSettings.vatNumber}</span>
@@ -71,7 +129,7 @@ export const Footer: React.FC = () => {
                 <span className="font-medium">{t("crNo")}:</span>
                 <span>{footerSettings.crNumber}</span>
               </div>
-            </div> */}
+            </div>
           </div>
 
           {/* Contact Section */}
@@ -114,14 +172,14 @@ export const Footer: React.FC = () => {
             <div className="grid grid-cols-1 gap-3">
               {footerSettings.quickLinks.map((link) => (
                 <Link
-                  key={link.id}
+                  key={link.label_en}
                   to={link.url}
                   className="group flex items-center gap-3 text-visa-dark hover:text-visa-gold transition-all duration-300"
                 >
                   <ExternalLink className="w-4 h-4 group-hover:text-visa-gold transition-colors" />
 
                   <span className="text-sm group-hover:translate-x-1 transition-transform duration-300">
-                    {t(link.id) || link.label}
+                    {language === "ar" ? link.label_ar : link.label_en}
                   </span>
                 </Link>
               ))}

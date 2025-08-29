@@ -2,6 +2,7 @@
 export interface QuickLink {
   id: string;
   label: string;
+  labelAr: string;
   url: string;
 }
 

@@ -1,8 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { FooterData, QuickLink } from "./types";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useFooterInfo, useUpdateFooterItem, useCreateFooterItem } from "@/hooks/useFooterInfo";
+import { FooterItem } from "@/api/footer";
 import { v4 as uuidv4 } from 'uuid';
 
 // Default footer settings - would be replaced by database values
@@ -14,10 +16,10 @@ const defaultFooterData: FooterData = {
   crNumber: "000000000",
   tradeName: "Global Visa Services",
   quickLinks: [
-    { id: "about", label: "About Us", url: "/about" },
-    { id: "contact", label: "Contact Us", url: "/contact" },
-    { id: "terms", label: "Terms and Conditions", url: "/terms" },
-    { id: "privacy", label: "Privacy Policy", url: "/privacy" }
+    { id: "about", label: "About Us", labelAr: "من نحن", url: "/about" },
+    { id: "contact", label: "Contact Us", labelAr: "اتصل بنا", url: "/contact" },
+    { id: "terms", label: "Terms and Conditions", labelAr: "الشروط والأحكام", url: "/terms" },
+    { id: "privacy", label: "Privacy Policy", labelAr: "سياسة الخصوصية", url: "/privacy" }
   ]
 };
 
@@ -25,27 +27,53 @@ export const useFooterEditor = () => {
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [footerData, setFooterData] = useState<FooterData>(defaultFooterData);
+  const [originalData, setOriginalData] = useState<FooterData>(defaultFooterData);
+  const [hasChanges, setHasChanges] = useState(false);
   
-  // In a real implementation, this would fetch data from Supabase on component mount
-  // useEffect(() => {
-  //   const fetchFooterData = async () => {
-  //     const { data, error } = await supabase
-  //       .from('footer_settings')
-  //       .select('*')
-  //       .single();
-  //
-  //     if (data) setFooterData(data);
-  //   };
-  //
-  //   fetchFooterData();
-  // }, []);
+  // Fetch footer data from Supabase
+  const { data: supabaseFooterData, isLoading: isFetching } = useFooterInfo();
+  const updateFooterMutation = useUpdateFooterItem();
+  const createFooterMutation = useCreateFooterItem();
+
+  // Load data from Supabase when available
+  useEffect(() => {
+    if (supabaseFooterData && supabaseFooterData.length > 0) {
+      const footerItem = supabaseFooterData[0]; // Assuming we use the first item
+      
+      // Map Supabase data to FooterData format
+      const mappedData: FooterData = {
+        websiteName: footerItem.web_name || defaultFooterData.websiteName,
+        email: footerItem.email || defaultFooterData.email,
+        phone: footerItem.phone || defaultFooterData.phone,
+        vatNumber: footerItem.vat_num || defaultFooterData.vatNumber,
+        crNumber: footerItem.cr_num || defaultFooterData.crNumber,
+        tradeName: footerItem.trade_name || defaultFooterData.tradeName,
+        quickLinks: footerItem.links ? footerItem.links.map(link => ({
+          id: uuidv4(),
+          label: link.label_en,
+          labelAr: link.label_ar,
+          url: link.link
+        })) : defaultFooterData.quickLinks
+      };
+      
+      setFooterData(mappedData);
+      setOriginalData(mappedData);
+      setHasChanges(false);
+    }
+  }, [supabaseFooterData]);
+
+  // Check for changes whenever footerData changes
+  useEffect(() => {
+    const dataChanged = JSON.stringify(footerData) !== JSON.stringify(originalData);
+    setHasChanges(dataChanged);
+  }, [footerData, originalData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFooterData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleLinkChange = (id: string, field: 'label' | 'url', value: string) => {
+  const handleLinkChange = (id: string, field: 'label' | 'labelAr' | 'url', value: string) => {
     setFooterData(prev => ({
       ...prev,
       quickLinks: prev.quickLinks.map(link => 
@@ -58,6 +86,7 @@ export const useFooterEditor = () => {
     const newLink: QuickLink = {
       id: uuidv4(),
       label: "",
+      labelAr: "",
       url: "",
     };
     
@@ -82,15 +111,38 @@ export const useFooterEditor = () => {
     setIsLoading(true);
     
     try {
-      // In a real implementation, this would save to Supabase
-      // const { error } = await supabase
-      //   .from('footer_settings')
-      //   .upsert(footerData);
-      //
-      // if (error) throw error;
+      // Map FooterData to Supabase FooterItem format
+      const footerItemData: Partial<FooterItem> = {
+        web_name: footerData.websiteName,
+        email: footerData.email,
+        phone: footerData.phone,
+        vat_num: footerData.vatNumber,
+        cr_num: footerData.crNumber,
+        trade_name: footerData.tradeName,
+        links: footerData.quickLinks.map(link => ({
+          label_ar: link.labelAr,
+          label_en: link.label,
+          link: link.url
+        }))
+      };
+
+      // If we have existing data, update it; otherwise create new
+      if (supabaseFooterData && supabaseFooterData.length > 0) {
+        const existingId = supabaseFooterData[0].id;
+        if (existingId) {
+          await updateFooterMutation.mutateAsync({
+            id: existingId,
+            data: footerItemData
+          });
+        }
+      } else {
+        // Create new footer item
+        await createFooterMutation.mutateAsync(footerItemData);
+      }
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Reset change tracking after successful save
+      setOriginalData(footerData);
+      setHasChanges(false);
       
       toast.success(t('footerSettingsSaved'));
     } catch (error) {
@@ -101,13 +153,21 @@ export const useFooterEditor = () => {
     }
   };
 
+  const handleCancel = () => {
+    setFooterData(originalData);
+    setHasChanges(false);
+    toast.success(t('changesDiscarded'));
+  };
+
   return {
     footerData,
-    isLoading,
+    isLoading: isLoading || isFetching || updateFooterMutation.isPending || createFooterMutation.isPending,
+    hasChanges,
     handleInputChange,
     handleLinkChange,
     addQuickLink,
     removeQuickLink,
-    handleSave
+    handleSave,
+    handleCancel
   };
 };

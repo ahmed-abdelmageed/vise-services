@@ -8,7 +8,7 @@ import { Plus, Trash2 } from "lucide-react";
 
 interface QuickLinksTabProps {
   quickLinks: QuickLink[];
-  handleLinkChange: (id: string, field: 'label' | 'url', value: string) => void;
+  handleLinkChange: (id: string, field: 'label' | 'labelAr' | 'url', value: string) => void;
   addQuickLink: () => void;
   removeQuickLink: (id: string) => void;
 }
@@ -40,13 +40,25 @@ export const QuickLinksTab: React.FC<QuickLinksTabProps> = ({
       ) : (
         <div className="space-y-4">
           {quickLinks.map((link) => (
-            <div key={link.id} className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border border-gray-200 rounded-md relative">
+            <div key={link.id} className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-md relative">
               <div className="space-y-2">
-                <Label htmlFor={`link-label-${link.id}`}>Link Label</Label>
+                <Label htmlFor={`link-label-${link.id}`}>Link Label (English)</Label>
                 <Input 
                   id={`link-label-${link.id}`}
                   value={link.label}
                   onChange={(e) => handleLinkChange(link.id, 'label', e.target.value)}
+                  placeholder="About Us"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`link-label-ar-${link.id}`}>Link Label (Arabic)</Label>
+                <Input 
+                  id={`link-label-ar-${link.id}`}
+                  value={link.labelAr}
+                  onChange={(e) => handleLinkChange(link.id, 'labelAr', e.target.value)}
+                  placeholder="من نحن"
+                  dir="rtl"
+                  className="text-right"
                 />
               </div>
               <div className="space-y-2">
@@ -55,6 +67,7 @@ export const QuickLinksTab: React.FC<QuickLinksTabProps> = ({
                   id={`link-url-${link.id}`}
                   value={link.url}
                   onChange={(e) => handleLinkChange(link.id, 'url', e.target.value)}
+                  placeholder="/about"
                 />
               </div>
               <Button
