@@ -1,4 +1,3 @@
-
 import { TranslationDictionary } from '../types';
 
 export const footerTranslations: TranslationDictionary = {
@@ -8,6 +7,11 @@ export const footerTranslations: TranslationDictionary = {
     'manageFooterContent': "Manage your website's footer content",
     'generalInfo': 'General Info',
     'quickLinks': 'Quick Links',
+    'addLink': 'Add Link',
+    'noQuickLinksMessage': 'No quick links added yet. Click the button above to add your first link.',
+    'linkLabelEn': 'Link Label (English)',
+    'linkLabelAr': 'Link Label (Arabic)',
+    'removeLink': 'Remove Link',
     'legalInfo': 'Legal Info',
     'websiteName': 'Website Name',
     'emailLabel': 'Email',
@@ -49,6 +53,11 @@ export const footerTranslations: TranslationDictionary = {
     'manageFooterContent': 'إدارة محتوى تذييل موقع الويب الخاص بك',
     'generalInfo': 'معلومات عامة',
     'quickLinks': 'روابط سريعة',
+    'addLink': 'إضافة رابط',
+    'noQuickLinksMessage': 'لم يتم إضافة روابط سريعة بعد. انقر على الزر أعلاه لإضافة رابطك الأول.',
+    'linkLabelEn': 'تسمية الرابط (بالإنجليزية)',
+    'linkLabelAr': 'تسمية الرابط (بالعربية)',
+    'removeLink': 'حذف الرابط',
     'legalInfo': 'معلومات قانونية',
     'websiteName': 'اسم الموقع',
     'emailLabel': 'البريد الإلكتروني',

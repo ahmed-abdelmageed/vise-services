@@ -55,7 +55,7 @@ export const FooterEditor = () => {
         <CardTitle>{t('footerEditor')}</CardTitle>
         <CardDescription>{t('manageFooterContent')}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4">
         <Tabs defaultValue="general">
           <TabsList className="mb-4">
             <TabsTrigger value="general">{t('generalInfo')}</TabsTrigger>
