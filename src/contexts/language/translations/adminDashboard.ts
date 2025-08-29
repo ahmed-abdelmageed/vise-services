@@ -1,4 +1,3 @@
-
 import { TranslationDictionary } from '../types';
 
 export const adminDashboardTranslations: TranslationDictionary = {
@@ -28,6 +27,7 @@ export const adminDashboardTranslations: TranslationDictionary = {
     'setStatus': 'Set Status',
     'delete': 'Delete',
     'cancel': 'Cancel',
+    'open': 'Open',
     
     // Flag Dropdown
     'searchCountries': 'Search countries...',
@@ -180,6 +180,7 @@ export const adminDashboardTranslations: TranslationDictionary = {
     'setStatus': 'تعيين الحالة',
     'delete': 'حذف',
     'cancel': 'إلغاء',
+    'open': 'Open',
     
     // Flag Dropdown
     'searchCountries': 'البحث عن البلدان...',
