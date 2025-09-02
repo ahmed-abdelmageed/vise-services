@@ -82,27 +82,28 @@ export const useServiceForm = ({
   console.log("🚀 ~ useServiceForm ~ uploadedFiles:", uploadedFiles);
 
   // Calculate pricing
-  let basePrice = 100;
-  if (isUSAVisa) {
-    basePrice = visaConfig.basePrice;
-  } else if (isEuropeanVisa) {
-    if (
-      selectedService?.title === "Spain Visa" &&
-      visaConfig.requiresAppointmentTypeSelection
-    ) {
-      const selectedAppointmentType =
-        appointmentType === "normal"
-          ? 330
-          : appointmentType === "prime"
-          ? 610
-          : 865;
-      basePrice = selectedAppointmentType;
-    } else {
-      basePrice = visaConfig.basePrice;
-    }
-  } else {
-    basePrice = visaConfig.basePrice;
-  }
+  // let basePrice = 100;
+  let basePrice = selectedService.basePrice;
+  // if (isUSAVisa) {
+  //   basePrice = visaConfig.basePrice;
+  // } else if (isEuropeanVisa) {
+  //   if (
+  //     selectedService?.title === "Spain Visa" &&
+  //     visaConfig.requiresAppointmentTypeSelection
+  //   ) {
+  //     const selectedAppointmentType =
+  //       appointmentType === "normal"
+  //         ? 330
+  //         : appointmentType === "prime"
+  //         ? 610
+  //         : 865;
+  //     basePrice = selectedAppointmentType;
+  //   } else {
+  //     basePrice = visaConfig.basePrice;
+  //   }
+  // } else {
+  //   basePrice = visaConfig.basePrice;
+  // }
 
   const totalPrice = formData.numberOfTravellers * basePrice;
 
@@ -454,6 +455,12 @@ export const useServiceForm = ({
       if (error) {
         throw error;
       }
+
+      const { data: signUpData, error: signUpError } =
+        await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+        });
 
       console.log("Form submitted:", formData);
       console.log("Travellers:", travellers);

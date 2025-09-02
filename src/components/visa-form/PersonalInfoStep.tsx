@@ -121,7 +121,7 @@ export const PersonalInfoStep = ({
       <h3 className="text-lg font-medium text-visa-dark">{t("personal")}</h3>
 
       {/* Spain Visa - New appointment type selection */}
-      {showAppointmentTypeSelection && (
+      {/* {showAppointmentTypeSelection && (
         <div className="mt-4 sm:mt-6 mb-4 sm:mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2 sm:mb-3 text-center">
             {t("select_appointment_type")}{" "}
@@ -145,7 +145,7 @@ export const PersonalInfoStep = ({
             ))}
           </RadioGroup>
         </div>
-      )}
+      )} */}
 
       {/* Location selection for European visas */}
       {isEuropeanVisaWithLocationSelection && (
