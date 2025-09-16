@@ -10,6 +10,7 @@ import { Service } from "@/types/visa";
 import { TravellerData, UploadedFiles, VisaFormData } from "../types";
 import { VISA_CONFIGS, DEFAULT_VISA_CONFIG } from "@/config/visaConfig";
 import { uploadDocuments } from "../utils/documentUtils";
+import { useAuthentication } from "@/components/user-account/useAuthentication";
 
 export interface UseServiceFormProps {
   selectedService: Service;
@@ -20,6 +21,7 @@ export const useServiceForm = ({
   selectedService,
   onBack,
 }: UseServiceFormProps) => {
+  const { isLoggedIn } = useAuthentication();
   const visaConfig = selectedService
     ? VISA_CONFIGS[selectedService.title as keyof typeof VISA_CONFIGS] ||
       DEFAULT_VISA_CONFIG
@@ -400,10 +402,11 @@ export const useServiceForm = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
-      !formData.email ||
-      !formData.password ||
-      !formData.confirmPassword ||
-      !formData.phoneNumber
+      !isLoggedIn &&
+      (!formData.email ||
+        !formData.password ||
+        !formData.confirmPassword ||
+        !formData.phoneNumber)
     ) {
       toast.error("Please fill in all required fields");
       return;
@@ -412,8 +415,79 @@ export const useServiceForm = ({
       toast.error("Passwords do not match");
       return;
     }
+    if (!formData.phoneNumber) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
 
+    let user_id = null;
+    let email = null;
+    
     setIsSubmitting(true);
+
+    if (isLoggedIn) {
+      const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+      user_id = userData.id || null;
+      email = userData.email || null;
+    } else {
+      // Handle authentication for non-logged-in users
+      try {
+        // First, try to sign in with the provided credentials
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (signInError) {
+          // If sign in fails, check if it's because the user doesn't exist or wrong password
+          if (signInError.message.includes('Invalid login credentials')) {
+            console.log("🚀 ~ handleSubmit ~ signInError.message:", signInError.message);
+            
+            // Check if the email already exists by attempting to sign up
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+              email: formData.email,
+              password: formData.password,
+            });
+
+            if (signUpError) {
+              // If signup fails with "User already registered", it means email exists but password was wrong
+              if (signUpError.message.includes('User already registered') || 
+                  signUpError.message.includes('already been registered')) {
+                toast.error("Email already exists. Please check your password and try again, or use a different email.");
+                setIsSubmitting(false);
+                return;
+              } else {
+                toast.error(`Signup failed: ${signUpError.message}`);
+                setIsSubmitting(false);
+                return;
+              }
+            }
+
+            if (signUpData.user) {
+              user_id = signUpData.user.id;
+              email = signUpData.user.email;
+              toast.success("Account created successfully!");
+            }
+          } else {
+            toast.error("Invalid email or password. Please check your credentials and try again.");
+            setIsSubmitting(false);
+            return;
+          }
+        } else {
+          // Sign in successful
+          if (signInData.user) {
+            user_id = signInData.user.id;
+            email = signInData.user.email;
+            toast.success("Logged in successfully!");
+          }
+        }
+      } catch (error) {
+        console.error("Authentication error:", error);
+        toast.error("An error occurred during authentication. Please try again.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
 
     try {
       const passport_files = uploadedFiles.passports.map(
@@ -423,7 +497,7 @@ export const useServiceForm = ({
       const applicationData: any = {
         first_name: travellers[0].fullName.split(" ")[0],
         last_name: travellers[0].fullName.split(" ").slice(1).join(" "),
-        email: formData.email,
+        email: formData.email || email,
         phone: `${formData.countryCode}${formData.phoneNumber}`,
         country: selectedService?.title.split(" ")[0] || "",
         adults: formData.numberOfTravellers,
@@ -434,6 +508,7 @@ export const useServiceForm = ({
         service_type: serviceType,
         passport_files,
         photo_files,
+        user_id,
       };
 
       if (isUSAVisa) {
@@ -455,12 +530,6 @@ export const useServiceForm = ({
       if (error) {
         throw error;
       }
-
-      const { data: signUpData, error: signUpError } =
-        await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-        });
 
       console.log("Form submitted:", formData);
       console.log("Travellers:", travellers);
