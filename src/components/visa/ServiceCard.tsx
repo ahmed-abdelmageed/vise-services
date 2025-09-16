@@ -1,10 +1,11 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { VisaConfig, Service } from "@/types/visa";
 import { Fingerprint, Clock, ArrowRight, Zap, Globe } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { getHighQualityFlagUrl, getFlagFallbacks, optimizeImageRendering } from "@/utils/flagUtils";
 
 interface ServiceCardProps {
   service: VisaConfig | Service;
@@ -15,6 +16,8 @@ interface ServiceCardProps {
 export const ServiceCard = ({ service, index, onClick }: ServiceCardProps) => {
   const { language } = useLanguage();
   const isMobile = useIsMobile();
+  const [currentFlagUrl, setCurrentFlagUrl] = useState(() => getHighQualityFlagUrl(service.flag || ''));
+  const [fallbackIndex, setFallbackIndex] = useState(0);
   
   // Use Arabic or English content based on the selected language
   const isArabic = language === 'ar';
@@ -58,90 +61,159 @@ export const ServiceCard = ({ service, index, onClick }: ServiceCardProps) => {
   const basePrice = 'basePrice' in service ? service.basePrice : 0;
   
   return (
-    // NEW MODERN CREATIVE DESIGN
+    // ENHANCED PROFESSIONAL DESIGN WITH SMOOTH ANIMATIONS
     <div 
-      className="group relative overflow-hidden cursor-pointer animate-fadeIn shadow-md"
-      style={{ animationDelay: `${index * 100}ms` }}
+      className="group relative overflow-hidden cursor-pointer animate-fadeIn transform-gpu will-change-transform shadow-xl hover:shadow-2xl drop-shadow-lg group-hover:drop-shadow-2xl transition-all duration-700 ease-out rounded-2xl"
+      style={{ 
+        animationDelay: `${index * 100}ms`,
+        animationFillMode: 'both'
+      }}
       onClick={() => onClick(service)}
     >
-      {/* Main Card with Gradient Border */}
-      <div className="relative bg-gradient-to-br from-white via-gray-50 to-gray-100 rounded-md border border-gray-200/50 shadow-lg hover:shadow-xl transition-all duration-500 group-hover:scale-[1.02] overflow-hidden">
+      {/* Main Card with Enhanced Animations */}
+      <div className="relative bg-white rounded-2xl border border-gray-200/50 transition-all duration-700 ease-out group-hover:scale-[1.03] group-hover:-translate-y-2 overflow-hidden backdrop-blur-sm">
         
-        {/* Animated Background Pattern */}
-        <div className="absolute inset-0 bg-gradient-to-br from-visa-gold/10 via-transparent to-visa-gold/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        {/* Animated Glow Effect */}
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-visa-gold/30 via-visa-gold/20 to-visa-gold/30 opacity-0 group-hover:opacity-100 transition-all duration-700 ease-out blur-lg scale-110 -z-10" />
         
-        {/* Glowing Border Effect */}
-        <div className="absolute inset-0 rounded-md bg-gradient-to-r from-visa-gold/60 via-visa-gold/50 to-visa-gold/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm -z-10" />
+        {/* Shimmer Effect */}
+        <div className="absolute inset-0 -top-4 -left-4 w-8 h-full bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12 opacity-0 group-hover:opacity-100 group-hover:translate-x-[400px] transition-all duration-1000 ease-out pointer-events-none" />
         
-        {/* Top Section with Flag/Icon */}
-        <div className="relative p-6 pb-4">
-          <div className="flex items-start justify-between mb-4">
-            {/* Flag/Icon Container */}
-            <div className="relative">
-              <div className="w-16 h-16 rounded-md overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-                {isHomeFingerprints ? (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#001524] to-[#003d5c] text-[#00e5e0] relative">
-                    <Fingerprint size={28} className="animate-pulse" />
-                    <div className="absolute inset-0 bg-gradient-to-br from-transparent to-[#00e5e0]/10" />
-                  </div>
-                ) : (
-                  <img 
-                    src={service.flag}
-                    alt={`Icon for ${title}`}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    onError={(e) => {
-                      console.error(`Error loading image for ${title}:`, (e.target as HTMLImageElement).src);
-                      (e.target as HTMLImageElement).src = 'https://flagcdn.com/w80/un.png';
-                    }}
-                  />
-                )}
+        {/* Full-Width Image Header with Enhanced Effects */}
+        <div className="relative h-52 overflow-hidden bg-gradient-to-br from-gray-50 via-gray-100 to-gray-150 group-hover:from-gray-100 group-hover:via-gray-50 group-hover:to-gray-100 transition-all duration-700">
+          {isHomeFingerprints ? (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#001524] via-[#002642] to-[#003d5c] text-[#00e5e0] relative overflow-hidden">
+              {/* Animated Background Particles */}
+              <div className="absolute inset-0">
+                <div className="absolute top-4 left-4 w-2 h-2 bg-[#00e5e0]/30 rounded-full animate-ping animation-delay-100"></div>
+                <div className="absolute top-12 right-8 w-1 h-1 bg-[#00e5e0]/40 rounded-full animate-pulse animation-delay-300"></div>
+                <div className="absolute bottom-8 left-12 w-1.5 h-1.5 bg-[#00e5e0]/20 rounded-full animate-ping animation-delay-500"></div>
               </div>
               
-              {/* Floating Badge */}
-              {/* <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg">
-                <Zap size={12} className="text-white" />
-              </div> */}
-            </div>
-            
-            {/* Price Badge */}
-            {basePrice > 0 && (
-              <div className="bg-gradient-to-r from-visa-gold to-visa-gold/50 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
-                {isArabic ? `${basePrice} ر.س` : `${basePrice} SAR`}
+              {/* Enhanced Fingerprint Icon */}
+              <div className="relative z-10 transform group-hover:scale-110 transition-transform duration-700 ease-out">
+                <Fingerprint size={56} className="animate-pulse text-[#00e5e0] drop-shadow-lg" />
+                <div className="absolute inset-0 bg-[#00e5e0]/20 rounded-full blur-xl animate-pulse"></div>
               </div>
-            )}
+              
+              {/* Floating Elements */}
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-[#00e5e0]/5 to-transparent group-hover:via-[#00e5e0]/10 transition-all duration-700" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+            </div>
+          ) : (
+            <>
+              {/* Image Container with Smooth Scaling */}
+              <div className="relative w-full h-full overflow-hidden">
+                <img 
+                  src={currentFlagUrl}
+                  alt={`Flag of ${title}`}
+                  className="w-full h-full object-cover object-center group-hover:scale-125 transition-all duration-1000 ease-out filter group-hover:brightness-110 group-hover:contrast-105"
+                  style={{
+                    imageRendering: 'auto' as const,
+                    msInterpolationMode: 'bicubic' as any,
+                    transform: 'translateZ(0)',
+                    backfaceVisibility: 'hidden',
+                  } as React.CSSProperties}
+                  loading="lazy"
+                  decoding="async"
+                  onError={(e) => {
+                    const img = e.target as HTMLImageElement;
+                    console.error(`Error loading flag image for ${title}:`, img.src);
+                    
+                    // Get fallback URLs for this flag
+                    const fallbacks = getFlagFallbacks(service.flag || '', title);
+                    
+                    // Try next fallback if available
+                    if (fallbackIndex < fallbacks.length - 1) {
+                      const nextIndex = fallbackIndex + 1;
+                      setFallbackIndex(nextIndex);
+                      setCurrentFlagUrl(fallbacks[nextIndex]);
+                    } else {
+                      // Last resort: show a colored placeholder
+                      img.style.display = 'none';
+                      const parent = img.parentElement;
+                      if (parent && !parent.querySelector('.flag-placeholder')) {
+                        const placeholder = document.createElement('div');
+                        placeholder.className = 'flag-placeholder w-full h-full flex items-center justify-center bg-gradient-to-br from-visa-gold/20 via-visa-gold/30 to-visa-gold/20 text-visa-gold text-lg font-bold backdrop-blur-sm';
+                        placeholder.textContent = title.split(' ')[0];
+                        parent.appendChild(placeholder);
+                      }
+                    }
+                  }}
+                  onLoad={(e) => {
+                    const img = e.target as HTMLImageElement;
+                    optimizeImageRendering(img);
+                    // Hide any placeholder that might exist
+                    const parent = img.parentElement;
+                    const placeholder = parent?.querySelector('.flag-placeholder');
+                    if (placeholder) {
+                      placeholder.remove();
+                    }
+                    img.style.display = 'block';
+                  }}
+                />
+              </div>
+              
+              {/* Enhanced Professional Overlays */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent group-hover:from-black/40 transition-all duration-700" />
+              <div className="absolute inset-0 bg-gradient-to-br from-visa-gold/15 via-transparent to-visa-gold/10 opacity-60 group-hover:opacity-80 transition-all duration-700" />
+              
+              {/* Floating Light Effect */}
+              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            </>
+          )}
+          
+          {/* Price Badge - Positioned on Image */}
+          {basePrice > 0 && (
+            <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm text-visa-gold px-4 py-2 rounded-full text-sm font-bold shadow-lg border border-visa-gold/20">
+              {isArabic ? `${basePrice} ر.س` : `${basePrice} SAR`}
+            </div>
+          )}
+          
+          {/* Premium Badge */}
+          <div className="absolute top-4 left-4 bg-visa-gold/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+            {isArabic ? "خدمة متميزة" : "Premium Service"}
           </div>
+        </div>
+        
+        {/* Content Section */}
+        <div className="relative p-6">
+          {/* Animated Background Pattern */}
+          <div className="absolute inset-0 bg-gradient-to-br from-visa-gold/5 via-transparent to-visa-gold/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           
           {/* Title */}
-          <h3 className="font-bold text-xl text-visa-gold mb-3 group-hover:text-gray-900 transition-colors duration-300 line-clamp-2">
+          <h3 className="relative font-bold text-2xl text-gray-900 mb-3 group-hover:text-visa-gold transition-colors duration-300 line-clamp-2">
             {title}
           </h3>
           
           {/* Description */}
-          <p className="text-gray-600 text-sm leading-relaxed line-clamp-2 mb-4">
+          <p className="relative text-gray-600 text-sm leading-relaxed line-clamp-3 mb-6">
             {description}
           </p>
-        </div>
-        
-        {/* Bottom Section */}
-        <div className="px-6 pb-6">
+          
           {/* Processing Time */}
-          <div className="flex items-center space-x-2 rtl:space-x-reverse mb-4">
-            <div className="w-8 h-8 bg-gradient-to-br from-visa-gold to-visa-gold/50 rounded-lg flex items-center justify-center">
-              <Clock size={16} className="text-gray-900" />
+          <div className="relative flex items-center space-x-3 rtl:space-x-reverse mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-visa-gold to-visa-gold/70 rounded-xl flex items-center justify-center shadow-md">
+              <Clock size={18} className="text-white" />
             </div>
-            <span className="text-sm text-gray-600 font-medium">{processTime}</span>
+            <div>
+              <span className="text-sm font-semibold text-gray-900 block">
+                {isArabic ? "وقت المعالجة" : "Processing Time"}
+              </span>
+              <span className="text-xs text-gray-500">{processTime}</span>
+            </div>
           </div>
           
           {/* Action Button */}
-          <div className="flex items-center justify-end">
-            {/* <div className="flex items-center space-x-2 rtl:space-x-reverse">
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <Globe size={16} className="text-gray-400" />
-              <span className="text-xs text-gray-500">
-                {isArabic ? "خدمة متاحة" : "Available Service"}
+              <span className="text-xs text-gray-500 font-medium">
+                {isArabic ? "خدمة متاحة الآن" : "Available Now"}
               </span>
-            </div> */}
+            </div>
             
-            <div className="flex items-center space-x-1 rtl:space-x-reverse text-visa-gold group-hover:text-gray-900 transition-colors duration-300">
+            <div className="flex items-center space-x-2 rtl:space-x-reverse bg-gradient-to-r from-visa-gold to-visa-gold/80 text-white px-4 py-2 rounded-lg group-hover:from-gray-900 group-hover:to-gray-800 transition-all duration-300 shadow-md">
               <span className="text-sm font-semibold">
                 {isArabic ? "ابدأ الآن" : "Start Now"}
               </span>
@@ -150,8 +222,8 @@ export const ServiceCard = ({ service, index, onClick }: ServiceCardProps) => {
           </div>
         </div>
         
-        {/* Hover Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-blue-600/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        {/* Professional Hover Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-visa-gold/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
       </div>
     </div>
   );

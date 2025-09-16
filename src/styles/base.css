@@ -55,6 +55,27 @@
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
   }
+
+  /* Better image rendering for flags and high-quality images */
+  img {
+    image-rendering: auto;
+    image-rendering: crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+    -ms-interpolation-mode: bicubic;
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Specific flag image improvements */
+  img[alt*="Icon for"],
+  img[src*="flag"],
+  img[src*="flagcdn"] {
+    image-rendering: auto;
+    image-rendering: -webkit-optimize-contrast;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+  }
 }
 
 @layer utilities {
@@ -82,4 +103,84 @@
     -webkit-line-clamp: 3;
     line-clamp: 3;
   }
+
+  /* Enhanced animations for eye comfort */
+  .animate-fadeIn {
+    animation: fadeInUp 0.8s ease-out forwards;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  /* Animation delay utilities */
+  .animation-delay-100 {
+    animation-delay: 100ms;
+  }
+  
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+  
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
+  
+  .animation-delay-500 {
+    animation-delay: 500ms;
+  }
+
+  /* Smooth transforms */
+  .transform-gpu {
+    transform: translate3d(0, 0, 0);
+  }
+
+  /* Hardware acceleration */
+  .will-change-transform {
+    will-change: transform;
+  }
+}
+
+/* Enhanced animations keyframes */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) skewX(-12deg);
+  }
+  100% {
+    transform: translateX(400px) skewX(-12deg);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(218, 165, 32, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(218, 165, 32, 0.6);
+  }
+}
+
+/* Custom easing curves for eye comfort */
+:root {
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-in-out-back: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
