@@ -26,6 +26,7 @@ import {
   Clock, 
   ThumbsUp 
 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface User {
   name: string;
@@ -41,83 +42,61 @@ interface CustomerSupportProps {
 export const CustomerSupport = ({ user }: CustomerSupportProps) => {
   const [ticketSubject, setTicketSubject] = useState("");
   const [ticketMessage, setTicketMessage] = useState("");
+  const { t, language } = useLanguage();
 
   const handleTicketSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // In a real app, this would submit the support ticket
-    alert("Support ticket submitted: " + ticketSubject);
+    alert(t('supportTicketSubmitted') + ": " + ticketSubject);
     setTicketSubject("");
     setTicketMessage("");
   };
 
-  // Mock FAQs
-  const faqs = [
-    {
-      question: "How long does the visa application process take?",
-      answer: "The processing time varies depending on the visa type and country. Typically, tourist visas take 2-4 weeks, business visas 3-5 weeks, and work visas 1-3 months. We recommend applying at least 8 weeks before your planned travel date."
-    },
-    {
-      question: "What documents do I need for a tourist visa application?",
-      answer: "Generally, you'll need a valid passport, completed application form, passport-sized photos, proof of accommodation, return flight tickets, proof of sufficient funds, and travel insurance. Specific requirements may vary by country."
-    },
-    {
-      question: "Can I expedite my visa application?",
-      answer: "Yes, many countries offer expedited processing for an additional fee. The expedited service typically reduces processing time by 50%. Please contact our support team for details on expedited services for your specific destination."
-    },
-    {
-      question: "What if my visa application is rejected?",
-      answer: "If your application is rejected, we'll help you understand the reasons and advise on the best course of action. Depending on the circumstances, you may be able to appeal the decision or reapply with additional documentation."
-    },
-    {
-      question: "Do you offer refunds if my visa is denied?",
-      answer: "Our service fees cover the processing of your application regardless of the outcome. However, we offer a 50% refund of our service fee (excluding embassy fees) if your application is denied despite following all our recommendations."
-    }
-  ];
-
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-visa-dark">Customer Support</h1>
+      <h1 className={`text-2xl font-bold text-visa-dark ${language === "ar" ? "text-right" : ""}`}>{t('customerSupport')}</h1>
       
       <Tabs defaultValue="contact">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="contact">Contact Us</TabsTrigger>
-          <TabsTrigger value="faq">FAQs</TabsTrigger>
-          <TabsTrigger value="resources">Resources</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 mb-6" dir={language === "ar" ? "rtl" : "ltr"}>
+          <TabsTrigger value="contact">{t('contactUs')}</TabsTrigger>
+          <TabsTrigger value="faq">{t('faqs')}</TabsTrigger>
+          <TabsTrigger value="resources">{t('resources')}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="contact" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Submit a Support Ticket</CardTitle>
-              <CardDescription>
-                We typically respond to support tickets within 24 hours during business days.
+              <CardTitle className={language === "ar" ? "text-right" : ""}>{t('submitSupportTicket')}</CardTitle>
+              <CardDescription className={language === "ar" ? "text-right" : ""}>
+                {t('supportResponseTime')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleTicketSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <label htmlFor="subject" className="text-sm font-medium">Subject</label>
+                  <label htmlFor="subject" className={`text-sm font-medium ${language === "ar" ? "text-right" : ""}`}>{t('subject')}</label>
                   <Input 
                     id="subject" 
-                    placeholder="Briefly describe your issue" 
+                    placeholder={t('subjectPlaceholder')} 
                     value={ticketSubject}
                     onChange={(e) => setTicketSubject(e.target.value)}
+                    className={language === "ar" ? "text-right" : ""}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="message" className="text-sm font-medium">Message</label>
+                  <label htmlFor="message" className={`text-sm font-medium ${language === "ar" ? "text-right" : ""}`}>{t('message')}</label>
                   <Textarea 
                     id="message" 
-                    placeholder="Please provide details about your issue or question" 
-                    className="min-h-[150px]" 
+                    placeholder={t('messagePlaceholder')} 
+                    className={`min-h-[150px] resize-none ${language === "ar" ? "text-right" : ""}`}
                     value={ticketMessage}
                     onChange={(e) => setTicketMessage(e.target.value)}
                     required
                   />
                 </div>
                 <Button type="submit" className="bg-visa-gold hover:bg-visa-gold/90 w-full">
-                  <MessageSquare className="mr-2 h-4 w-4" /> Submit Ticket
+                  <MessageSquare className={`h-4 w-4 ${language === "ar" ? "ml-2" : "mr-2"}`} /> {t('submitTicket')}
                 </Button>
               </form>
             </CardContent>
@@ -126,47 +105,47 @@ export const CustomerSupport = ({ user }: CustomerSupportProps) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center">
-                  <Phone className="h-4 w-4 mr-2 text-visa-gold" /> Phone Support
+                <CardTitle className={`text-base flex items-center ${language === "ar" ? "flex-row-reverse text-right" : ""}`}>
+                  <Phone className={`h-4 w-4 text-visa-gold ${language === "ar" ? "ml-2" : "mr-2"}`} /> {t('phoneSupport')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm">Call our customer service team:</p>
-                <p className="font-medium mt-1">+1 (555) 123-4567</p>
-                <p className="text-xs text-gray-500 mt-2">
-                  Available Monday-Friday, 9am-5pm EST
+                <p className={`text-sm ${language === "ar" ? "text-right" : ""}`}>{t('callCustomerService')}</p>
+                <p className={`font-medium mt-1 ${language === "ar" ? "text-right" : ""}`}>+1 (555) 123-4567</p>
+                <p className={`text-xs text-gray-500 mt-2 ${language === "ar" ? "text-right" : ""}`}>
+                  {t('phoneAvailability')}
                 </p>
               </CardContent>
             </Card>
             
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center">
-                  <Mail className="h-4 w-4 mr-2 text-visa-gold" /> Email Support
+                <CardTitle className={`text-base flex items-center ${language === "ar" ? "flex-row-reverse text-right" : ""}`}>
+                  <Mail className={`h-4 w-4 text-visa-gold ${language === "ar" ? "ml-2" : "mr-2"}`} /> {t('emailSupport')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm">Send us an email at:</p>
-                <p className="font-medium mt-1">support@visaservices.example.com</p>
-                <p className="text-xs text-gray-500 mt-2">
-                  We aim to respond within 24 hours
+                <p className={`text-sm ${language === "ar" ? "text-right" : ""}`}>{t('sendEmail')}</p>
+                <p className={`font-medium mt-1 ${language === "ar" ? "text-right" : ""}`}>support@visaservices.example.com</p>
+                <p className={`text-xs text-gray-500 mt-2 ${language === "ar" ? "text-right" : ""}`}>
+                  {t('emailResponseTime')}
                 </p>
               </CardContent>
             </Card>
             
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center">
-                  <MessageSquare className="h-4 w-4 mr-2 text-visa-gold" /> Live Chat
+                <CardTitle className={`text-base flex items-center ${language === "ar" ? "flex-row-reverse text-right" : ""}`}>
+                  <MessageSquare className={`h-4 w-4 text-visa-gold ${language === "ar" ? "ml-2" : "mr-2"}`} /> {t('liveChat')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm">Chat with our support agents:</p>
+                <p className={`text-sm ${language === "ar" ? "text-right" : ""}`}>{t('chatWithAgents')}</p>
                 <Button variant="outline" className="w-full mt-2">
-                  <Send className="h-4 w-4 mr-2" /> Start Chat
+                  <Send className={`h-4 w-4 ${language === "ar" ? "ml-2" : "mr-2"}`} /> {t('startChat')}
                 </Button>
-                <p className="text-xs text-gray-500 mt-2">
-                  Available 24/7 for premium clients
+                <p className={`text-xs text-gray-500 mt-2 ${language === "ar" ? "text-right" : ""}`}>
+                  {t('liveChatAvailability')}
                 </p>
               </CardContent>
             </Card>
@@ -176,29 +155,55 @@ export const CustomerSupport = ({ user }: CustomerSupportProps) => {
         <TabsContent value="faq">
           <Card>
             <CardHeader>
-              <CardTitle>Frequently Asked Questions</CardTitle>
-              <CardDescription>
-                Find quick answers to common questions about our visa services.
+              <CardTitle className={language === "ar" ? "text-right" : ""}>{t('frequentlyAskedQuestions')}</CardTitle>
+              <CardDescription className={language === "ar" ? "text-right" : ""}>
+                {t('faqDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {faqs.map((faq, index) => (
-                  <div key={index} className="border-b pb-4 last:border-b-0 last:pb-0">
-                    <h3 className="font-medium text-visa-dark flex items-start">
-                      <FileQuestion className="h-5 w-5 mr-2 text-visa-gold shrink-0" />
-                      <span>{faq.question}</span>
-                    </h3>
-                    <p className="text-sm text-gray-600 mt-2 ml-7">{faq.answer}</p>
-                  </div>
-                ))}
+                <div className="border-b pb-4 last:border-b-0 last:pb-0">
+                  <h3 className={`font-medium text-visa-dark flex items-start ${language === "ar" ? "flex-row-reverse text-right" : ""}`}>
+                    <FileQuestion className={`h-5 w-5 text-visa-gold shrink-0 ${language === "ar" ? "ml-2" : "mr-2"}`} />
+                    <span>{t('faqQuestion1')}</span>
+                  </h3>
+                  <p className={`text-sm text-gray-600 mt-2 ${language === "ar" ? "text-right mr-7" : "ml-7"}`}>{t('faqAnswer1')}</p>
+                </div>
+                <div className="border-b pb-4 last:border-b-0 last:pb-0">
+                  <h3 className={`font-medium text-visa-dark flex items-start ${language === "ar" ? "flex-row-reverse text-right" : ""}`}>
+                    <FileQuestion className={`h-5 w-5 text-visa-gold shrink-0 ${language === "ar" ? "ml-2" : "mr-2"}`} />
+                    <span>{t('faqQuestion2')}</span>
+                  </h3>
+                  <p className={`text-sm text-gray-600 mt-2 ${language === "ar" ? "text-right mr-7" : "ml-7"}`}>{t('faqAnswer2')}</p>
+                </div>
+                <div className="border-b pb-4 last:border-b-0 last:pb-0">
+                  <h3 className={`font-medium text-visa-dark flex items-start ${language === "ar" ? "flex-row-reverse text-right" : ""}`}>
+                    <FileQuestion className={`h-5 w-5 text-visa-gold shrink-0 ${language === "ar" ? "ml-2" : "mr-2"}`} />
+                    <span>{t('faqQuestion3')}</span>
+                  </h3>
+                  <p className={`text-sm text-gray-600 mt-2 ${language === "ar" ? "text-right mr-7" : "ml-7"}`}>{t('faqAnswer3')}</p>
+                </div>
+                <div className="border-b pb-4 last:border-b-0 last:pb-0">
+                  <h3 className={`font-medium text-visa-dark flex items-start ${language === "ar" ? "flex-row-reverse text-right" : ""}`}>
+                    <FileQuestion className={`h-5 w-5 text-visa-gold shrink-0 ${language === "ar" ? "ml-2" : "mr-2"}`} />
+                    <span>{t('faqQuestion4')}</span>
+                  </h3>
+                  <p className={`text-sm text-gray-600 mt-2 ${language === "ar" ? "text-right mr-7" : "ml-7"}`}>{t('faqAnswer4')}</p>
+                </div>
+                <div className="border-b pb-4 last:border-b-0 last:pb-0">
+                  <h3 className={`font-medium text-visa-dark flex items-start ${language === "ar" ? "flex-row-reverse text-right" : ""}`}>
+                    <FileQuestion className={`h-5 w-5 text-visa-gold shrink-0 ${language === "ar" ? "ml-2" : "mr-2"}`} />
+                    <span>{t('faqQuestion5')}</span>
+                  </h3>
+                  <p className={`text-sm text-gray-600 mt-2 ${language === "ar" ? "text-right mr-7" : "ml-7"}`}>{t('faqAnswer5')}</p>
+                </div>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between">
-              <p className="text-sm text-gray-500">
-                Still have questions?
+            <CardFooter className={`flex justify-between ${language === "ar" ? "flex-row-reverse" : ""}`}>
+              <p className={`text-sm text-gray-500 ${language === "ar" ? "text-right" : ""}`}>
+                {t('stillHaveQuestions')}
               </p>
-              <Button variant="link" className="text-visa-gold p-0">Contact our support team</Button>
+              <Button variant="link" className="text-visa-gold p-0">{t('contactSupportTeam')}</Button>
             </CardFooter>
           </Card>
         </TabsContent>
@@ -207,65 +212,65 @@ export const CustomerSupport = ({ user }: CustomerSupportProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Visa Application Guides</CardTitle>
-                <CardDescription>
-                  Step-by-step guides for different visa types
+                <CardTitle className={language === "ar" ? "text-right" : ""}>{t('visaApplicationGuides')}</CardTitle>
+                <CardDescription className={language === "ar" ? "text-right" : ""}>
+                  {t('guidesDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3">
-                  <li className="flex items-center">
-                    <Clock className="h-4 w-4 mr-2 text-visa-gold" />
-                    <span className="text-sm">Tourist Visa Application Process</span>
+                  <li className={`flex items-center ${language === "ar" ? "flex-row-reverse text-right" : ""}`}>
+                    <Clock className={`h-4 w-4 text-visa-gold ${language === "ar" ? "ml-2" : "mr-2"}`} />
+                    <span className="text-sm">{t('touristVisaProcess')}</span>
                   </li>
-                  <li className="flex items-center">
-                    <Clock className="h-4 w-4 mr-2 text-visa-gold" />
-                    <span className="text-sm">Business Visa Requirements</span>
+                  <li className={`flex items-center ${language === "ar" ? "flex-row-reverse text-right" : ""}`}>
+                    <Clock className={`h-4 w-4 text-visa-gold ${language === "ar" ? "ml-2" : "mr-2"}`} />
+                    <span className="text-sm">{t('businessVisaRequirements')}</span>
                   </li>
-                  <li className="flex items-center">
-                    <Clock className="h-4 w-4 mr-2 text-visa-gold" />
-                    <span className="text-sm">Work Permit Documentation</span>
+                  <li className={`flex items-center ${language === "ar" ? "flex-row-reverse text-right" : ""}`}>
+                    <Clock className={`h-4 w-4 text-visa-gold ${language === "ar" ? "ml-2" : "mr-2"}`} />
+                    <span className="text-sm">{t('workPermitDocumentation')}</span>
                   </li>
-                  <li className="flex items-center">
-                    <Clock className="h-4 w-4 mr-2 text-visa-gold" />
-                    <span className="text-sm">Student Visa Application Tips</span>
+                  <li className={`flex items-center ${language === "ar" ? "flex-row-reverse text-right" : ""}`}>
+                    <Clock className={`h-4 w-4 text-visa-gold ${language === "ar" ? "ml-2" : "mr-2"}`} />
+                    <span className="text-sm">{t('studentVisaApplicationTips')}</span>
                   </li>
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" className="w-full">View All Guides</Button>
+                <Button variant="outline" className="w-full">{t('viewAllGuides')}</Button>
               </CardFooter>
             </Card>
             
             <Card>
               <CardHeader>
-                <CardTitle>Document Templates</CardTitle>
-                <CardDescription>
-                  Download useful templates for your applications
+                <CardTitle className={language === "ar" ? "text-right" : ""}>{t('documentTemplates')}</CardTitle>
+                <CardDescription className={language === "ar" ? "text-right" : ""}>
+                  {t('templatesDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-3">
-                  <li className="flex items-center">
-                    <ThumbsUp className="h-4 w-4 mr-2 text-visa-gold" />
-                    <span className="text-sm">Cover Letter Template</span>
+                  <li className={`flex items-center ${language === "ar" ? "flex-row-reverse text-right" : ""}`}>
+                    <ThumbsUp className={`h-4 w-4 text-visa-gold ${language === "ar" ? "ml-2" : "mr-2"}`} />
+                    <span className="text-sm">{t('coverLetterTemplate')}</span>
                   </li>
-                  <li className="flex items-center">
-                    <ThumbsUp className="h-4 w-4 mr-2 text-visa-gold" />
-                    <span className="text-sm">Invitation Letter Sample</span>
+                  <li className={`flex items-center ${language === "ar" ? "flex-row-reverse text-right" : ""}`}>
+                    <ThumbsUp className={`h-4 w-4 text-visa-gold ${language === "ar" ? "ml-2" : "mr-2"}`} />
+                    <span className="text-sm">{t('invitationLetterSample')}</span>
                   </li>
-                  <li className="flex items-center">
-                    <ThumbsUp className="h-4 w-4 mr-2 text-visa-gold" />
-                    <span className="text-sm">Financial Statement Format</span>
+                  <li className={`flex items-center ${language === "ar" ? "flex-row-reverse text-right" : ""}`}>
+                    <ThumbsUp className={`h-4 w-4 text-visa-gold ${language === "ar" ? "ml-2" : "mr-2"}`} />
+                    <span className="text-sm">{t('financialStatementFormat')}</span>
                   </li>
-                  <li className="flex items-center">
-                    <ThumbsUp className="h-4 w-4 mr-2 text-visa-gold" />
-                    <span className="text-sm">Travel Itinerary Template</span>
+                  <li className={`flex items-center ${language === "ar" ? "flex-row-reverse text-right" : ""}`}>
+                    <ThumbsUp className={`h-4 w-4 text-visa-gold ${language === "ar" ? "ml-2" : "mr-2"}`} />
+                    <span className="text-sm">{t('travelItineraryTemplate')}</span>
                   </li>
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" className="w-full">Download Templates</Button>
+                <Button variant="outline" className="w-full">{t('downloadTemplates')}</Button>
               </CardFooter>
             </Card>
           </div>

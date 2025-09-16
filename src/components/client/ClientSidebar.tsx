@@ -8,6 +8,9 @@ import {
   Settings,
   LogOut,
   Menu,
+  X,
+  ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +18,7 @@ import {
   SidebarContent,
   SidebarHeader,
   SidebarFooter,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -35,9 +39,11 @@ export const ClientSidebar = ({
   onLogout,
   className,
 }: ClientSidebarProps) => {
+  const [isCollapsed, setIsCollapsed] = React.useState(false);
   const { t, language } = useLanguage();
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(false);
+  const { setOpenMobile } = useSidebar();
 
   const menuItems = [
     { id: "dashboard", label: t("dashboard"), icon: <LayoutDashboard className="h-5 w-5" /> },
@@ -57,45 +63,30 @@ export const ClientSidebar = ({
     <Button
       key={item.id}
       variant={activeSection === item.id ? "default" : "ghost"}
-      className={cn(
-        "w-full justify-start text-sm py-1.5 min-h-[48px]",
+      className={`w-full justify-start text-sm py-1.5 ${
         activeSection === item.id
-          ? "bg-visa-gold text-white hover:bg-visa-gold/90"
+          ? "bg-visa-gold text-white hover:bg-visa-gold/90 hover:text-white"
           : "text-visa-dark hover:bg-visa-light"
-      )}
+      }`}
       onClick={() => handleMenuItemClick(item.id)}
     >
-      {language === "ar" ? (
-        <>
-          <span className="ms-2 truncate">{item.label}</span>
-          {item.icon}
-        </>
-      ) : (
-        <>
-          {item.icon}
-          <span className="ml-2 truncate">{item.label}</span>
-        </>
-      )}
+      <div className="flex gap-2">
+        {item.icon}
+        <span className="truncate">{item.label}</span>
+      </div>
     </Button>
   );
 
   const renderLogoutButton = () => (
     <Button
       variant="ghost"
-      className="w-full justify-start text-red-600 hover:bg-red-50 hover:text-red-700 text-sm py-1.5 min-h-[48px]"
+      className="w-full justify-start text-red-600 hover:bg-red-50 hover:text-red-700 text-sm py-1.5"
       onClick={onLogout}
     >
-      {language === "ar" ? (
-        <>
-          <span className="ms-2">{t("logout")}</span>
-          <LogOut className="h-5 w-5" />
-        </>
-      ) : (
-        <>
-          <LogOut className="h-5 w-5" />
-          <span className="ml-2">{t("logout")}</span>
-        </>
-      )}
+      <div className="flex gap-2">
+        <LogOut className="h-5 w-5" />
+        <span className="">{t("logout")}</span>
+      </div>
     </Button>
   );
 
@@ -105,24 +96,58 @@ export const ClientSidebar = ({
         <Button
           variant="outline"
           size="icon"
-          className="fixed top-16 left-4 z-40 bg-white shadow-md"
+          className={`fixed top-16 z-40 bg-white shadow-md ${
+            language === "ar" ? "right-4" : "left-4"
+          }`}
           onClick={() => setOpen(true)}
         >
           <Menu className="h-5 w-5" />
         </Button>
 
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetContent side="left" className="w-[80vw] sm:max-w-xs p-0">
+          <SheetContent 
+            side={language === "ar" ? "right" : "left"} 
+            className="w-[80vw] sm:max-w-xs p-0"
+          >
             <div className="flex flex-col h-full">
               <div className="p-4 border-b">
                 <h2 className="text-base font-bold text-visa-dark">{t("clientPortal")}</h2>
               </div>
 
               <div className="flex-1 p-2 overflow-y-auto space-y-0.5">
-                {menuItems.map(renderMenuItem)}
+                {menuItems.map((item) => (
+                  <Button
+                    key={item.id}
+                    variant={activeSection === item.id ? "default" : "ghost"}
+                    className={`w-full justify-start text-sm py-1.5 ${
+                      activeSection === item.id
+                        ? "bg-visa-gold text-white hover:bg-visa-gold/90 hover:text-white"
+                        : "text-visa-dark hover:bg-visa-light"
+                    }`}
+                    onClick={() => handleMenuItemClick(item.id)}
+                  >
+                    <div className="flex gap-2">
+                      {item.icon}
+                      <span className="truncate">{item.label}</span>
+                    </div>
+                  </Button>
+                ))}
               </div>
 
-              {onLogout && <div className="p-2 border-t">{renderLogoutButton()}</div>}
+              {onLogout && (
+                <div className="p-2 border-t">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-red-600 hover:bg-red-50 hover:text-red-700 text-sm py-1.5"
+                    onClick={onLogout}
+                  >
+                    <div className="flex gap-2">
+                      <LogOut className="h-5 w-5" />
+                      <span className="">{t("logout")}</span>
+                    </div>
+                  </Button>
+                </div>
+              )}
             </div>
           </SheetContent>
         </Sheet>
@@ -149,26 +174,92 @@ export const ClientSidebar = ({
   }
 
   return (
-    <Sidebar
-      className={cn(
-        `border-gray-200 ${language === "ar" ? "border-r-0 border-l" : "border-r"}`,
-        "max-w-[240px] w-[240px] bg-white",
-        className
-      )}
-    >
-      <SidebarHeader>
-        <div className="p-3">
-          <h2 className="text-base font-bold text-visa-dark truncate">{t("adminPortal")}</h2>
+    <>
+      {/* Collapsed Sidebar */}
+      {isCollapsed && !isMobile ? (
+        <div
+          className={cn(
+            `border-gray-200 ${
+              language === "ar" ? "border-r-0 border-l" : "border-r"
+            }`,
+            "w-16 bg-white flex flex-col items-center py-2 transition-all duration-300 ease-in-out overflow-hidden",
+            className
+          )}
+        >
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsCollapsed(false)}
+          >
+            {language === "ar" ? (
+              <ChevronLeft className="h-5 w-5 text-visa-dark" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-visa-dark" />
+            )}
+            <span className="sr-only">{t("open")}</span>
+          </Button>
+          <nav className="mt-4 space-y-2">
+            {menuItems.map((item) => (
+              <Button
+                key={item.id}
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "text-visa-dark",
+                  activeSection === item.id && "text-visa-gold"
+                )}
+                onClick={() => handleMenuItemClick(item.id)}
+                title={item.label}
+              >
+                {item.icon}
+              </Button>
+            ))}
+          </nav>
+          {onLogout && (
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-red-600 hover:bg-red-50 hover:text-red-700 text-sm py-1.5 flex items-center justify-center"
+              onClick={onLogout}
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
+          )}
         </div>
-      </SidebarHeader>
+      ) : (
+        <Sidebar
+          className={cn(
+            `border-gray-200 ${language === "ar" ? "border-r-0 border-l" : "border-r"}`,
+            "max-w-[240px] w-[240px] bg-white transition-all duration-300 ease-in-out overflow-hidden",
+            className
+          )}
+          side={language === "ar" ? "right" : "left"}
+        >
+          <SidebarHeader>
+            <div className="p-3 flex items-center justify-between">
+              <h2 className="text-base font-bold text-visa-dark truncate">{t("clientPortal")}</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setOpenMobile(false);
+                  if (!isMobile) setIsCollapsed(true);
+                }}
+              >
+                <X className="h-5 w-5 text-visa-dark" />
+                <span className="sr-only">{t("close")}</span>
+              </Button>
+            </div>
+          </SidebarHeader>
 
-      <SidebarContent>
-        <nav className="space-y-0.5 p-2">{menuItems.map(renderMenuItem)}</nav>
-      </SidebarContent>
+          <SidebarContent>
+            <nav className="space-y-0.5 p-2">{menuItems.map(renderMenuItem)}</nav>
+          </SidebarContent>
 
-      <SidebarFooter className="p-2 border-t border-gray-200 mt-auto">
-        {onLogout && renderLogoutButton()}
-      </SidebarFooter>
-    </Sidebar>
+          <SidebarFooter className="p-2 border-t border-gray-200 mt-auto">
+            {onLogout && renderLogoutButton()}
+          </SidebarFooter>
+        </Sidebar>
+      )}
+    </>
   );
 };

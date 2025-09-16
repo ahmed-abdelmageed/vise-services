@@ -4,7 +4,7 @@ import { ClientSidebar } from "@/components/client/ClientSidebar";
 import { DashboardContent } from "@/components/client/DashboardContent";
 import { DashboardLoading } from "@/components/client/DashboardLoading";
 import { useClientDashboard } from "@/hooks/useClientDashboard";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ClientSection } from "@/types/dashboard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobilePaddingWrapper } from "@/components/MobilePaddingWrapper";
@@ -14,9 +14,46 @@ import { useLanguage } from "@/contexts/LanguageContext";
 const ClientDashboard = () => {
   const { userData, applications, loading, handleLogout } = useClientDashboard();
   const [activeSection, setActiveSection] = useState<ClientSection>("dashboard");
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { language } = useLanguage();
+
+  // Helper function to validate client section
+  const isValidClientSection = (section: string): section is ClientSection => {
+    const validSections: ClientSection[] = [
+      "dashboard",
+      "services", 
+      "invoices",
+      "requests",
+      "support",
+      "settings"
+    ];
+    return validSections.includes(section as ClientSection);
+  };
+
+  // Initialize active section from URL params on component mount
+  useEffect(() => {
+    const tabFromUrl = searchParams.get("tab") as ClientSection;
+    if (tabFromUrl && isValidClientSection(tabFromUrl)) {
+      setActiveSection(tabFromUrl);
+    } else if (!searchParams.get("tab")) {
+      // Set default tab in URL if none exists
+      setSearchParams((prev) => {
+        prev.set("tab", activeSection);
+        return prev;
+      });
+    }
+  }, [searchParams, setSearchParams, activeSection]);
+
+  // Update URL when active section changes
+  const handleSetActiveSection = (section: ClientSection) => {
+    setActiveSection(section);
+    setSearchParams((prev) => {
+      prev.set("tab", section);
+      return prev;
+    });
+  };
 
   // For RTL support
   const sidebarPosition = language === "ar" ? "right-0" : "left-0";
@@ -59,7 +96,7 @@ const ClientDashboard = () => {
           {/* Sidebar with RTL support */}
           <ClientSidebar
             activeSection={activeSection}
-            setActiveSection={setActiveSection}
+            setActiveSection={handleSetActiveSection}
             onLogout={handleLogout}
             className={`shrink-0 sticky ${sidebarPosition} top-0 h-fit ${!isMobile ? "min-w-[240px]" : ""}`}
           />
@@ -76,6 +113,7 @@ const ClientDashboard = () => {
                   user={userData}
                   applications={applications}
                   loading={loading}
+                  onSectionChange={handleSetActiveSection}
                 />
               )}
             </MobilePaddingWrapper>

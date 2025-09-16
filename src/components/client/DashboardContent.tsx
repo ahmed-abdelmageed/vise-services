@@ -15,13 +15,15 @@ interface DashboardContentProps {
   user: UserData;
   applications: any[];
   loading: boolean;
+  onSectionChange: (section: ClientSection) => void;
 }
 
 export const DashboardContent: React.FC<DashboardContentProps> = ({ 
   activeSection, 
   user, 
   applications,
-  loading 
+  loading,
+  onSectionChange
 }) => {
   const { t } = useLanguage();
 
@@ -36,9 +38,9 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
   
   switch (activeSection) {
     case "dashboard":
-      return <DashboardOverview user={user} applications={applications} />;
+      return <DashboardOverview user={user} applications={applications} onSectionChange={onSectionChange} />;
     case "services":
-      return <MyServices applications={applications} />;
+      return <MyServices applications={applications} loading={loading} />;
     case "invoices":
       return <MyInvoices />;
     case "requests":
@@ -48,6 +50,6 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({
     case "settings":
       return <AccountSettings user={user} />;
     default:
-      return <DashboardOverview user={user} applications={applications} />;
+      return <DashboardOverview user={user} applications={applications} onSectionChange={onSectionChange} />;
   }
 };

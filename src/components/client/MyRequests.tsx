@@ -14,16 +14,18 @@ import { Input } from "@/components/ui/input";
 import { PlusCircle, MessageSquare, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const MyRequests = () => {
   const [activeTab, setActiveTab] = useState("all");
+  const { t, language } = useLanguage();
 
   // Mock data for requests
   const requests = [
     {
       id: "REQ-2023-042",
-      title: "Document clarification",
-      description: "Need clarification about the required supporting documents for my visa application.",
+      title: t('documentClarification'),
+      description: t('documentClarificationDesc'),
       status: "Resolved",
       createdAt: "2023-09-15",
       updatedAt: "2023-09-18",
@@ -47,8 +49,8 @@ export const MyRequests = () => {
     },
     {
       id: "REQ-2023-045",
-      title: "Visa status inquiry",
-      description: "I submitted my application two weeks ago but haven't received any updates. Could you please check the status?",
+      title: t('visaStatusInquiry'),
+      description: t('visaStatusInquiryDesc'),
       status: "In Progress",
       createdAt: "2023-10-25",
       updatedAt: "2023-10-29",
@@ -72,8 +74,8 @@ export const MyRequests = () => {
     },
     {
       id: "REQ-2023-048",
-      title: "Additional document submission",
-      description: "I need to submit additional supporting documents for my application.",
+      title: t('additionalDocumentSubmission'),
+      description: t('additionalDocumentSubmissionDesc'),
       status: "Pending",
       createdAt: "2023-10-30",
       updatedAt: "2023-10-30",
@@ -95,19 +97,19 @@ export const MyRequests = () => {
       case "Pending":
         return (
           <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
-            <Clock className="h-3 w-3 mr-1" /> Pending
+            <Clock className={`h-3 w-3 ${language === "ar" ? "ml-1" : "mr-1"}`} /> {t('pending')}
           </Badge>
         );
       case "In Progress":
         return (
           <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-            <AlertCircle className="h-3 w-3 mr-1" /> In Progress
+            <AlertCircle className={`h-3 w-3 ${language === "ar" ? "ml-1" : "mr-1"}`} /> {t('inProgress')}
           </Badge>
         );
       case "Resolved":
         return (
           <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-            <CheckCircle className="h-3 w-3 mr-1" /> Resolved
+            <CheckCircle className={`h-3 w-3 ${language === "ar" ? "ml-1" : "mr-1"}`} /> {t('resolved')}
           </Badge>
         );
       default:
@@ -116,52 +118,52 @@ export const MyRequests = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-visa-dark">My Requests</h1>
+    <div className="space-y-6" dir={language === "ar" ? "rtl" : "ltr"}>
+      <div className={`flex justify-between items-center ${language === "ar" ? "flex-row-reverse" : ""}`}>
+        <h1 className={`text-2xl font-bold text-visa-dark ${language === "ar" ? "text-right" : "text-left"}`}>{t('myRequests')}</h1>
         <Button className="bg-visa-gold hover:bg-visa-gold/90">
-          <PlusCircle className="mr-2 h-4 w-4" /> New Request
+          <PlusCircle className={`h-4 w-4 ${language === "ar" ? "ml-2" : "mr-2"}`} /> {t('newRequest')}
         </Button>
       </div>
 
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="all">All Requests</TabsTrigger>
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="resolved">Resolved</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 mb-6" dir={language === "ar" ? "rtl" : "ltr"}>
+          <TabsTrigger value="all">{t('allRequests')}</TabsTrigger>
+          <TabsTrigger value="active">{t('activeRequests')}</TabsTrigger>
+          <TabsTrigger value="resolved">{t('resolvedRequests')}</TabsTrigger>
         </TabsList>
 
         <div className="space-y-4">
           {filteredRequests.map((request) => (
-            <Card key={request.id}>
+            <Card key={request.id} className="hover:shadow-lg transition-shadow duration-200">
               <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle>{request.title}</CardTitle>
-                    <CardDescription className="mt-1">
-                      Request ID: {request.id} • Created: {request.createdAt}
+                <div className={`flex justify-between items-start ${language === "ar" ? "flex-row-reverse" : ""}`}>
+                  <div className={language === "ar" ? "text-right" : "text-left"}>
+                    <CardTitle className={language === "ar" ? "text-right" : "text-left"}>{request.title}</CardTitle>
+                    <CardDescription className={`mt-1 ${language === "ar" ? "text-right" : "text-left"}`}>
+                      {t('requestId')}: {request.id} • {t('created')}: {request.createdAt}
                     </CardDescription>
                   </div>
                   {renderStatusBadge(request.status)}
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-700 mb-4">{request.description}</p>
+                <p className={`text-sm text-gray-700 mb-4 ${language === "ar" ? "text-right" : "text-left"}`}>{request.description}</p>
                 
                 {request.responses.length > 0 && (
                   <div className="space-y-4 border-t pt-4">
-                    <h3 className="font-medium">Conversation</h3>
+                    <h3 className={`font-medium ${language === "ar" ? "text-right" : "text-left"}`}>{t('conversation')}</h3>
                     {request.responses.map((response, index) => (
                       <div key={index} className={`p-3 rounded-lg ${
                         response.from === "You" 
-                          ? "bg-blue-50 ml-8" 
-                          : "bg-gray-50 mr-8"
+                          ? `bg-blue-50 ${language === "ar" ? "mr-8" : "ml-8"}` 
+                          : `bg-gray-50 ${language === "ar" ? "ml-8" : "mr-8"}`
                       }`}>
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="font-medium text-sm">{response.from}</span>
+                        <div className={`flex justify-between items-center mb-1 ${language === "ar" ? "flex-row-reverse" : ""}`}>
+                          <span className="font-medium text-sm">{response.from === "You" ? t('you') : t('supportAgent')}</span>
                           <span className="text-xs text-gray-500">{response.timestamp}</span>
                         </div>
-                        <p className="text-sm">{response.message}</p>
+                        <p className={`text-sm ${language === "ar" ? "text-right" : "text-left"}`}>{response.message}</p>
                       </div>
                     ))}
                   </div>
@@ -171,12 +173,13 @@ export const MyRequests = () => {
                 <CardFooter>
                   <div className="w-full space-y-3">
                     <Textarea 
-                      placeholder="Add a reply to this request..." 
-                      className="resize-none"
+                      placeholder={t('addReplyPlaceholder')} 
+                      className={`resize-none ${language === "ar" ? "text-right" : "text-left"}`}
+                      dir={language === "ar" ? "rtl" : "ltr"}
                     />
-                    <div className="flex justify-end">
+                    <div className={`flex ${language === "ar" ? "justify-start" : "justify-end"}`}>
                       <Button className="bg-visa-gold hover:bg-visa-gold/90">
-                        <MessageSquare className="mr-2 h-4 w-4" /> Send Reply
+                        <MessageSquare className={`h-4 w-4 ${language === "ar" ? "ml-2" : "mr-2"}`} /> {t('sendReply')}
                       </Button>
                     </div>
                   </div>
@@ -188,8 +191,8 @@ export const MyRequests = () => {
       </Tabs>
       
       {filteredRequests.length === 0 && (
-        <div className="text-center py-10">
-          <p className="text-gray-500">No requests found.</p>
+        <div className={`text-center py-10 ${language === "ar" ? "text-right" : "text-left"}`}>
+          <p className="text-gray-500">{t('noRequestsFound')}</p>
         </div>
       )}
     </div>
