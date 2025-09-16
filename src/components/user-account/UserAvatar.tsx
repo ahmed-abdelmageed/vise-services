@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -10,8 +9,8 @@ interface UserAvatarProps {
 
 export const UserAvatar = ({ userInitials, onClick }: UserAvatarProps) => {
   return (
-    <Button 
-      variant="ghost" 
+    <Button
+      variant="ghost"
       className="relative rounded-full h-8 w-8 p-0 border border-gray-200 hover:bg-visa-light"
       onClick={onClick}
     >
