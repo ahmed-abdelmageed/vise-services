@@ -23,6 +23,7 @@ import {
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 import { useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 type AdminSection =
   | "dashboard"
@@ -127,13 +128,14 @@ export const AdminSidebar = ({
   const handleLogout = async () => {
     try {
       localStorage.removeItem("adminAuthenticated");
+      localStorage.removeItem("userData");
+      await supabase.auth.signOut();
       window.location.href = "/";
     } catch (error) {
       console.error("Logout error:", error);
     }
   };
 
-  
   return (
     <>
       {/* Sidebar with collapsible and expanded modes */}

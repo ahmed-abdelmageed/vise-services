@@ -12,7 +12,10 @@ interface AuthProps {
   redirectTo?: string;
 }
 
-export const Auth = ({ onSuccess, redirectTo = "/client-dashboard" }: AuthProps) => {
+export const Auth = ({
+  onSuccess,
+  redirectTo = "/client-dashboard",
+}: AuthProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,13 +24,15 @@ export const Auth = ({ onSuccess, redirectTo = "/client-dashboard" }: AuthProps)
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !email.includes('@')) {
+    if (!email || !email.includes("@")) {
       toast.error(t("invalidEmail") || "Please enter a valid email address");
       return;
     }
 
     if (!password || password.length < 6) {
-      toast.error(t("shortPassword") || "Password must be at least 6 characters long");
+      toast.error(
+        t("shortPassword") || "Password must be at least 6 characters long"
+      );
       return;
     }
 
@@ -49,33 +54,37 @@ export const Auth = ({ onSuccess, redirectTo = "/client-dashboard" }: AuthProps)
         return;
       }
 
-      onSuccess ? onSuccess() : navigate(redirectTo);
-    } catch (error: any) {
-      if (
-        error.message?.includes("Invalid login credentials") ||
-        error.message?.includes("User not found")
-      ) {
-        try {
-          toast.info(t("creatingAccount") || "Creating new account...");
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email,
-            password,
-            options: { data: { name: email.split("@")[0] } },
-          });
-
-          if (signUpError) throw signUpError;
-
-          localStorage.setItem("userData", JSON.stringify(signUpData.user));
-          toast.success(t("accountCreated") || "Account created and logged in successfully!");
-          navigate(redirectTo);
-        } catch (signUpError: any) {
-          toast.error(signUpError.message || t("accountCreationError") || "Failed to create account");
-          console.error("Error creating account:", signUpError);
-        }
-      } else {
-        toast.error(error.message || t("signInError") || "Failed to sign in");
-        console.error("Error signing in:", error);
+      console.log("🚀 ~ handleSignIn ~ redirectTo:", redirectTo);
+      if (onSuccess) {
+        onSuccess();
       }
+      navigate(redirectTo);
+    } catch (error: any) {
+      // if (
+      //   error.message?.includes("Invalid login credentials") ||
+      //   error.message?.includes("User not found")
+      // ) {
+      //   try {
+      //     toast.info(t("creatingAccount") || "Creating new account...");
+      //     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      //       email,
+      //       password,
+      //       options: { data: { name: email.split("@")[0] } },
+      //     });
+
+      //     if (signUpError) throw signUpError;
+
+      //     localStorage.setItem("userData", JSON.stringify(signUpData.user));
+      //     toast.success(t("accountCreated") || "Account created and logged in successfully!");
+      //     navigate(redirectTo);
+      //   } catch (signUpError: any) {
+      //     toast.error(signUpError.message || t("accountCreationError") || "Failed to create account");
+      //     console.error("Error creating account:", signUpError);
+      //   }
+      // } else {
+      toast.error(error.message || t("signInError") || "Failed to sign in");
+      console.error("Error signing in:", error);
+      // }
     } finally {
       setLoading(false);
     }
@@ -84,9 +93,14 @@ export const Auth = ({ onSuccess, redirectTo = "/client-dashboard" }: AuthProps)
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
       <form onSubmit={handleSignIn} className="space-y-4">
-        <h2 className="text-2xl font-bold text-visa-dark mb-4">{t("signIn")}</h2>
+        <h2 className="text-2xl font-bold text-visa-dark mb-4">
+          {t("signIn")}
+        </h2>
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             {t("emailAddress") || "Email Address"}
           </label>
           <Input
@@ -100,7 +114,10 @@ export const Auth = ({ onSuccess, redirectTo = "/client-dashboard" }: AuthProps)
           />
         </div>
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             {t("password") || "Password"}
           </label>
           <Input
@@ -113,8 +130,8 @@ export const Auth = ({ onSuccess, redirectTo = "/client-dashboard" }: AuthProps)
             required
           />
         </div>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           className="w-full bg-visa-gold hover:bg-visa-gold/90 text-white"
           disabled={loading}
         >
