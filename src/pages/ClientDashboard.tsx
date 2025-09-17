@@ -10,24 +10,30 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { MobilePaddingWrapper } from "@/components/MobilePaddingWrapper";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const ClientDashboard = () => {
-  const { userData, applications, loading, handleLogout } = useClientDashboard();
-  const [activeSection, setActiveSection] = useState<ClientSection>("dashboard");
+  const { userData, applications, loading, handleLogout } =
+    useClientDashboard();
+  const [activeSection, setActiveSection] =
+    useState<ClientSection>("dashboard");
   const [searchParams, setSearchParams] = useSearchParams();
+  const [userApplications, setUserApplications] = useState<any[]>([]);
+  const [loadingApplications, setLoadingApplications] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
 
   // Helper function to validate client section
   const isValidClientSection = (section: string): section is ClientSection => {
     const validSections: ClientSection[] = [
       "dashboard",
-      "services", 
+      "services",
       "invoices",
       "requests",
       "support",
-      "settings"
+      "settings",
     ];
     return validSections.includes(section as ClientSection);
   };
@@ -58,6 +64,39 @@ const ClientDashboard = () => {
   // For RTL support
   const sidebarPosition = language === "ar" ? "right-0" : "left-0";
 
+  // Fetch visa applications by user_id
+  useEffect(() => {
+    const fetchUserVisaApplications = async () => {
+      if (!userData?.id) return;
+
+      try {
+        setLoadingApplications(true);
+
+        const { data, error } = await supabase
+          .from("visa_applications")
+          .select("*")
+          .eq("user_id", userData.id)
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          throw error;
+        }
+
+        console.log("Fetched user applications:", data);
+        setUserApplications(data || []);
+      } catch (error) {
+        console.error("Error fetching user applications:", error);
+        toast.error(
+          t("failedToLoadApplications") || "Failed to load applications"
+        );
+      } finally {
+        setLoadingApplications(false);
+      }
+    };
+
+    fetchUserVisaApplications();
+  }, [userData?.id, t]);
+
   useEffect(() => {
     const changeActiveSection = (event: CustomEvent) => {
       if (event.detail && typeof event.detail === "string") {
@@ -65,9 +104,15 @@ const ClientDashboard = () => {
       }
     };
 
-    document.addEventListener("setActiveSection", changeActiveSection as EventListener);
+    document.addEventListener(
+      "setActiveSection",
+      changeActiveSection as EventListener
+    );
     return () => {
-      document.removeEventListener("setActiveSection", changeActiveSection as EventListener);
+      document.removeEventListener(
+        "setActiveSection",
+        changeActiveSection as EventListener
+      );
     };
   }, []);
 
@@ -98,7 +143,9 @@ const ClientDashboard = () => {
             activeSection={activeSection}
             setActiveSection={handleSetActiveSection}
             onLogout={handleLogout}
-            className={`shrink-0 sticky ${sidebarPosition} top-0 h-fit ${!isMobile ? "min-w-[240px]" : ""}`}
+            className={`shrink-0 sticky ${sidebarPosition} top-0 h-fit ${
+              !isMobile ? "min-w-[240px]" : ""
+            }`}
           />
 
           <main
@@ -111,9 +158,9 @@ const ClientDashboard = () => {
                 <DashboardContent
                   activeSection={activeSection}
                   user={userData}
-                  applications={applications}
-                  loading={loading}
                   onSectionChange={handleSetActiveSection}
+                  applications={userApplications}
+                  loading={loadingApplications}
                 />
               )}
             </MobilePaddingWrapper>
