@@ -49,8 +49,8 @@ export const ClientSidebar = ({
     { id: "dashboard", label: t("dashboard"), icon: <LayoutDashboard className="h-5 w-5" /> },
     { id: "services", label: t("myServices"), icon: <Package className="h-5 w-5" /> },
     { id: "invoices", label: t("myInvoices"), icon: <FileText className="h-5 w-5" /> },
-    { id: "requests", label: t("myRequests"), icon: <Ticket className="h-5 w-5" /> },
-    { id: "support", label: t("customerSupport"), icon: <Headphones className="h-5 w-5" /> },
+    // { id: "requests", label: t("myRequests"), icon: <Ticket className="h-5 w-5" /> },
+    // { id: "support", label: t("customerSupport"), icon: <Headphones className="h-5 w-5" /> },
     { id: "settings", label: t("accountSettings"), icon: <Settings className="h-5 w-5" /> },
   ] as const;
 
