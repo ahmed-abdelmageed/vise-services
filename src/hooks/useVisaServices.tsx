@@ -1,68 +1,57 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { toast } from "sonner";
 import { VisaConfig } from "@/types/visa";
 import { DragEndEvent } from "@dnd-kit/core";
+import {
+  useVisaServices as useVisaServicesQuery,
+  useToggleVisaServiceStatus,
+  useUpdateVisaServiceOrder,
+  useOptimisticReorder
+} from "./useVisaServicesQuery";
 
 export const useVisaServices = (onDataChanged?: () => Promise<void>) => {
-  const [visaServices, setVisaServices] = useState<VisaConfig[]>([]);
-  const [isLoadingServices, setIsLoadingServices] = useState(true);
   const [statusChangeProcessing, setStatusChangeProcessing] = useState<
     string | null
   >(null);
 
+  // Use React Query hooks
+  const { data: visaServicesData, isLoading: isLoadingServices, refetch: refetchVisaServices } = useVisaServicesQuery({ active_only: undefined });
+  const toggleStatusMutation = useToggleVisaServiceStatus();
+  const updateOrderMutation = useUpdateVisaServiceOrder();
+  const { optimisticReorder, revertOptimisticUpdate } = useOptimisticReorder();
+
+  // Transform the data to match the expected VisaConfig format
+  const visaServices: VisaConfig[] = visaServicesData?.map(item => ({
+    id: item.id,
+    title: item.title,
+    basePrice: item.baseprice,
+    formTitle: item.formtitle,
+    formDescription: item.formdescription,
+    requiresMothersName: item.requiresmothersname || false,
+    requiresNationalitySelection: item.requiresnationalityselection || false,
+    requiresServiceSelection: item.requiresserviceselection || false,
+    requiresAppointmentTypeSelection: item.requiresappointmenttypeselection || false,
+    requiresLocationSelection: item.requireslocationselection || false,
+    requiresVisaCitySelection: item.requiresvisacityselection || false,
+    requiresSaudiIdIqama: item.requiressaudiidiqama || false,
+    usaVisaCities: item.usavisacities,
+    flag: item.flag,
+    processingTime: item.processingtime,
+    active: item.active,
+    displayOrder: item.display_order,
+    // Arabic translations
+    title_ar: item.title_ar,
+    formTitle_ar: item.formtitle_ar,
+    formDescription_ar: item.formdescription_ar,
+    processingTime_ar: item.processingtime_ar,
+  })) || [];
+
   const fetchVisaServices = async () => {
-    try {
-      setIsLoadingServices(true);
-      const { data, error } = await supabase
-        .from("visa_services")
-        .select("*")
-        .order("display_order", { ascending: true });
-
-      if (error) {
-        console.error("Error fetching visa services:", error);
-        toast.error("Failed to load visa services");
-        return;
-      }
-
-      // Transform database fields to match VisaConfig interface
-      const transformedData = data.map((item) => ({
-        id: item.id,
-        title: item.title,
-        basePrice: item.baseprice,
-        formTitle: item.formtitle,
-        formDescription: item.formdescription,
-        requiresMothersName: item.requiresmothersname,
-        requiresNationalitySelection: item.requiresnationalityselection,
-        requiresServiceSelection: item.requiresserviceselection,
-        requiresAppointmentTypeSelection: item.requiresappointmenttypeselection,
-        requiresLocationSelection: item.requireslocationselection,
-        requiresVisaCitySelection: item.requiresvisacityselection,
-        requiresSaudiIdIqama: item.requiressaudiidiqama,
-        usaVisaCities: item.usavisacities,
-        flag: item.flag,
-        processingTime: item.processingtime,
-        active: item.active,
-        displayOrder: item.display_order,
-        // Arabic translations
-        title_ar: item.title_ar,
-        formTitle_ar: item.formtitle_ar,
-        formDescription_ar: item.formdescription_ar,
-        processingTime_ar: item.processingtime_ar,
-      })) as VisaConfig[];
-
-      setVisaServices(transformedData);
-    } catch (error) {
-      console.error("Error in fetchVisaServices:", error);
-      toast.error("An unexpected error occurred");
-    } finally {
-      setIsLoadingServices(false);
+    await refetchVisaServices();
+    if (onDataChanged) {
+      await onDataChanged();
     }
   };
-
-  useEffect(() => {
-    fetchVisaServices();
-  }, []);
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
@@ -81,36 +70,50 @@ export const useVisaServices = (onDataChanged?: () => Promise<void>) => {
       const [movedService] = reorderedServices.splice(oldIndex, 1);
       reorderedServices.splice(newIndex, 0, movedService);
 
-      setVisaServices(reorderedServices);
+      // Optimistic update
+      const optimisticData = reorderedServices.map(item => ({
+        id: item.id,
+        title: item.title,
+        formtitle: item.formTitle,
+        formdescription: item.formDescription,
+        baseprice: item.basePrice,
+        flag: item.flag,
+        processingtime: item.processingTime,
+        active: item.active,
+        requiresmothersname: item.requiresMothersName,
+        requiresnationalityselection: item.requiresNationalitySelection,
+        requiresserviceselection: item.requiresServiceSelection,
+        requiresappointmenttypeselection: item.requiresAppointmentTypeSelection,
+        requireslocationselection: item.requiresLocationSelection,
+        requiresvisacityselection: item.requiresVisaCitySelection,
+        requiressaudiidiqama: item.requiresSaudiIdIqama,
+        usavisacities: item.usaVisaCities,
+        display_order: 0, // Will be set below
+        title_ar: item.title_ar,
+        formtitle_ar: item.formTitle_ar,
+        formdescription_ar: item.formDescription_ar,
+        processingtime_ar: item.processingTime_ar,
+      }));
+
+      optimisticReorder(optimisticData);
 
       // Update display order in database
       const updates = reorderedServices.map((service, index) => ({
-        id: service.id,
+        id: service.id!,
         display_order: index + 1,
-        title: service.title,
-        formtitle: service.formTitle,
-        formdescription: service.formDescription,
-        // Include Arabic translations to avoid them being reset
-        title_ar: service.title_ar,
-        formtitle_ar: service.formTitle_ar,
-        formdescription_ar: service.formDescription_ar,
-        processingtime_ar: service.processingTime_ar,
       }));
 
-      const { error } = await supabase.from("visa_services").upsert(updates);
-
-      if (error) {
-        console.error("Error updating service order:", error);
-        toast.error("Failed to save new order");
-        await fetchVisaServices(); // Reload original order
-        return;
-      }
+      await updateOrderMutation.mutateAsync(updates);
 
       toast.success("Service order updated");
+      
+      if (onDataChanged) {
+        await onDataChanged();
+      }
     } catch (error) {
       console.error("Error in handleDragEnd:", error);
       toast.error("Failed to update service order");
-      await fetchVisaServices(); // Reload original order
+      revertOptimisticUpdate();
     }
   };
 
@@ -119,32 +122,14 @@ export const useVisaServices = (onDataChanged?: () => Promise<void>) => {
 
     setStatusChangeProcessing(service.id);
     try {
-      const { error } = await supabase
-        .from("visa_services")
-        .update({ active: !service.active })
-        .eq("id", service.id);
+      await toggleStatusMutation.mutateAsync({
+        id: service.id,
+        active: !service.active
+      });
 
-      setVisaServices((prevServices) =>
-        prevServices.map((s) =>
-          s.id === service.id ? { ...s, active: !s.active } : s
-        )
-      );
-
-      if (error) {
-        console.error("Error updating service status:", error);
-        toast.error("Failed to update service status");
-        return;
+      if (onDataChanged) {
+        await onDataChanged();
       }
-
-      toast.success(
-        `Service ${service.active ? "deactivated" : "activated"} successfully`
-      );
-
-      // Refresh data after status change
-      // await fetchVisaServices();
-      // if (onDataChanged) {
-      //   await onDataChanged();
-      // }
     } catch (error) {
       console.error("Error in toggleServiceStatus:", error);
       toast.error("An unexpected error occurred");

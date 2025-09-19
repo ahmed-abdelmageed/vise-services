@@ -7,7 +7,7 @@ import { useAdminDashboard } from "@/hooks/useAdminDashboard";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useClientDashboard } from "@/hooks/useClientDashboard";
+// import { useClientDashboard } from "@/hooks/useClientDashboard";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -22,12 +22,12 @@ const AdminDashboard = () => {
     handleDeleteCustomer,
   } = useAdminDashboard();
 
-  const { handleLogout: supabaseLogout } = useClientDashboard();
+  // const { handleLogout: supabaseLogout } = useClientDashboard();
 
   const handleLogout = async () => {
     try {
       localStorage.removeItem("adminAuthenticated");
-      await supabaseLogout();
+      // await supabaseLogout();
       navigate("/");
     } catch (error) {
       console.error("Logout error:", error);

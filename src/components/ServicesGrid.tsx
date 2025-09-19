@@ -1,99 +1,59 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ServiceCard } from "@/components/visa/ServiceCard";
-import { supabase } from "@/integrations/supabase/client";
 import { Service, VisaConfig } from "@/types/visa";
 import { Input } from "@/components/ui/input";
 import { Search, Loader } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useVisaServices } from "@/hooks/useVisaServicesQuery";
 
 interface ServicesGridProps {
   onSelectService?: (service: Service | VisaConfig) => void;
   services?: (Service | VisaConfig)[];
 }
 
-export const ServicesGrid = ({ onSelectService, services: providedServices }: ServicesGridProps) => {
+export const ServicesGrid = ({
+  onSelectService,
+  services: providedServices,
+}: ServicesGridProps) => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
-  const [visaServices, setVisaServices] = useState<VisaConfig[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchVisaServices = async () => {
-      try {
-        setIsLoading(true);
-        const { data, error } = await supabase
-          .from("visa_services")
-          .select("*")
-          .eq("active", true)
-          .order("display_order", { ascending: true });
-
-        if (error) {
-          console.error("Error fetching visa services:", error);
-          return;
-        }
-
-        const transformedData = data.map(item => ({
-          id: item.id,
-          title: item.title,
-          basePrice: item.baseprice,
-          formTitle: item.formtitle,
-          formDescription: item.formdescription,
-          requiresMothersName: item.requiresmothersname,
-          requiresNationalitySelection: item.requiresnationalityselection,
-          requiresServiceSelection: item.requiresserviceselection,
-          requiresAppointmentTypeSelection: item.requiresappointmenttypeselection,
-          requiresLocationSelection: item.requireslocationselection,
-          requiresVisaCitySelection: item.requiresvisacityselection,
-          requiresSaudiIdIqama: item.requiressaudiidiqama,
-          usaVisaCities: item.usavisacities,
-          flag: item.flag,
-          processingTime: item.processingtime,
-          active: item.active,
-          displayOrder: item.display_order,
-          description: item.formdescription,
-          time: item.processingtime,
-          title_ar: item.title_ar,
-          formTitle_ar: item.formtitle_ar,
-          formDescription_ar: item.formdescription_ar,
-          processingTime_ar: item.processingtime_ar,
-          description_ar: item.formdescription_ar,
-          time_ar: item.processingtime_ar,
-        })) as VisaConfig[];
-
-        setVisaServices(transformedData);
-      } catch (error) {
-        console.error("Error in fetchVisaServices:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (!providedServices) {
-      fetchVisaServices();
-    }
-  }, [providedServices, language]);
+  // Use React Query hook to fetch visa services
+  const {
+    data: visaServicesData,
+    isLoading,
+    error,
+  } = useVisaServices({ active_only: true });
 
   const handleSelectService = (service: Service | VisaConfig) => {
     if (onSelectService) {
       onSelectService(service);
     } else {
-      const serviceTitle = language === "ar" && service.title_ar ? service.title_ar : service.title;
+      const serviceTitle =
+        language === "ar" && service.title_ar
+          ? service.title_ar
+          : service.title;
       navigate(`/service/${encodeURIComponent(serviceTitle)}`);
     }
   };
 
-  const displayServices = providedServices || visaServices;
+  const displayServices = providedServices || visaServicesData;
 
-  const filteredServices = displayServices.filter(service => {
+  const filteredServices = displayServices?.filter((service) => {
     const isArabic = language === "ar";
-    const title = isArabic && service.title_ar ? service.title_ar : service.title;
+    const title =
+      isArabic && service.title_ar ? service.title_ar : service.title;
 
     let description = "";
     if (isArabic) {
       description =
-        service.formDescription_ar || service.description_ar || service.formDescription || service.description || "";
+        service.formDescription_ar ||
+        service.description_ar ||
+        service.formDescription ||
+        service.description ||
+        "";
     } else {
       description = service.formDescription || service.description || "";
     }
@@ -101,7 +61,8 @@ export const ServicesGrid = ({ onSelectService, services: providedServices }: Se
     return (
       title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (service.flag && service.flag.toLowerCase().includes(searchQuery.toLowerCase()))
+      (service.flag &&
+        service.flag.toLowerCase().includes(searchQuery.toLowerCase()))
     );
   });
 
@@ -126,7 +87,7 @@ export const ServicesGrid = ({ onSelectService, services: providedServices }: Se
               placeholder={t("searchServices")}
               className="w-full pl-10 rtl:pl-4 rtl:pr-10 text-sm sm:text-base h-10 sm:h-11"
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
@@ -135,7 +96,15 @@ export const ServicesGrid = ({ onSelectService, services: providedServices }: Se
         {isLoading ? (
           <div className="flex justify-center items-center py-12">
             <Loader className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-visa-gold" />
-            <span className="ml-2 rtl:mr-2 rtl:ml-0 text-visa-dark">{t("loading")}</span>
+            <span className="ml-2 rtl:mr-2 rtl:ml-0 text-visa-dark">
+              {t("loading")}
+            </span>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-base sm:text-lg text-red-500">
+              {t("errorLoadingServices") || "Error loading services"}
+            </p>
           </div>
         ) : filteredServices.length === 0 ? (
           <div className="text-center py-12">
