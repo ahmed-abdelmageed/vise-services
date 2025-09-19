@@ -18,83 +18,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { ClientInvoice } from "@/types/crm";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useInvoices, useInvoicesByClient } from "@/hooks/useInvoicesQuery";
+import { useCurrentUserId } from "@/hooks/useUserQuery";
 
 export const MyInvoices = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const { t, language } = useLanguage();
+  
+  // Get current user ID
+  const { data: currentUserId, isLoading: userLoading } = useCurrentUserId();
 
-  // Fetch real invoices from the database
-  const { data: invoices, isLoading } = useQuery({
-    queryKey: ['client-invoices'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('client_invoices')
-        .select('*')
-        .order('issue_date', { ascending: false });
-      
-      if (error) throw error;
-      return data as ClientInvoice[];
-    },
-    // If there's no data, fall back to the mock data
-    placeholderData: [],
-  });
+  // Use React Query hook to fetch invoices for the current user
+  const { data: invoicesData, isLoading, error } = useInvoicesByClient(
+    currentUserId || '', 
+    !!currentUserId
+  );
 
-  // If no real invoices are found, use these mock invoices
-  const mockInvoices = [
-    {
-      id: "INV-2023-072",
-      invoice_number: "INV-2023-072",
-      issue_date: "2023-09-15",
-      due_date: "2023-09-30",
-      service_description: "Tourist Visa Application",
-      amount: 450,
-      currency: "﷼",
-      status: "Paid",
-    },
-    {
-      id: "INV-2023-078",
-      invoice_number: "INV-2023-078",
-      issue_date: "2023-10-01",
-      due_date: "2023-10-15",
-      service_description: "Document Translation",
-      amount: 250,
-      currency: "﷼",
-      status: "Paid",
-    },
-    {
-      id: "INV-2023-082",
-      invoice_number: "INV-2023-082",
-      issue_date: "2023-10-20",
-      due_date: "2023-11-05",
-      service_description: "Visa Consultation",
-      amount: 150,
-      currency: "﷼",
-      status: "Unpaid",
-    },
-    {
-      id: "INV-2023-087",
-      invoice_number: "INV-2023-087",
-      issue_date: "2023-11-01",
-      due_date: "2023-11-15",
-      service_description: "Express Processing",
-      amount: 100,
-      currency: "﷼",
-      status: "Unpaid",
-    },
-  ];
+  // Transform the data to match ClientInvoice format
+  const invoices: ClientInvoice[] = invoicesData?.map(item => ({
+    id: item.id!,
+    invoice_number: item.invoice_number,
+    client_id: item.client_id!,
+    amount: item.amount,
+    currency: item.currency || '﷼',
+    status: item.status,
+    issue_date: item.issue_date!,
+    due_date: item.due_date,
+    payment_date: item.payment_date,
+    service_description: item.service_description,
+    created_at: item.created_at!,
+    updated_at: item.updated_at!,
+  })) || [];
+
 
   // Combine real and mock data, prioritizing real data
-  const displayInvoices = invoices && invoices.length > 0 
-    ? invoices 
-    : mockInvoices as unknown as ClientInvoice[];
+  const displayInvoices = invoices && invoices.length > 0
+    ? invoices
+    : [] as unknown as ClientInvoice[];
 
   // Filter invoices based on search term and status
   const filteredInvoices = displayInvoices.filter(
@@ -104,7 +70,8 @@ export const MyInvoices = () => {
       (statusFilter === "all" || invoice.status === statusFilter)
   );
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return t('notAvailable');
     try {
       return format(new Date(dateString), 'yyyy-MM-dd');
     } catch (e) {
@@ -133,11 +100,20 @@ export const MyInvoices = () => {
     toast.info(t('processingPaymentForInvoices').replace('{count}', unpaidInvoices.length.toString()));
   };
 
-  if (isLoading) {
+  if (isLoading || userLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <Loader className="h-8 w-8 animate-spin text-visa-gold mb-4" />
         <p className="text-visa-dark">{t('loadingInvoices')}</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <p className="text-red-500 mb-4">Error loading invoices</p>
+        <p className="text-gray-500">Please try refreshing the page</p>
       </div>
     );
   }
