@@ -243,3 +243,54 @@ export const fetchInvoicesByClient = async (clientId: string) => {
     toast.error("An unexpected error occurred");
   }
 };
+
+/**
+ * Create invoice for visa application after successful payment
+ */
+export const createVisaInvoice = async (paymentData: {
+  payment_id: string;
+  order_id: string;
+  transaction_id?: string;
+  amount: number;
+  currency: string;
+}, applicationData: {
+  user_id: string;
+  client_id?: string;
+  service_description: string;
+  customer_email: string;
+  customer_name: string;
+}) => {
+  try {
+    const invoiceData: Partial<InvoiceItem> = {
+      invoice_number: `INV-${paymentData.order_id}`,
+      client_id: applicationData.client_id || applicationData.user_id,
+      user_id: applicationData.user_id,
+      amount: paymentData.amount,
+      currency: paymentData.currency,
+      status: "Paid",
+      issue_date: new Date().toISOString(),
+      payment_date: new Date().toISOString(),
+      service_description: applicationData.service_description,
+    };
+
+    const { data, error } = await supabase
+      .from("client_invoices")
+      .insert([invoiceData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating visa invoice:", error);
+      toast.error("Failed to create invoice for visa application");
+      throw error;
+    }
+
+    console.log("Visa invoice created successfully:", data);
+    toast.success("Invoice created for your visa application");
+    return data;
+  } catch (error) {
+    console.error("Error in createVisaInvoice:", error);
+    toast.error("Failed to create invoice");
+    throw error;
+  }
+};

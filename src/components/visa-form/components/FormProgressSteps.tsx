@@ -37,6 +37,7 @@ export const FormProgressSteps = ({
       { step: 1, label: t("personal") },
       { step: 2, label: t("documents") },
       { step: 3, label: isLoggedIn ? t("confirm") : t("account") },
+      { step: 4, label: t("payment") || "Payment" },
     ],
     [isLoggedIn, t]
   );
@@ -73,7 +74,7 @@ export const FormProgressSteps = ({
         <div
           className="bg-visa-gold h-1 transition-all duration-300"
           style={{
-            width: `${((formStep - 1) / 2) * 100}%`,
+            width: `${((formStep - 1) / 3) * 100}%`,
           }}
         ></div>
       </div>

@@ -11,6 +11,7 @@ import { NationalitySelection } from "./NationalitySelection";
 import { PersonalInfoStep } from "./PersonalInfoStep";
 import { DocumentsStep } from "./DocumentsStep";
 import { AccountStep } from "./AccountStep";
+import { PaymentStep } from "./PaymentStep";
 import { useServiceForm } from "./hooks/useServiceForm";
 import { FormProgressSteps } from "./components/FormProgressSteps";
 import { LoadingOverlay } from "./components/LoadingOverlay";
@@ -53,7 +54,14 @@ export const ServiceForm = ({ selectedService, onBack }: ServiceFormProps) => {
     visaConfig,
     requiresNationalitySelection,
     isEuropeanVisa,
-    isUSAVisa
+    isUSAVisa,
+    // Payment-related
+    paymentCompleted,
+    paymentData,
+    invoiceId,
+    handlePaymentSuccess,
+    handlePaymentFailed,
+    submitVisaApplication
   } = useServiceForm({ selectedService, onBack });
 
   if (!selectedService) return null;
@@ -210,6 +218,19 @@ export const ServiceForm = ({ selectedService, onBack }: ServiceFormProps) => {
                   visaConfig={visaConfig}
                   basePrice={basePrice}
                   totalPrice={totalPrice}
+                />
+              )}
+
+              {formStep === 4 && (
+                <PaymentStep
+                  totalPrice={totalPrice}
+                  formData={formData}
+                  travellers={travellers}
+                  selectedService={selectedService}
+                  applicationId={applicationId}
+                  onPaymentSuccess={handlePaymentSuccess}
+                  onPaymentFailed={handlePaymentFailed}
+                  handlePrevStep={handlePrevStep}
                 />
               )}
             </form>

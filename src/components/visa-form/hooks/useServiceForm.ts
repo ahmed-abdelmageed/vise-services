@@ -11,6 +11,8 @@ import { TravellerData, UploadedFiles, VisaFormData } from "../types";
 import { VISA_CONFIGS, DEFAULT_VISA_CONFIG } from "@/config/visaConfig";
 import { uploadDocuments } from "../utils/documentUtils";
 import { useAuthentication } from "@/components/user-account/useAuthentication";
+import { createVisaInvoice } from "@/api/invoices";
+import { getCurrentUserId } from "@/api/user";
 
 export interface UseServiceFormProps {
   selectedService: Service;
@@ -48,6 +50,9 @@ export const useServiceForm = ({
   const serviceType = "prepare-file-only";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
+  const [paymentData, setPaymentData] = useState<any>(null);
+  const [invoiceId, setInvoiceId] = useState<string | null>(null);
   const [visaType, setVisaType] = useState<"gcc" | "other" | null>(
     requiresNationalitySelection ? null : "other"
   );
@@ -361,6 +366,16 @@ export const useServiceForm = ({
       }
     } else if (formStep === 2) {
       // Document upload step - now optional, so no validation here
+    } else if (formStep === 3) {
+      // Account/Confirmation step - validate before proceeding to payment
+      if (!isLoggedIn && (!formData.email || !formData.password || !formData.confirmPassword || !formData.phoneNumber)) {
+        toast.error("Please fill in all required fields");
+        return;
+      }
+      if (formData.password !== formData.confirmPassword) {
+        toast.error("Passwords do not match");
+        return;
+      }
     }
 
     setFormStep((prev) => prev + 1);
@@ -401,30 +416,74 @@ export const useServiceForm = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !isLoggedIn &&
-      (!formData.email ||
-        !formData.password ||
-        !formData.confirmPassword ||
-        !formData.phoneNumber)
-    ) {
-      toast.error("Please fill in all required fields");
+    
+    // This function is now just for form validation and proceeding to payment
+    // The actual application submission happens after payment success
+    if (formStep < 4) {
+      handleNextStep();
       return;
     }
-    if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
+    
+    // If we're on step 4 (payment), this shouldn't be called
+    // Payment is handled by the PaymentStep component
+  };
+
+  const handlePaymentSuccess = async (paymentInfo: any) => {
+    try {
+      setPaymentData(paymentInfo);
+      setPaymentCompleted(true);
+      
+      // Get current user ID
+      const userId = await getCurrentUserId();
+      
+      if (!userId) {
+        toast.error("User authentication required");
+        return;
+      }
+
+      // Create invoice after successful payment
+      const invoiceData = await createVisaInvoice(
+        {
+          payment_id: paymentInfo.payment_id,
+          order_id: paymentInfo.order_id,
+          transaction_id: paymentInfo.transaction_id,
+          amount: paymentInfo.amount,
+          currency: paymentInfo.currency,
+        },
+        {
+          user_id: userId,
+          client_id: userId,
+          service_description: `${selectedService?.title} - Visa Service for ${travellers[0]?.fullName}`,
+          customer_email: formData.email,
+          customer_name: travellers[0]?.fullName,
+        }
+      );
+
+      if (invoiceData) {
+        setInvoiceId(invoiceData.id);
+        toast.success("Payment successful! Invoice created.");
+        
+        // Now submit the visa application
+        await submitVisaApplication();
+      }
+    } catch (error) {
+      console.error("Error handling payment success:", error);
+      toast.error("Payment successful but failed to create invoice. Please contact support.");
     }
-    if (!formData.phoneNumber) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
+  };
+
+  const handlePaymentFailed = (error: string) => {
+    toast.error(`Payment failed: ${error}`);
+    setPaymentCompleted(false);
+    setPaymentData(null);
+  };
+
+  const submitVisaApplication = async () => {
+    setIsSubmitting(true);
 
     let user_id = null;
     let email = null;
     
-    setIsSubmitting(true);
-
     if (isLoggedIn) {
       const userData = JSON.parse(localStorage.getItem("userData") || "{}");
       user_id = userData.id || null;
@@ -441,7 +500,7 @@ export const useServiceForm = ({
         if (signInError) {
           // If sign in fails, check if it's because the user doesn't exist or wrong password
           if (signInError.message.includes('Invalid login credentials')) {
-            console.log("🚀 ~ handleSubmit ~ signInError.message:", signInError.message);
+            console.log("🚀 ~ submitVisaApplication ~ signInError.message:", signInError.message);
             
             // Check if the email already exists by attempting to sign up
             const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -509,6 +568,10 @@ export const useServiceForm = ({
         passport_files,
         photo_files,
         user_id,
+        payment_status: paymentCompleted ? 'paid' : 'pending',
+        payment_id: paymentData?.payment_id,
+        order_id: paymentData?.order_id,
+        invoice_id: invoiceId,
       };
 
       if (isUSAVisa) {
@@ -545,6 +608,7 @@ export const useServiceForm = ({
       if (data && data.length > 0) {
         const appId = data[0].id;
         setApplicationId(appId);
+        setShowConfirmation(true);
         // await uploadDocuments(appId, uploadedFiles);
         await sendConfirmationEmail(appId, data[0]);
       }
@@ -553,6 +617,7 @@ export const useServiceForm = ({
       toast.error(
         "An error occurred while submitting your application. Please try again."
       );
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -591,5 +656,12 @@ export const useServiceForm = ({
     requiresNationalitySelection,
     isEuropeanVisa,
     isUSAVisa,
+    // Payment-related exports
+    paymentCompleted,
+    paymentData,
+    invoiceId,
+    handlePaymentSuccess,
+    handlePaymentFailed,
+    submitVisaApplication,
   };
 };
