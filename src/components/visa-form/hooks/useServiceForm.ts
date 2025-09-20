@@ -11,7 +11,11 @@ import { TravellerData, UploadedFiles, VisaFormData } from "../types";
 import { VISA_CONFIGS, DEFAULT_VISA_CONFIG } from "@/config/visaConfig";
 import { uploadDocuments } from "../utils/documentUtils";
 import { useAuthentication } from "@/components/user-account/useAuthentication";
-import { createVisaInvoice } from "@/api/invoices";
+import {
+  createVisaInvoice,
+  createPendingVisaInvoice,
+  updateInvoiceStatusToPaid,
+} from "@/api/invoices";
 import { getCurrentUserId } from "@/api/user";
 
 export interface UseServiceFormProps {
@@ -368,7 +372,13 @@ export const useServiceForm = ({
       // Document upload step - now optional, so no validation here
     } else if (formStep === 3) {
       // Account/Confirmation step - validate before proceeding to payment
-      if (!isLoggedIn && (!formData.email || !formData.password || !formData.confirmPassword || !formData.phoneNumber)) {
+      if (
+        !isLoggedIn &&
+        (!formData.email ||
+          !formData.password ||
+          !formData.confirmPassword ||
+          !formData.phoneNumber)
+      ) {
         toast.error("Please fill in all required fields");
         return;
       }
@@ -416,14 +426,20 @@ export const useServiceForm = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // This function is now just for form validation and proceeding to payment
-    // The actual application submission happens after payment success
+
+    // If we're on step 3, create the application and pending invoice
+    if (formStep === 3) {
+      await createApplicationWithPendingInvoice();
+      handleNextStep(); // Go to payment step
+      return;
+    }
+
+    // For other steps, just proceed to next step
     if (formStep < 4) {
       handleNextStep();
       return;
     }
-    
+
     // If we're on step 4 (payment), this shouldn't be called
     // Payment is handled by the PaymentStep component
   };
@@ -432,43 +448,43 @@ export const useServiceForm = ({
     try {
       setPaymentData(paymentInfo);
       setPaymentCompleted(true);
-      
-      // Get current user ID
-      const userId = await getCurrentUserId();
-      
-      if (!userId) {
-        toast.error("User authentication required");
-        return;
-      }
 
-      // Create invoice after successful payment
-      const invoiceData = await createVisaInvoice(
-        {
+      // Update invoice status to paid
+      if (invoiceId) {
+        await updateInvoiceStatusToPaid(invoiceId, {
           payment_id: paymentInfo.payment_id,
-          order_id: paymentInfo.order_id,
           transaction_id: paymentInfo.transaction_id,
-          amount: paymentInfo.amount,
-          currency: paymentInfo.currency,
-        },
-        {
-          user_id: userId,
-          client_id: userId,
-          service_description: `${selectedService?.title} - Visa Service for ${travellers[0]?.fullName}`,
-          customer_email: formData.email,
-          customer_name: travellers[0]?.fullName,
-        }
-      );
+        });
 
-      if (invoiceData) {
-        setInvoiceId(invoiceData.id);
-        toast.success("Payment successful! Invoice created.");
-        
-        // Now submit the visa application
-        await submitVisaApplication();
+        // Update application status to paid
+        if (applicationId) {
+          const { error } = await supabase
+            .from("visa_applications")
+            .update({
+              paid: true,
+              payment_id: paymentInfo.payment_id,
+              order_id: paymentInfo.order_id,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", applicationId);
+
+          if (error) {
+            console.error("Error updating application payment status:", error);
+            toast.error("Failed to update application status");
+            return;
+          }
+        }
+
+        toast.success(
+          "Payment successful! Your visa application is now complete."
+        );
+        setShowConfirmation(true);
       }
     } catch (error) {
       console.error("Error handling payment success:", error);
-      toast.error("Payment successful but failed to create invoice. Please contact support.");
+      toast.error(
+        "Payment successful but failed to update records. Please contact support."
+      );
     }
   };
 
@@ -483,7 +499,7 @@ export const useServiceForm = ({
 
     let user_id = null;
     let email = null;
-    
+
     if (isLoggedIn) {
       const userData = JSON.parse(localStorage.getItem("userData") || "{}");
       user_id = userData.id || null;
@@ -492,27 +508,36 @@ export const useServiceForm = ({
       // Handle authentication for non-logged-in users
       try {
         // First, try to sign in with the provided credentials
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
+        const { data: signInData, error: signInError } =
+          await supabase.auth.signInWithPassword({
+            email: formData.email,
+            password: formData.password,
+          });
 
         if (signInError) {
           // If sign in fails, check if it's because the user doesn't exist or wrong password
-          if (signInError.message.includes('Invalid login credentials')) {
-            console.log("🚀 ~ submitVisaApplication ~ signInError.message:", signInError.message);
-            
+          if (signInError.message.includes("Invalid login credentials")) {
+            console.log(
+              "🚀 ~ submitVisaApplication ~ signInError.message:",
+              signInError.message
+            );
+
             // Check if the email already exists by attempting to sign up
-            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-              email: formData.email,
-              password: formData.password,
-            });
+            const { data: signUpData, error: signUpError } =
+              await supabase.auth.signUp({
+                email: formData.email,
+                password: formData.password,
+              });
 
             if (signUpError) {
               // If signup fails with "User already registered", it means email exists but password was wrong
-              if (signUpError.message.includes('User already registered') || 
-                  signUpError.message.includes('already been registered')) {
-                toast.error("Email already exists. Please check your password and try again, or use a different email.");
+              if (
+                signUpError.message.includes("User already registered") ||
+                signUpError.message.includes("already been registered")
+              ) {
+                toast.error(
+                  "Email already exists. Please check your password and try again, or use a different email."
+                );
                 setIsSubmitting(false);
                 return;
               } else {
@@ -528,7 +553,9 @@ export const useServiceForm = ({
               toast.success("Account created successfully!");
             }
           } else {
-            toast.error("Invalid email or password. Please check your credentials and try again.");
+            toast.error(
+              "Invalid email or password. Please check your credentials and try again."
+            );
             setIsSubmitting(false);
             return;
           }
@@ -542,7 +569,9 @@ export const useServiceForm = ({
         }
       } catch (error) {
         console.error("Authentication error:", error);
-        toast.error("An error occurred during authentication. Please try again.");
+        toast.error(
+          "An error occurred during authentication. Please try again."
+        );
         setIsSubmitting(false);
         return;
       }
@@ -568,10 +597,10 @@ export const useServiceForm = ({
         passport_files,
         photo_files,
         user_id,
-        payment_status: paymentCompleted ? 'paid' : 'pending',
         payment_id: paymentData?.payment_id,
         order_id: paymentData?.order_id,
         invoice_id: invoiceId,
+        paid: false, // This will be updated to true after payment is confirmed
       };
 
       if (isUSAVisa) {
@@ -622,6 +651,190 @@ export const useServiceForm = ({
     }
   };
 
+  // New function to create application with pending invoice at step 3
+  const createApplicationWithPendingInvoice = async () => {
+    setIsSubmitting(true);
+
+    try {
+      let user_id = null;
+      let email = null;
+
+      if (isLoggedIn) {
+        const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+        user_id = userData.id || null;
+        email = userData.email || null;
+      } else {
+        // Handle authentication for non-logged-in users
+        try {
+          // First, try to sign in with the provided credentials
+          const { data: signInData, error: signInError } =
+            await supabase.auth.signInWithPassword({
+              email: formData.email,
+              password: formData.password,
+            });
+
+          if (signInError) {
+            // If sign in fails, check if it's because the user doesn't exist or wrong password
+            if (signInError.message.includes("Invalid login credentials")) {
+              // Check if the email already exists by attempting to sign up
+              const { data: signUpData, error: signUpError } =
+                await supabase.auth.signUp({
+                  email: formData.email,
+                  password: formData.password,
+                });
+
+              if (signUpError) {
+                if (
+                  signUpError.message.includes("User already registered") ||
+                  signUpError.message.includes("already been registered")
+                ) {
+                  toast.error(
+                    "Email already exists. Please check your password and try again, or use a different email."
+                  );
+                  setIsSubmitting(false);
+                  return;
+                } else {
+                  toast.error(`Signup failed: ${signUpError.message}`);
+                  setIsSubmitting(false);
+                  return;
+                }
+              }
+
+              if (signUpData.user) {
+                user_id = signUpData.user.id;
+                email = signUpData.user.email;
+                toast.success("Account created successfully!");
+              }
+            } else {
+              toast.error(
+                "Invalid email or password. Please check your credentials and try again."
+              );
+              setIsSubmitting(false);
+              return;
+            }
+          } else {
+            // Sign in successful
+            if (signInData.user) {
+              user_id = signInData.user.id;
+              email = signInData.user.email;
+              toast.success("Logged in successfully!");
+            }
+          }
+        } catch (error) {
+          console.error("Authentication error:", error);
+          toast.error(
+            "An error occurred during authentication. Please try again."
+          );
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      const passport_files = uploadedFiles.passports.map(
+        (file) => file.preview
+      );
+      const photo_files = uploadedFiles.photos.map((file) => file.preview);
+
+      const applicationData: any = {
+        first_name: travellers[0].fullName.split(" ")[0],
+        last_name: travellers[0].fullName.split(" ").slice(1).join(" "),
+        email: formData.email || email,
+        phone: `${formData.countryCode}${formData.phoneNumber}`,
+        country: selectedService?.title.split(" ")[0] || "",
+        adults: formData.numberOfTravellers,
+        children: 0,
+        travel_date: travelDate?.toISOString() || new Date().toISOString(),
+        total_price: totalPrice,
+        visa_type: visaType,
+        service_type: serviceType,
+        passport_files,
+        photo_files,
+        user_id,
+        paid: false,
+      };
+
+      if (isUSAVisa) {
+        applicationData.mothers_name = formData.mothersFullName;
+        applicationData.visa_city = visaCity;
+        applicationData.saudi_id_iqama = travellers.map((t) => ({
+          traveller_name: t.fullName,
+          id_iqama: t.saudiIdIqama,
+        }));
+      }
+
+      console.log("Creating application with pending status:", applicationData);
+
+      // Create the visa application
+      const { data, error } = await supabase
+        .from("visa_applications")
+        .insert([applicationData])
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      if (data && data.length > 0) {
+        const appId = data[0].id;
+        setApplicationId(appId);
+
+        // Create pending invoice using the application ID as client_id
+        const invoiceData = await createPendingVisaInvoice({
+          user_id: user_id,
+          client_id: appId, // Use application ID as client_id
+          service_description: `${selectedService?.title} - Visa Service for ${travellers[0]?.fullName}`,
+          customer_email: formData.email,
+          customer_name: travellers[0]?.fullName,
+          amount: totalPrice,
+          currency: "SAR",
+          order_id: `APP${appId}`,
+        });
+
+        if (invoiceData) {
+          setInvoiceId(invoiceData.id);
+
+          // Update the application with the invoice_id
+          const { error: updateError } = await supabase
+            .from("visa_applications")
+            .update({
+              invoice_id: invoiceData.id,
+            })
+            .eq("id", appId);
+
+          if (updateError) {
+            console.error(
+              "Error updating application with invoice ID:",
+              updateError
+            );
+          }
+
+          toast.success(
+            "Application created! Please complete payment to finalize."
+          );
+        }
+
+        console.log("Application and pending invoice created:", {
+          appId,
+          invoiceId: invoiceData?.id,
+        });
+      }
+    } catch (error) {
+      console.error("Error creating application with pending invoice:", error);
+      toast.error(
+        "An error occurred while creating your application. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePayLater = () => {
+    toast.success(
+      "Application saved! You can complete payment later from your dashboard."
+    );
+    setShowConfirmation(true);
+  };
+
   return {
     visaType,
     setVisaType,
@@ -663,5 +876,6 @@ export const useServiceForm = ({
     handlePaymentSuccess,
     handlePaymentFailed,
     submitVisaApplication,
+    handlePayLater,
   };
 };

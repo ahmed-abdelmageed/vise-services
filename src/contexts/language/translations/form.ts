@@ -43,6 +43,8 @@ export const formTranslations: TranslationDictionary = {
     submitApplication: "Submit Application",
     passwordsDontMatch: "Passwords do not match",
     perTraveller: "per traveller",
+    payNow: "Pay Now",
+    payLater: "Pay Later",
 
     // Documents Step
     uploadDocuments: "Upload Documents",
@@ -116,6 +118,8 @@ export const formTranslations: TranslationDictionary = {
     submitApplication: "تقديم الطلب",
     passwordsDontMatch: "كلمات المرور غير متطابقة",
     perTraveller: "لكل مسافر",
+    payNow: "ادفع الآن",
+    payLater: "ادفع لاحقاً",
 
     // Documents Step
     uploadDocuments: "رفع المستندات",

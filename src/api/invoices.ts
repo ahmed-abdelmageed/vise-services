@@ -247,19 +247,22 @@ export const fetchInvoicesByClient = async (clientId: string) => {
 /**
  * Create invoice for visa application after successful payment
  */
-export const createVisaInvoice = async (paymentData: {
-  payment_id: string;
-  order_id: string;
-  transaction_id?: string;
-  amount: number;
-  currency: string;
-}, applicationData: {
-  user_id: string;
-  client_id?: string;
-  service_description: string;
-  customer_email: string;
-  customer_name: string;
-}) => {
+export const createVisaInvoice = async (
+  paymentData: {
+    payment_id: string;
+    order_id: string;
+    transaction_id?: string;
+    amount: number;
+    currency: string;
+  },
+  applicationData: {
+    user_id: string;
+    client_id?: string;
+    service_description: string;
+    customer_email: string;
+    customer_name: string;
+  }
+) => {
   try {
     const invoiceData: Partial<InvoiceItem> = {
       invoice_number: `INV-${paymentData.order_id}`,
@@ -291,6 +294,91 @@ export const createVisaInvoice = async (paymentData: {
   } catch (error) {
     console.error("Error in createVisaInvoice:", error);
     toast.error("Failed to create invoice");
+    throw error;
+  }
+};
+
+/**
+ * Create pending invoice for visa application (before payment)
+ */
+export const createPendingVisaInvoice = async (applicationData: {
+  user_id: string;
+  client_id?: string;
+  service_description: string;
+  customer_email: string;
+  customer_name: string;
+  amount: number;
+  currency?: string;
+  order_id?: string;
+}) => {
+  try {
+    const invoiceData: Partial<InvoiceItem> = {
+      invoice_number: `INV-${new Date().getFullYear()}-${Math.floor(
+        Math.random() * 10000
+      )}`,
+      client_id: applicationData.client_id || applicationData.user_id,
+      user_id: applicationData.user_id,
+      amount: applicationData.amount,
+      currency: applicationData.currency || "SAR",
+      status: "Pending",
+      issue_date: new Date().toISOString(),
+      due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+      service_description: applicationData.service_description,
+    };
+
+    const { data, error } = await supabase
+      .from("client_invoices")
+      .insert([invoiceData])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating pending visa invoice:", error);
+      toast.error("Failed to create invoice for visa application");
+      throw error;
+    }
+
+    console.log("Pending visa invoice created successfully:", data);
+    return data;
+  } catch (error) {
+    console.error("Error in createPendingVisaInvoice:", error);
+    toast.error("Failed to create invoice");
+    throw error;
+  }
+};
+
+/**
+ * Update invoice status to paid after successful payment
+ */
+export const updateInvoiceStatusToPaid = async (
+  invoiceId: string,
+  paymentData: {
+    payment_id: string;
+    transaction_id?: string;
+  }
+) => {
+  try {
+    const { data, error } = await supabase
+      .from("client_invoices")
+      .update({
+        status: "Paid",
+        payment_date: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", invoiceId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error updating invoice status:", error);
+      toast.error("Failed to update invoice status");
+      throw error;
+    }
+
+    console.log("Invoice status updated to paid:", data);
+    return data;
+  } catch (error) {
+    console.error("Error in updateInvoiceStatusToPaid:", error);
     throw error;
   }
 };

@@ -15,6 +15,7 @@ interface PaymentStepProps {
   applicationId?: string;
   onPaymentSuccess: (paymentData: any) => void;
   onPaymentFailed: (error: string) => void;
+  onPayLater?: () => void;
   handlePrevStep: () => void;
 }
 
@@ -26,6 +27,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
   applicationId,
   onPaymentSuccess,
   onPaymentFailed,
+  onPayLater,
   handlePrevStep,
 }) => {
   const { t, language } = useLanguage();
@@ -290,18 +292,31 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
         </Button>
 
         {!paymentUrl && paymentStatus !== 'completed' && (
-          <Button
-            onClick={handlePayment}
-            disabled={isProcessing}
-            className="flex-1 bg-visa-gold hover:bg-visa-gold/90"
-          >
-            {isProcessing ? (
-              <Loader className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <CreditCard className="h-4 w-4 mr-2" />
+          <>
+            <Button
+              onClick={handlePayment}
+              disabled={isProcessing}
+              className="flex-1 bg-visa-gold hover:bg-visa-gold/90"
+            >
+              {isProcessing ? (
+                <Loader className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <CreditCard className="h-4 w-4 mr-2" />
+              )}
+              {t('payNow')}
+            </Button>
+
+            {onPayLater && (
+              <Button
+                onClick={onPayLater}
+                variant="outline"
+                disabled={isProcessing}
+                className="flex-1 border-visa-gold text-visa-gold hover:bg-visa-gold/10"
+              >
+                {t('payLater')}
+              </Button>
             )}
-            {language === 'ar' ? 'ادفع الآن' : 'Pay Now'}
-          </Button>
+          </>
         )}
       </div>
     </div>
