@@ -23,22 +23,31 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { ClientInvoice } from "@/types/crm";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useInvoices, useInvoicesByClient } from "@/hooks/useInvoicesQuery";
+import { useInvoices, useInvoicesByClient, useUpdateInvoiceStatus } from "@/hooks/useInvoicesQuery";
 import { useCurrentUserId } from "@/hooks/useUserQuery";
+import { InvoicePreviewModal } from "./InvoicePreviewModal";
+import { PaymentModal } from "./PaymentModal";
+import { downloadInvoicePDF } from "@/utils/invoicePDF";
 
 export const MyInvoices = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedInvoice, setSelectedInvoice] = useState<ClientInvoice | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const { t, language } = useLanguage();
   
   // Get current user ID
   const { data: currentUserId, isLoading: userLoading } = useCurrentUserId();
 
   // Use React Query hook to fetch invoices for the current user
-  const { data: invoicesData, isLoading, error } = useInvoicesByClient(
+  const { data: invoicesData, isLoading, error, refetch } = useInvoicesByClient(
     currentUserId || '', 
     !!currentUserId
   );
+
+  // Mutation for updating invoice status
+  const { mutate: updateInvoiceStatus } = useUpdateInvoiceStatus();
 
   // Transform the data to match ClientInvoice format
   const invoices: ClientInvoice[] = invoicesData?.map(item => ({
@@ -79,24 +88,59 @@ export const MyInvoices = () => {
     }
   };
 
-  const handleViewInvoice = (id: string) => {
-    // In a real app, this would open a modal with invoice details
-    toast.info(t('viewingInvoice').replace('{id}', id));
+  const handleViewInvoice = (invoice: ClientInvoice) => {
+    setSelectedInvoice(invoice);
+    setIsPreviewOpen(true);
   };
 
-  const handleDownloadInvoice = (id: string) => {
-    // In a real app, this would download the invoice PDF
-    toast.info(t('downloadingInvoice').replace('{id}', id));
+  const handleDownloadInvoice = (invoice: ClientInvoice) => {
+    try {
+      downloadInvoicePDF(invoice, language);
+      toast.success(t('invoiceDownloaded'));
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      toast.error(t('downloadError'));
+    }
   };
 
-  const handlePayInvoice = (id: string) => {
-    // In a real app, this would open a payment gateway
-    toast.info(t('processingPaymentForInvoice').replace('{id}', id));
+  const handlePayInvoice = (invoice: ClientInvoice) => {
+    setSelectedInvoice(invoice);
+    setIsPaymentOpen(true);
+  };
+
+  const handlePaymentSuccess = (paymentData: any) => {
+    if (selectedInvoice) {
+      // Update invoice status to paid
+      updateInvoiceStatus({
+        id: selectedInvoice.id,
+        status: 'Paid'
+      }, {
+        onSuccess: () => {
+          toast.success(t('paymentSuccessful'));
+          setIsPaymentOpen(false);
+          setSelectedInvoice(null);
+          refetch(); // Refresh the invoices list
+        },
+        onError: (error) => {
+          console.error('Error updating invoice status:', error);
+          toast.error(t('paymentUpdateError'));
+        }
+      });
+    }
   };
 
   const handlePayAll = () => {
-    // In a real app, this would process payment for all unpaid invoices
-    const unpaidInvoices = filteredInvoices.filter(invoice => invoice.status === "Unpaid");
+    const unpaidInvoices = filteredInvoices.filter(
+      invoice => invoice.status === "Pending" || invoice.status === "Unpaid"
+    );
+    
+    if (unpaidInvoices.length === 0) {
+      toast.info(t('noUnpaidInvoices'));
+      return;
+    }
+
+    // For demo purposes, we'll just show a toast
+    // In a real app, this would open a bulk payment interface
     toast.info(t('processingPaymentForInvoices').replace('{count}', unpaidInvoices.length.toString()));
   };
 
@@ -145,8 +189,7 @@ export const MyInvoices = () => {
           <SelectContent>
             <SelectItem value="all">{t('allInvoices')}</SelectItem>
             <SelectItem value="Paid">{t('paid')}</SelectItem>
-            <SelectItem value="Unpaid">{t('unpaid')}</SelectItem>
-            <SelectItem value="Overdue">{t('overdue')}</SelectItem>
+            <SelectItem value="Pending">{t('unpaid')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -182,7 +225,7 @@ export const MyInvoices = () => {
                         variant="ghost" 
                         size="icon" 
                         title={t('viewInvoiceDetails')}
-                        onClick={() => handleViewInvoice(invoice.id)}
+                        onClick={() => handleViewInvoice(invoice)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -190,17 +233,17 @@ export const MyInvoices = () => {
                         variant="ghost" 
                         size="icon" 
                         title={t('downloadInvoice')}
-                        onClick={() => handleDownloadInvoice(invoice.id)}
+                        onClick={() => handleDownloadInvoice(invoice)}
                       >
                         <Download className="h-4 w-4" />
                       </Button>
-                      {invoice.status === "Unpaid" && (
+                      {(invoice.status === "Pending" || invoice.status === "Unpaid") && (
                         <Button 
                           size="sm" 
                           variant="default" 
                           className="bg-visa-gold hover:bg-visa-gold/90" 
                           title={t('payNow')}
-                          onClick={() => handlePayInvoice(invoice.id)}
+                          onClick={() => handlePayInvoice(invoice)}
                         >
                           <CreditCard className={`h-4 w-4 ${language === "ar" ? "ml-1" : "mr-1"}`} /> {t('pay')}
                         </Button>
@@ -220,7 +263,7 @@ export const MyInvoices = () => {
         </Table>
       </div>
 
-      {filteredInvoices.some(invoice => invoice.status === "Unpaid") && (
+      {/* {filteredInvoices.some(invoice => invoice.status === "Pending" || invoice.status === "Unpaid") && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 flex justify-between items-center">
           <div className={language === "ar" ? "text-right" : ""}>
             <h3 className="font-medium text-yellow-800">{t('unpaidInvoicesWarning')}</h3>
@@ -233,6 +276,40 @@ export const MyInvoices = () => {
             <CreditCard className={`h-4 w-4 ${language === "ar" ? "ml-2" : "mr-2"}`} /> {t('payAll')}
           </Button>
         </div>
+      )} */}
+
+      {/* Invoice Preview Modal */}
+      {selectedInvoice && (
+        <InvoicePreviewModal
+          invoice={selectedInvoice}
+          isOpen={isPreviewOpen}
+          onClose={() => {
+            setIsPreviewOpen(false);
+            setSelectedInvoice(null);
+          }}
+          onDownload={(invoiceId) => {
+            if (selectedInvoice) {
+              handleDownloadInvoice(selectedInvoice);
+            }
+          }}
+          onPay={(invoiceId) => {
+            setIsPreviewOpen(false);
+            setIsPaymentOpen(true);
+          }}
+        />
+      )}
+
+      {/* Payment Modal */}
+      {selectedInvoice && (
+        <PaymentModal
+          invoice={selectedInvoice}
+          isOpen={isPaymentOpen}
+          onClose={() => {
+            setIsPaymentOpen(false);
+            setSelectedInvoice(null);
+          }}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
       )}
     </div>
   );
