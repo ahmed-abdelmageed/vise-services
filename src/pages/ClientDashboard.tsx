@@ -24,6 +24,7 @@ const ClientDashboard = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { language, t } = useLanguage();
+  
 
   // Helper function to validate client section
   const isValidClientSection = (section: string): section is ClientSection => {
