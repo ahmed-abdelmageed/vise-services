@@ -139,20 +139,15 @@ export const initiatePayment = async (
     );
     formData.append("payer_ip", payerIP);
     
-    // Ensure term_url_3ds is a valid URL
-    // let termUrl = paymentData.return_url;
-    let termUrl = "google.com";
-    console.log('Original return_url:', termUrl);
+    // Ensure term_url_3ds is a valid URL - use production URL with hash routing
+    let termUrl = "https://vise-services.vercel.app/#/payment/success";
     
-    // if (!termUrl.startsWith('http://') && !termUrl.startsWith('https://')) {
-    //   // If no protocol, assume https and add current domain
-    //   if (typeof window !== 'undefined') {
-    //     termUrl = `${window.location.origin}${termUrl.startsWith('/') ? '' : '/'}${termUrl}`;
-    //   } else {
-    //     termUrl = `https://yourdomain.com${termUrl.startsWith('/') ? '' : '/'}${termUrl}`;
-    //   }
-    //   console.log('Fixed return_url:', termUrl);
-    // }
+    // For development, you can use local URL
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      termUrl = `${window.location.origin}/#/payment/success`;
+    }
+    
+    console.log('Payment success redirect URL:', termUrl);
     
     // Validate URL format
     try {
@@ -160,10 +155,8 @@ export const initiatePayment = async (
       console.log('URL validation passed for:', termUrl);
     } catch (error) {
       console.error('Invalid URL format:', termUrl, error);
-      // Fallback to a simple success page
-      termUrl = typeof window !== 'undefined' 
-        ? `${window.location.origin}/payment/success` 
-        : 'https://yourdomain.com/payment/success';
+      // Fallback to production URL with hash routing
+      termUrl = 'https://vise-services.vercel.app/#/payment/success';
       console.log('Using fallback URL:', termUrl);
     }
     

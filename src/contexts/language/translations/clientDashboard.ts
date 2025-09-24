@@ -193,6 +193,10 @@ export const clientDashboardTranslations: TranslationDictionary = {
     'profileUpdatedSuccessfully': 'Profile updated successfully!',
     'passwordUpdatedSuccessfully': 'Password updated successfully!',
     'passwordsDoNotMatch': 'New passwords do not match!',
+    
+    // Payment translations
+    'paymentSuccessful': 'Payment Successful!',
+    'paymentFailed': 'Payment Failed',
   },
   ar: {
     // Client Dashboard
@@ -385,5 +389,9 @@ export const clientDashboardTranslations: TranslationDictionary = {
     'profileUpdatedSuccessfully': 'تم تحديث الملف الشخصي بنجاح!',
     'passwordUpdatedSuccessfully': 'تم تحديث كلمة المرور بنجاح!',
     'passwordsDoNotMatch': 'كلمات المرور الجديدة غير متطابقة!',
+    
+    // Payment translations
+    'paymentSuccessful': 'تم الدفع بنجاح!',
+    'paymentFailed': 'فشل في الدفع',
   }
 };

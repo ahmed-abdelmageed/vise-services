@@ -9,6 +9,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ClientDashboard from "./pages/ClientDashboard";
 import AdminLogin from "./pages/AdminLogin";
 import ServiceFormPage from "./pages/ServiceFormPage";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
@@ -37,6 +38,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/service/:serviceTitle" element={<ServiceFormPage />} />
+            <Route path="/payment/success" element={<PaymentSuccess />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/terms" element={<Terms />} />
