@@ -29,6 +29,11 @@ export const Auth = ({
       return;
     }
 
+    if (email === "visa@gvsksa.com") {
+      toast.error(t("invalidEmail") || "Please enter a valid email address");
+      return;
+    }
+
     if (!password || password.length < 6) {
       toast.error(
         t("shortPassword") || "Password must be at least 6 characters long"
@@ -47,12 +52,6 @@ export const Auth = ({
 
       localStorage.setItem("userData", JSON.stringify(data.user));
       toast.success(t("signInSuccess") || "Signed in successfully!");
-
-      if (email === "visa@gvsksa.com") {
-        localStorage.setItem("adminAuthenticated", "true");
-        navigate("/admin");
-        return;
-      }
 
       console.log("🚀 ~ handleSignIn ~ redirectTo:", redirectTo);
       if (onSuccess) {
