@@ -389,22 +389,42 @@ export const PersonalInfoStep = ({
             {t("traveller")} {index + 1}
           </h4>
 
-          <div className="text-start">
-            <label
-              htmlFor={`fullName-${index}`}
-              className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
-            >
-              {t("fullNamePassport")} <span className="text-red-500">*</span>
-            </label>
-            <Input
-              id={`fullName-${index}`}
-              value={traveller.fullName}
-              onChange={(e) =>
-                handleTravellerChange(index, "fullName", e.target.value)
-              }
-              className="w-full"
-              required
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="text-start">
+              <label
+                htmlFor={`firstName-${index}`}
+                className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+              >
+                {t("firstName")} <span className="text-red-500">*</span>
+              </label>
+              <Input
+                id={`firstName-${index}`}
+                value={traveller.firstName}
+                onChange={(e) =>
+                  handleTravellerChange(index, "firstName", e.target.value)
+                }
+                className="w-full"
+                required
+              />
+            </div>
+
+            <div className="text-start">
+              <label
+                htmlFor={`lastName-${index}`}
+                className="block text-xs sm:text-sm font-medium text-gray-700 mb-1"
+              >
+                {t("lastName")} <span className="text-red-500">*</span>
+              </label>
+              <Input
+                id={`lastName-${index}`}
+                value={traveller.lastName}
+                onChange={(e) =>
+                  handleTravellerChange(index, "lastName", e.target.value)
+                }
+                className="w-full"
+                required
+              />
+            </div>
           </div>
 
           {/* Saudi ID/Iqama field - only for USA Visa */}

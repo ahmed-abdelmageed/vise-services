@@ -1,6 +1,7 @@
 
 export interface TravellerData {
-  fullName: string;
+  firstName: string;
+  lastName: string;
   saudiIdIqama: string;
 }
 

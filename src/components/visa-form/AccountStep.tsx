@@ -237,7 +237,9 @@ export const AccountStep = ({
               <span className="font-medium">
                 {t("traveller")} {index + 1}:
               </span>
-              <span className="text-visa-dark">{traveller.fullName}</span>
+              <span className="text-visa-dark">
+                {traveller.firstName} {traveller.lastName}
+              </span>
             </div>
           ))}
         </div>

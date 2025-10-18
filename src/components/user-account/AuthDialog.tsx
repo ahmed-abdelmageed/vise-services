@@ -40,7 +40,7 @@ export const AuthDialog = ({ open, onOpenChange, onSuccess }: AuthDialogProps) =
           dir={language === "ar" ? "rtl" : "ltr"}
         >
           <DialogTitle className="text-lg font-bold text-visa-dark tracking-wide">
-            {t("clientAuthentication")}
+            {t("signIn")}
           </DialogTitle>
           <DialogDescription className="text-sm text-gray-500">
             {t("signInAccessAccount")}

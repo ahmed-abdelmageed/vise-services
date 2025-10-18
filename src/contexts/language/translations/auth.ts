@@ -23,7 +23,7 @@ export const authTranslations: TranslationDictionary = {
   ar: {
     // User Authentication
     signIn: "تسجيل الدخول",
-    clientAuthentication: "مصادقة العميل",
+    clientAuthentication: "بيانات الدخول",
     signInAccessAccount: "تسجيل الدخول للوصول إلى حسابك",
     myApplications: "طلباتي",
     emailAddress: "البريد الإلكتروني",

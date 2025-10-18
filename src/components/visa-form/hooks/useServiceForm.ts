@@ -81,7 +81,8 @@ export const useServiceForm = ({
 
   const [travellers, setTravellers] = useState<TravellerData[]>([
     {
-      fullName: "",
+      firstName: "",
+      lastName: "",
       saudiIdIqama: "",
     },
   ]);
@@ -135,7 +136,8 @@ export const useServiceForm = ({
     setTravelDate(undefined);
     setTravellers([
       {
-        fullName: "",
+        firstName: "",
+        lastName: "",
         saudiIdIqama: "",
       },
     ]);
@@ -155,7 +157,8 @@ export const useServiceForm = ({
       const newTravellers = [...travellers];
       for (let i = travellers.length; i < formData.numberOfTravellers; i++) {
         newTravellers.push({
-          fullName: "",
+          firstName: "",
+          lastName: "",
           saudiIdIqama: "",
         });
       }
@@ -173,8 +176,8 @@ export const useServiceForm = ({
       const emailData = {
         applicationId: appId,
         email: formData.email,
-        firstName: travellers[0].fullName.split(" ")[0],
-        lastName: travellers[0].fullName.split(" ").slice(1).join(" "),
+        firstName: travellers[0].firstName,
+        lastName: travellers[0].lastName,
         country: selectedService?.title.split(" ")[0] || "",
         travelDate: travelDate?.toISOString() || new Date().toISOString(),
         totalPrice: totalPrice,
@@ -320,7 +323,7 @@ export const useServiceForm = ({
     }
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     if (formStep === 1) {
       const requiredFields = ["nationality"];
 
@@ -330,7 +333,7 @@ export const useServiceForm = ({
       }
 
       const incompleteTravellers = travellers.some(
-        (traveller) => !traveller.fullName
+        (traveller) => !traveller.firstName || !traveller.lastName
       );
       if (incompleteTravellers) {
         toast.error("Please fill in all traveller information");
@@ -382,10 +385,15 @@ export const useServiceForm = ({
         toast.error("Please fill in all required fields");
         return;
       }
+      if (!formData.phoneNumber) {
+        toast.error("Please fill phone number");
+        return;
+      }
       if (formData.password !== formData.confirmPassword) {
         toast.error("Passwords do not match");
         return;
       }
+      await createApplicationWithPendingInvoice();
     }
 
     setFormStep((prev) => prev + 1);
@@ -418,7 +426,7 @@ export const useServiceForm = ({
       visaCity: "Riyadh",
     });
     setTravelDate(undefined);
-    setTravellers([{ fullName: "", saudiIdIqama: "" }]);
+    setTravellers([{ firstName: "", lastName: "", saudiIdIqama: "" }]);
     setUploadedFiles({ passports: [], photos: [] });
     setIsSubmitting(false);
     onBack();
@@ -429,7 +437,6 @@ export const useServiceForm = ({
 
     // If we're on step 3, create the application and pending invoice
     if (formStep === 3) {
-      await createApplicationWithPendingInvoice();
       handleNextStep(); // Go to payment step
       return;
     }
@@ -583,8 +590,8 @@ export const useServiceForm = ({
       );
       const photo_files = uploadedFiles.photos.map((file) => file.preview);
       const applicationData: any = {
-        first_name: travellers[0].fullName.split(" ")[0],
-        last_name: travellers[0].fullName.split(" ").slice(1).join(" "),
+        first_name: travellers[0].firstName,
+        last_name: travellers[0].lastName,
         email: formData.email || email,
         phone: `${formData.countryCode}${formData.phoneNumber}`,
         country: selectedService?.title.split(" ")[0] || "",
@@ -607,7 +614,7 @@ export const useServiceForm = ({
         applicationData.mothers_name = formData.mothersFullName;
         applicationData.visa_city = visaCity;
         applicationData.saudi_id_iqama = travellers.map((t) => ({
-          traveller_name: t.fullName,
+          traveller_name: t.firstName + " " + t.lastName,
           id_iqama: t.saudiIdIqama,
         }));
       }
@@ -736,8 +743,8 @@ export const useServiceForm = ({
       const photo_files = uploadedFiles.photos.map((file) => file.preview);
 
       const applicationData: any = {
-        first_name: travellers[0].fullName.split(" ")[0],
-        last_name: travellers[0].fullName.split(" ").slice(1).join(" "),
+        first_name: travellers[0].firstName,
+        last_name: travellers[0].lastName,
         email: formData.email || email,
         phone: `${formData.countryCode}${formData.phoneNumber}`,
         country: selectedService?.title.split(" ")[0] || "",
@@ -757,7 +764,7 @@ export const useServiceForm = ({
         applicationData.mothers_name = formData.mothersFullName;
         applicationData.visa_city = visaCity;
         applicationData.saudi_id_iqama = travellers.map((t) => ({
-          traveller_name: t.fullName,
+          traveller_name: t.firstName + " " + t.lastName,
           id_iqama: t.saudiIdIqama,
         }));
       }
@@ -782,9 +789,9 @@ export const useServiceForm = ({
         const invoiceData = await createPendingVisaInvoice({
           user_id: user_id,
           client_id: appId, // Use application ID as client_id
-          service_description: `${selectedService?.title} - Visa Service for ${travellers[0]?.fullName}`,
+          service_description: `${selectedService?.title} - Visa Service for ${travellers[0]?.firstName} ${travellers[0]?.lastName}`,
           customer_email: formData.email,
-          customer_name: travellers[0]?.fullName,
+          customer_name: `${travellers[0]?.firstName} ${travellers[0]?.lastName}`,
           amount: totalPrice,
           currency: "SAR",
           order_id: `APP${appId}`,

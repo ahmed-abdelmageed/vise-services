@@ -93,7 +93,7 @@ export const Auth = ({
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
       <form onSubmit={handleSignIn} className="space-y-4">
         <h2 className="text-2xl font-bold text-visa-dark mb-4">
-          {t("signIn")}
+          {t("clientAuthentication")}
         </h2>
         <div>
           <label
