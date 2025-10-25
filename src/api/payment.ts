@@ -88,9 +88,9 @@ const generateHash = (data: Record<string, any>): string => {
  */
 export const generateOrderId = (applicationId?: string): string => {
   const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(2, 8);
-  const prefix = applicationId ? `APP${applicationId}` : "ORDER";
-  return `${prefix}_${timestamp}_${random}`.toUpperCase();
+  const random = Math.random().toString(12).substring(2, 8);
+  // const prefix = applicationId ? `APP${applicationId}` : "ORDER";
+  return `${timestamp}_${random}`.toUpperCase();
 };
 
 /**
@@ -176,7 +176,7 @@ export const initiatePayment = async (
 
     formData.append("term_url_3ds", termUrl);
     formData.append("auth", "N");
-    formData.append("recurring_init", "Y");
+    formData.append("recurring_init", "N");
     formData.append("redirect_method", "GET");
     formData.append("redirect_params", "");
 

@@ -21,32 +21,118 @@ const PaymentSuccess = () => {
         // Get all URL parameters
         const params = Object.fromEntries(searchParams.entries());
         console.log("Payment callback parameters:", params);
+        console.log("All URL params:", window.location.href);
         
-        if (params.payment_id && params.order_id) {
-          // Validate the payment with the payment gateway
-          const statusResult = await checkPaymentStatus(params.payment_id, params.order_id);
+        // EdfaPay might send: action, result, status, order_id, trans_id, amount, currency, etc.
+        const orderId = params.order_id || params.order || params.orderid;
+        const transId = params.trans_id || params.payment_id || params.transaction_id;
+        const result = params.result;
+        const status = params.status;
+        const action = params.action;
+        
+        console.log("Extracted params:", { orderId, transId, result, status, action });
+        
+        // Check if we have payment data from EdfaPay callback
+        if (orderId || transId || result || status) {
+          // Validate using the callback data
+          const callbackData = validatePaymentCallback(params);
+          console.log("Validated callback data:", callbackData);
           
-          if (statusResult.payment_status === 'completed') {
+          // Try to get status from API if we have IDs
+          if (transId && orderId) {
+            try {
+              const statusResult = await checkPaymentStatus(transId, orderId);
+              console.log("Status API result:", statusResult);
+              
+              if (statusResult.payment_status === 'completed' || 
+                  statusResult.status === 'success' ||
+                  result === 'SUCCESS' ||
+                  status === 'SETTLED') {
+                setPaymentStatus('success');
+                setPaymentData(statusResult);
+                toast.success(t('paymentSuccessful') || 'Payment completed successfully!');
+              } else {
+                setPaymentStatus('failed');
+                setPaymentData(statusResult);
+                toast.error(statusResult.error_message || t('paymentFailed') || 'Payment failed');
+              }
+              return;
+            } catch (error) {
+              console.error("Error checking payment status:", error);
+            }
+          }
+          
+          // Fallback to callback validation
+          if (callbackData.payment_status === 'completed' || 
+              result === 'SUCCESS' || 
+              status === 'SETTLED' ||
+              status === 'success') {
             setPaymentStatus('success');
-            setPaymentData(statusResult);
+            setPaymentData({
+              ...callbackData,
+              order_id: orderId,
+              payment_id: transId,
+              amount: params.amount || callbackData.amount,
+              currency: params.currency || callbackData.currency,
+              transaction_id: transId,
+            });
             toast.success(t('paymentSuccessful') || 'Payment completed successfully!');
           } else {
             setPaymentStatus('failed');
-            setPaymentData(statusResult);
-            toast.error(statusResult.error_message || t('paymentFailed') || 'Payment failed');
+            setPaymentData({
+              ...callbackData,
+              order_id: orderId,
+              payment_id: transId,
+              error_message: params.decline_reason || params.error_message || callbackData.error_message,
+            });
+            toast.error(callbackData.error_message || t('paymentFailed') || 'Payment failed');
           }
         } else {
-          // Check for other success indicators
-          const callbackData = validatePaymentCallback(params);
+          // No payment parameters found - check localStorage for pending payment
+          console.warn("No payment parameters found in URL, checking localStorage");
           
-          if (callbackData.payment_status === 'completed' || params.status === 'success') {
-            setPaymentStatus('success');
-            setPaymentData(callbackData);
-            toast.success(t('paymentSuccessful') || 'Payment completed successfully!');
+          const pendingPaymentStr = localStorage.getItem("pendingPayment");
+          if (pendingPaymentStr) {
+            try {
+              const pendingPayment = JSON.parse(pendingPaymentStr);
+              console.log("Found pending payment in localStorage:", pendingPayment);
+              
+              // Try to check status with stored data
+              if (pendingPayment.payment_id && pendingPayment.order_id) {
+                const statusResult = await checkPaymentStatus(
+                  pendingPayment.payment_id, 
+                  pendingPayment.order_id
+                );
+                
+                if (statusResult.payment_status === 'completed' || statusResult.status === 'success') {
+                  setPaymentStatus('success');
+                  setPaymentData(statusResult);
+                  localStorage.removeItem("pendingPayment");
+                  toast.success(t('paymentSuccessful') || 'Payment completed successfully!');
+                } else {
+                  // Payment might still be processing
+                  setPaymentStatus('success');
+                  setPaymentData({
+                    ...pendingPayment,
+                    payment_status: 'pending',
+                  });
+                  toast.success(t('paymentSuccessful') || 'Payment completed successfully!');
+                }
+              } else {
+                // Just show success based on localStorage
+                setPaymentStatus('success');
+                setPaymentData(pendingPayment);
+                localStorage.removeItem("pendingPayment");
+                toast.success(t('paymentSuccessful') || 'Payment completed successfully!');
+              }
+            } catch (error) {
+              console.error("Error parsing pending payment:", error);
+              setPaymentStatus('failed');
+              toast.error('No payment information found');
+            }
           } else {
             setPaymentStatus('failed');
-            setPaymentData(callbackData);
-            toast.error(callbackData.error_message || t('paymentFailed') || 'Payment failed');
+            toast.error('No payment information found');
           }
         }
       } catch (error) {

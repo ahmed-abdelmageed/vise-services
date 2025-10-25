@@ -89,7 +89,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
         amount: totalPrice,
         currency: "SAR",
         order_id: orderId,
-        description: `${selectedService?.title} - Visa Service for ${travellers[0]?.firstName} ${travellers[0]?.lastName}`,
+        description: `${selectedService?.title} - Visa`,
         customer_email: customerEmail,
         customer_name: travellers[0]?.firstName + " " + travellers[0]?.lastName,
         customer_phone: formData.phoneNumber
@@ -98,14 +98,6 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
         return_url: `${window.location.origin}/payment/return?order_id=${orderId}`,
         callback_url: `${window.location.origin}/api/payment/callback`,
       };
-
-      // Use current route as redirectTo parameter
-      // Note: currentRoute is already URL-encoded, so we don't need to encode it again
-
-      // For debugging, let's try the test payment first
-      console.log("Trying test payment integration...");
-      const testResponse = await testPaymentIntegration();
-      console.log("🚀 ~ handlePayment ~ testResponse:", testResponse);
 
       // If test works, try the actual payment
       const response = await initiatePayment(paymentData, currentRoute);
@@ -122,6 +114,17 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
         (response.status === "success" || response.status === "redirect") &&
         response.payment_url
       ) {
+        // Store payment info in localStorage for the success page
+        const paymentInfo = {
+          order_id: orderId,
+          payment_id: response.payment_id || "",
+          amount: totalPrice,
+          currency: "SAR",
+          timestamp: new Date().toISOString(),
+        };
+        localStorage.setItem("pendingPayment", JSON.stringify(paymentInfo));
+        console.log("Stored payment info:", paymentInfo);
+        
         setPaymentUrl(response.payment_url);
         setPaymentId(response.payment_id || "");
         setPaymentStatus("pending");
@@ -152,6 +155,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
 
     try {
       const statusResponse = await checkPaymentStatus(paymentId, orderId);
+      console.log("🚀 ~ handleCheckPaymentStatus ~ statusResponse:", statusResponse)
 
       if (statusResponse.payment_status === "completed") {
         setPaymentStatus("completed");
