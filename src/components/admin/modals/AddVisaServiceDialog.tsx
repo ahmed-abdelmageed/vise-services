@@ -52,6 +52,10 @@ const formSchema = z.object({
   requiresLocationSelection: z.boolean().default(false),
   requiresVisaCitySelection: z.boolean().default(false),
   requiresSaudiIdIqama: z.boolean().default(false),
+  idFilesRequired: z.boolean().default(false),
+  salaryProofRequired: z.boolean().default(false),
+  photoFilesRequired: z.boolean().default(false),
+  passportFilesRequired: z.boolean().default(false),
   // Arabic translations
   title_ar: z.string().optional(),
   formTitle_ar: z.string().optional(),
@@ -84,6 +88,10 @@ export const AddVisaServiceDialog = ({
       requiresLocationSelection: false,
       requiresVisaCitySelection: false,
       requiresSaudiIdIqama: false,
+      idFilesRequired: false,
+      salaryProofRequired: false,
+      photoFilesRequired: false,
+      passportFilesRequired: false,
       // Arabic translations
       title_ar: "",
       formTitle_ar: "",
@@ -117,6 +125,10 @@ export const AddVisaServiceDialog = ({
           requireslocationselection: data.requiresLocationSelection,
           requiresvisacityselection: data.requiresVisaCitySelection,
           requiressaudiidiqama: data.requiresSaudiIdIqama,
+          id_files_required: data.idFilesRequired,
+          salary_proof_required: data.salaryProofRequired,
+          photo_files_required: data.photoFilesRequired,
+          passport_files_required: data.passportFilesRequired,
           usavisacities: usaVisaCities,
           // Arabic translations
           title_ar: data.title_ar || data.title,

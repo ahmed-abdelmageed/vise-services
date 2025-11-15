@@ -171,9 +171,9 @@ export const ServiceCard = ({ service, index, onClick }: ServiceCardProps) => {
           )}
           
           {/* Premium Badge */}
-          <div className="absolute top-4 left-4 bg-visa-gold/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+          {/* <div className="absolute top-4 left-4 bg-visa-gold/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
             {isArabic ? "خدمة متميزة" : "Premium Service"}
-          </div>
+          </div> */}
         </div>
         
         {/* Content Section */}

@@ -27,6 +27,10 @@ export interface Service {
   requiresLocationSelection?: boolean;
   requiresVisaCitySelection?: boolean;
   requiresSaudiIdIqama?: boolean;
+  idFilesRequired?: boolean;
+  salaryProofRequired?: boolean;
+  photoFilesRequired?: boolean;
+  passportFilesRequired?: boolean;
 }
 
 export interface VisaServiceDetails {
@@ -49,6 +53,10 @@ export interface VisaConfig {
   requiresLocationSelection?: boolean;
   requiresVisaCitySelection?: boolean;
   requiresSaudiIdIqama?: boolean;
+  idFilesRequired?: boolean;
+  salaryProofRequired?: boolean;
+  photoFilesRequired?: boolean;
+  passportFilesRequired?: boolean;
   usaVisaCities?: string[] | any; // Explicitly accept any type to handle JSON from database
   flag?: string;
   processingTime?: string;

@@ -17,6 +17,10 @@ export interface VisaServiceItem {
   requireslocationselection?: boolean;
   requiresvisacityselection?: boolean;
   requiressaudiidiqama?: boolean;
+  id_files_required?: boolean;
+  salary_proof_required?: boolean;
+  photo_files_required?: boolean;
+  passport_files_required?: boolean;
   usavisacities?: any;
   created_at?: string;
   updated_at?: string;
