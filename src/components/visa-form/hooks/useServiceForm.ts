@@ -27,6 +27,7 @@ export const useServiceForm = ({
   selectedService,
   onBack,
 }: UseServiceFormProps) => {
+  console.log("🚀 ~ useServiceForm ~ selectedService:", selectedService);
   const { isLoggedIn } = useAuthentication();
   const visaConfig = selectedService
     ? VISA_CONFIGS[selectedService.title as keyof typeof VISA_CONFIGS] ||
@@ -50,6 +51,13 @@ export const useServiceForm = ({
     "Switzerland Visa",
   ].includes(selectedService?.title || "");
   const isUSAVisa = selectedService?.title === "USA Visa";
+
+  const required_docs = {
+    id_files_required: selectedService.idFilesRequired,
+    photo_files_required: selectedService.photoFilesRequired,
+    passport_files_required: selectedService.passportFilesRequired,
+    salary_proof_required: selectedService.salaryProofRequired,
+  };
 
   const serviceType = "prepare-file-only";
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -90,6 +98,8 @@ export const useServiceForm = ({
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFiles>({
     passports: [],
     photos: [],
+    ids_photos: [],
+    salary_proofs: [],
   });
   console.log("🚀 ~ useServiceForm ~ uploadedFiles:", uploadedFiles);
 
@@ -144,6 +154,8 @@ export const useServiceForm = ({
     setUploadedFiles({
       passports: [],
       photos: [],
+      ids_photos: [],
+      salary_proofs: [],
     });
     setAppointmentType("normal");
     setUserLocation("riyadh");
@@ -427,7 +439,12 @@ export const useServiceForm = ({
     });
     setTravelDate(undefined);
     setTravellers([{ firstName: "", lastName: "", saudiIdIqama: "" }]);
-    setUploadedFiles({ passports: [], photos: [] });
+    setUploadedFiles({
+      passports: [],
+      photos: [],
+      ids_photos: [],
+      salary_proofs: [],
+    });
     setIsSubmitting(false);
     onBack();
   };
@@ -884,5 +901,7 @@ export const useServiceForm = ({
     handlePaymentFailed,
     submitVisaApplication,
     handlePayLater,
+
+    required_docs,
   };
 };

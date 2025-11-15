@@ -89,6 +89,10 @@ const ServiceFormPage = () => {
     requiresVisaCitySelection: dbService.requiresvisacityselection,
     requiresSaudiIdIqama: dbService.requiressaudiidiqama,
     active: dbService.active,
+    idFilesRequired: dbService.id_files_required,
+    photoFilesRequired: dbService.photo_files_required,
+    passportFilesRequired: dbService.passport_files_required,
+    salaryProofRequired: dbService.salary_proof_required,
   });
 
   const handleBackClick = () => navigate("/");

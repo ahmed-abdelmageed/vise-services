@@ -86,4 +86,4 @@ export interface UploadedFiles {
   photos: File[];
 }
 
-export type VisaType = 'gcc' | 'other' | null;
+export type VisaType = "gcc" | "other" | null;

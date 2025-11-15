@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { ServiceFormProps } from "./types";
 import { NationalitySelection } from "./NationalitySelection";
@@ -62,7 +57,8 @@ export const ServiceForm = ({ selectedService, onBack }: ServiceFormProps) => {
     handlePaymentSuccess,
     handlePaymentFailed,
     handlePayLater,
-    submitVisaApplication
+    submitVisaApplication,
+    required_docs,
   } = useServiceForm({ selectedService, onBack });
 
   if (!selectedService) return null;
@@ -195,6 +191,7 @@ export const ServiceForm = ({ selectedService, onBack }: ServiceFormProps) => {
                   visaConfig={visaConfig}
                   basePrice={basePrice}
                   totalPrice={totalPrice}
+                  requiredDocs={required_docs}
                 />
               )}
 

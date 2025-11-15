@@ -8,11 +8,18 @@ import {
   FileText,
   Image,
   Loader2,
+  User,
+  IdCardIcon,
+  PanelTopInactiveIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { StepProps } from "./types";
 // import { uploadToVisaDocuments } from "@/utils/googleCloudService";
-import { useUploadImage, useDeleteImage, UPLOAD_FOLDERS } from "@/hooks/useUpload";
+import {
+  useUploadImage,
+  useDeleteImage,
+  UPLOAD_FOLDERS,
+} from "@/hooks/useUpload";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export const DocumentsStep = ({
@@ -36,23 +43,32 @@ export const DocumentsStep = ({
   visaConfig,
   basePrice,
   totalPrice,
+  requiredDocs,
 }: StepProps) => {
   const { t } = useLanguage();
-  
+
   const [uploading, setUploading] = useState<{
     passports: boolean[];
     photos: boolean[];
+    ids_photos: boolean[];
+    salary_proofs: boolean[];
   }>({
     passports: Array(formData.numberOfTravellers).fill(false),
     photos: Array(formData.numberOfTravellers).fill(false),
+    ids_photos: Array(formData.numberOfTravellers).fill(false),
+    salary_proofs: Array(formData.numberOfTravellers).fill(false),
   });
 
   const [uploadErrors, setUploadErrors] = useState<{
     passports: (string | null)[];
     photos: (string | null)[];
+    ids_photos: (string | null)[];
+    salary_proofs: (string | null)[];
   }>({
     passports: Array(formData.numberOfTravellers).fill(null),
     photos: Array(formData.numberOfTravellers).fill(null),
+    ids_photos: Array(formData.numberOfTravellers).fill(null),
+    salary_proofs: Array(formData.numberOfTravellers).fill(null),
   });
 
   const { mutate: uploadDocument, isPending: isUploading } = useUploadImage();
@@ -61,14 +77,18 @@ export const DocumentsStep = ({
   const [deletingFiles, setDeletingFiles] = useState<{
     passports: boolean[];
     photos: boolean[];
+    ids_photos: boolean[];
+    salary_proofs: boolean[];
   }>({
     passports: Array(formData.numberOfTravellers).fill(false),
     photos: Array(formData.numberOfTravellers).fill(false),
+    ids_photos: Array(formData.numberOfTravellers).fill(false),
+    salary_proofs: Array(formData.numberOfTravellers).fill(false),
   });
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
-    fileType: "passports" | "photos",
+    fileType: "passports" | "photos" | "ids_photos" | "salary_proofs",
     index: number
   ) => {
     const file = event.target.files?.[0];
@@ -77,13 +97,13 @@ export const DocumentsStep = ({
     // Check file type
     const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
     if (!allowedTypes.includes(file.type)) {
-      toast.error(t('uploadInvalidType'));
+      toast.error(t("uploadInvalidType"));
       return;
     }
 
     // Check file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      toast.error(t('uploadTooLarge'));
+      toast.error(t("uploadTooLarge"));
       return;
     }
 
@@ -121,15 +141,17 @@ export const DocumentsStep = ({
 
           // Show success message
           toast.success(
-            `${t(fileType === "passports" ? "passport" : "photo")} ${t('forTraveller')} ${
-              index + 1
-            } ${t('uploadSuccess')}`
+            `${t(fileType === "passports" ? "passport" : "photo")} ${t(
+              "forTraveller"
+            )} ${index + 1} ${t("uploadSuccess")}`
           );
         },
         onError: async (error) => {
           console.error("Upload failed:", error);
           toast.error(
-            `${t('uploadError')} ${t(fileType === "passports" ? "passport" : "photo")}: ${error.message}`
+            `${t("uploadError")} ${t(
+              fileType === "passports" ? "passport" : "photo"
+            )}: ${error.message}`
           );
 
           const newFiles = [...uploadedFiles[fileType]];
@@ -146,14 +168,11 @@ export const DocumentsStep = ({
           });
 
           // Set error message but don't stop the form flow - we'll handle the actual upload later
-          newUploadErrors[fileType][index] =
-            t('uploadLocalWarning');
+          newUploadErrors[fileType][index] = t("uploadLocalWarning");
           setUploadErrors(newUploadErrors);
 
           // Show warning toast but don't block the user
-          toast.warning(
-            t('uploadLocalWarning')
-          );
+          toast.warning(t("uploadLocalWarning"));
 
           newUploading[fileType][index] = false;
           setUploading(newUploading);
@@ -187,7 +206,7 @@ export const DocumentsStep = ({
   ]);
 
   const renderFileUploader = (
-    fileType: "passports" | "photos",
+    fileType: "passports" | "photos" | "ids_photos" | "salary_proofs",
     index: number,
     label: string,
     icon: React.ReactNode
@@ -219,7 +238,7 @@ export const DocumentsStep = ({
                   <div className="flex flex-col items-center text-white">
                     <Loader2 className="h-8 sm:h-12 w-8 sm:w-12 animate-spin mb-2" />
                     <span className="text-xs sm:text-sm font-medium">
-                      {t('deleting')}
+                      {t("deleting")}
                     </span>
                   </div>
                 </div>
@@ -238,7 +257,7 @@ export const DocumentsStep = ({
                   {/* Show local preview indicator if needed */}
                   {file.isLocalPreview && (
                     <div className="absolute bottom-0 right-0 text-2xs sm:text-xs bg-yellow-400 text-black px-1 py-0.5 rounded">
-                      {t('localPreview')}
+                      {t("localPreview")}
                     </div>
                   )}
                 </div>
@@ -269,20 +288,24 @@ export const DocumentsStep = ({
                     disabled={isCurrentlyDeleting || isUploading}
                     onClick={() => {
                       const currentFile = uploadedFiles[fileType][index];
-                      
+
                       // If there's a file with a preview URL and it's not a local preview, delete from Supabase
                       if (currentFile?.preview && !currentFile.isLocalPreview) {
-                        console.log(`🗑️ Deleting file from Supabase: ${currentFile.preview}`);
-                        
+                        console.log(
+                          `🗑️ Deleting file from Supabase: ${currentFile.preview}`
+                        );
+
                         // Set deleting state for this specific file
                         const newDeletingFiles = { ...deletingFiles };
                         newDeletingFiles[fileType][index] = true;
                         setDeletingFiles(newDeletingFiles);
-                        
+
                         deleteDocument(currentFile.preview, {
                           onSuccess: () => {
-                            console.log(`✅ Successfully deleted file from Supabase`);
-                            
+                            console.log(
+                              `✅ Successfully deleted file from Supabase`
+                            );
+
                             // Only remove file from local state after successful deletion
                             const newFiles = [...uploadedFiles[fileType]];
                             newFiles[index] = null as any;
@@ -295,22 +318,28 @@ export const DocumentsStep = ({
                             const newErrors = { ...uploadErrors };
                             newErrors[fileType][index] = null;
                             setUploadErrors(newErrors);
-                            
+
                             // Clear deleting state
                             newDeletingFiles[fileType][index] = false;
                             setDeletingFiles(newDeletingFiles);
-                            
-                            toast.success(`${t(fileType === "passports" ? "passport" : "photo")} ${t('deleteSuccess')}`);
+
+                            toast.success(
+                              `${t(
+                                fileType === "passports" ? "passport" : "photo"
+                              )} ${t("deleteSuccess")}`
+                            );
                           },
                           onError: (error) => {
                             console.error("Error deleting file:", error);
-                            
+
                             // Clear deleting state on error
                             newDeletingFiles[fileType][index] = false;
                             setDeletingFiles(newDeletingFiles);
-                            
-                            toast.error(`${t('deleteError')}: ${error.message}`);
-                          }
+
+                            toast.error(
+                              `${t("deleteError")}: ${error.message}`
+                            );
+                          },
                         });
                       } else {
                         // For local files, just remove immediately
@@ -325,18 +354,22 @@ export const DocumentsStep = ({
                         const newErrors = { ...uploadErrors };
                         newErrors[fileType][index] = null;
                         setUploadErrors(newErrors);
-                        
-                        toast.success(`${t(fileType === "passports" ? "passport" : "photo")} ${t('fileRemoved')}`);
+
+                        toast.success(
+                          `${t(
+                            fileType === "passports" ? "passport" : "photo"
+                          )} ${t("fileRemoved")}`
+                        );
                       }
                     }}
                   >
                     {isCurrentlyDeleting ? (
                       <>
                         <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                        {t('deleting')}
+                        {t("deleting")}
                       </>
                     ) : (
-                      t('replace')
+                      t("replace")
                     )}
                   </Button>
                 </div>
@@ -356,7 +389,7 @@ export const DocumentsStep = ({
                 <div className="flex flex-col items-center">
                   <Loader2 className="h-6 sm:h-8 w-6 sm:w-8 text-visa-gold animate-spin" />
                   <span className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-500">
-                    {t('uploading')}...
+                    {t("uploading")}...
                   </span>
                 </div>
               ) : (
@@ -364,10 +397,10 @@ export const DocumentsStep = ({
                   <div className="flex flex-col items-center">
                     {icon}
                     <span className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-500">
-                      {t('clickToUpload')} {label.toLowerCase()}
+                      {t("clickToUpload")} {label.toLowerCase()}
                     </span>
                     <span className="mt-1 text-2xs sm:text-xs text-gray-400">
-                      {t('fileFormats')}
+                      {t("fileFormats")}
                     </span>
                   </div>
                   <input
@@ -390,14 +423,14 @@ export const DocumentsStep = ({
     <div>
       <div className="mb-4 sm:mb-6">
         <h2 className="text-base sm:text-lg font-bold text-visa-dark mb-1">
-          {t('uploadDocuments')}
+          {t("uploadDocuments")}
         </h2>
         <p className="text-xs sm:text-sm text-gray-600">
-          {t('uploadDocumentsDesc')}
+          {t("uploadDocumentsDesc")}
         </p>
         <p className="text-amber-600 text-2xs sm:text-xs mt-1">
           <AlertCircle className="h-2 sm:h-3 w-2 sm:w-3 inline mr-1" />
-          {t('uploadFailWarning')}
+          {t("uploadFailWarning")}
           later.
         </p>
       </div>
@@ -412,25 +445,44 @@ export const DocumentsStep = ({
           <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6">
             <div className="mb-3 sm:mb-4">
               <h3 className="font-medium text-sm sm:text-base text-visa-dark">
-                {t('traveller')} {index + 1}:{" "}
-                {travellers[index]?.fullName || t('unnamedTraveller')}
+                {t("traveller")} {index + 1}:{" "}
+                {travellers[index]?.firstName || t("unnamedTraveller")}{" "}
+                {travellers[index]?.lastName || ""}
               </h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
-              {renderFileUploader(
-                "passports",
-                index,
-                t('passportCopy'),
-                <FileText className="h-6 sm:h-8 w-6 sm:w-8 text-visa-gold" />
-              )}
+              {requiredDocs.passport_files_required &&
+                renderFileUploader(
+                  "passports",
+                  index,
+                  t("passportCopy"),
+                  <FileText className="h-6 sm:h-8 w-6 sm:w-8 text-visa-gold" />
+                )}
 
-              {renderFileUploader(
-                "photos",
-                index,
-                t('passportPhoto'),
-                <Image className="h-6 sm:h-8 w-6 sm:w-8 text-visa-gold" />
-              )}
+              {requiredDocs.photo_files_required &&
+                renderFileUploader(
+                  "photos",
+                  index,
+                  t("passportPhoto"),
+                  <User className="h-6 sm:h-8 w-6 sm:w-8 text-visa-gold" />
+                )}
+
+              {requiredDocs.id_files_required &&
+                renderFileUploader(
+                  "ids_photos",
+                  index,
+                  t("idPhoto"),
+                  <IdCardIcon className="h-6 sm:h-8 w-6 sm:w-8 text-visa-gold" />
+                )}
+
+              {requiredDocs.salary_proof_required &&
+                renderFileUploader(
+                  "salary_proofs",
+                  index,
+                  t("salaryPhoto"),
+                  <PanelTopInactiveIcon className="h-6 sm:h-8 w-6 sm:w-8 text-visa-gold" />
+                )}
             </div>
           </CardContent>
         </Card>
@@ -443,14 +495,14 @@ export const DocumentsStep = ({
           onClick={handlePrevStep}
           className="w-full sm:w-auto"
         >
-          {t('back')}
+          {t("back")}
         </Button>
         <Button
           type="button"
           onClick={handleNextStep}
           className="w-full sm:w-auto bg-visa-gold hover:bg-visa-gold/90"
         >
-          {t('continueToAccount')}
+          {t("continueToAccount")}
         </Button>
       </CardFooter>
     </div>

@@ -1,4 +1,3 @@
-
 export interface TravellerData {
   firstName: string;
   lastName: string;
@@ -12,8 +11,10 @@ export interface UploadedFile extends File {
 }
 
 export interface UploadedFiles {
-  passports: Array<UploadedFile | null>;
-  photos: Array<UploadedFile | null>;
+  passports?: Array<UploadedFile | null>;
+  photos?: Array<UploadedFile | null>;
+  ids_photos?: Array<UploadedFile | null>;
+  salary_proofs?: Array<UploadedFile | null>;
 }
 
 export interface VisaFormData {
@@ -38,7 +39,7 @@ export interface StepProps {
   handleNextStep?: () => void;
   handlePrevStep: () => void;
   handleSubmit?: (e: React.FormEvent) => void;
-  visaType?: 'gcc' | 'other' | null;
+  visaType?: "gcc" | "other" | null;
   selectedService: any;
   serviceType?: string;
   appointmentType: string;
@@ -52,6 +53,12 @@ export interface StepProps {
   setUploadedFiles?: React.Dispatch<React.SetStateAction<UploadedFiles>>;
   visaCity?: string;
   setVisaCity?: React.Dispatch<React.SetStateAction<string>>;
+  requiredDocs?: {
+    id_files_required?: boolean;
+    photo_files_required?: boolean;
+    passport_files_required?: boolean;
+    salary_proof_required?: boolean;
+  };
 }
 
 export interface ServiceFormProps {

@@ -56,7 +56,7 @@ export const formTranslations: TranslationDictionary = {
     invoiceFooter: "Thank you for your business with Vise Services.",
     thankYou: "Thank you for choosing our services!",
     download: "Download",
-    
+
     // Payment related
     paymentProcess: "Payment Process",
     paymentSummary: "Payment Summary",
@@ -72,7 +72,8 @@ export const formTranslations: TranslationDictionary = {
     paymentFailed: "Payment Failed",
     paymentError: "There was an error processing your payment.",
     paymentVerificationTimeout: "Payment verification timed out",
-    paymentMayStillBeProcessing: "Your payment may still be processing. You can check the status again or contact support.",
+    paymentMayStillBeProcessing:
+      "Your payment may still be processing. You can check the status again or contact support.",
     checkStatusAgain: "Check Status Again",
     startNewPayment: "Start New Payment",
     tryAgain: "Try Again",
@@ -93,7 +94,9 @@ export const formTranslations: TranslationDictionary = {
     traveller: "Traveller",
     unnamedTraveller: "Unnamed Traveller",
     passportCopy: "Passport Copy",
-    passportPhoto: "Passport Photo",
+    passportPhoto: "Personal Photo",
+    salaryPhoto: "Salary Proof",
+    idPhoto: "ID Photo",
     clickToUpload: "Click to upload",
     fileFormats: "JPEG, PNG or PDF (max 10MB)",
     localPreview: "Local Preview",
@@ -178,7 +181,7 @@ export const formTranslations: TranslationDictionary = {
     invoiceFooter: "شكراً لتعاملكم مع خدمات فايز.",
     thankYou: "شكراً لاختياركم خدماتنا!",
     download: "تحميل",
-    
+
     // Payment related
     paymentProcess: "عملية الدفع",
     paymentSummary: "ملخص الدفع",
@@ -194,7 +197,8 @@ export const formTranslations: TranslationDictionary = {
     paymentFailed: "فشل الدفع",
     paymentError: "حدث خطأ أثناء معالجة دفعتك.",
     paymentVerificationTimeout: "انتهت مهلة التحقق من الدفع",
-    paymentMayStillBeProcessing: "قد تكون دفعتك قيد المعالجة. يمكنك التحقق من الحالة مرة أخرى أو الاتصال بالدعم.",
+    paymentMayStillBeProcessing:
+      "قد تكون دفعتك قيد المعالجة. يمكنك التحقق من الحالة مرة أخرى أو الاتصال بالدعم.",
     checkStatusAgain: "تحقق من الحالة مرة أخرى",
     startNewPayment: "بدء دفع جديد",
     tryAgain: "حاول مرة أخرى",
@@ -215,6 +219,8 @@ export const formTranslations: TranslationDictionary = {
     unnamedTraveller: "مسافر غير مسمى",
     passportCopy: "نسخة الجواز",
     passportPhoto: "صورة شخصية",
+    salaryPhoto: "تعريف الراتب",
+    idPhoto: "صورة الهوية",
     clickToUpload: "اضغط لرفع",
     fileFormats: "JPEG، PNG أو PDF (حد أقصى 10 ميجابايت)",
     localPreview: "معاينة محلية",
