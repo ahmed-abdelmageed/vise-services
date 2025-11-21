@@ -12,6 +12,7 @@ import {
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Header } from "@/components/Header";
 import { validatePaymentCallback, checkPaymentStatus } from "@/api/payment";
+import { updateInvoiceStatusToPaidByOrderId } from "@/api/invoices";
 import { toast } from "sonner";
 
 const PaymentSuccess = () => {
@@ -22,6 +23,19 @@ const PaymentSuccess = () => {
     "loading" | "success" | "failed"
   >("loading");
   const [paymentData, setPaymentData] = useState<any>(null);
+
+  // Function to update invoice status when payment is successful
+  const updateInvoiceStatus = async (orderId: string, paymentInfo: any) => {
+    try {
+      await updateInvoiceStatusToPaidByOrderId(orderId, {
+        payment_id: paymentInfo.payment_id || paymentInfo.trans_id,
+        transaction_id: paymentInfo.transaction_id || paymentInfo.trans_id,
+      });
+    } catch (error) {
+      console.error("Failed to update invoice status:", error);
+      // Don't show error to user as payment was successful
+    }
+  };
 
   useEffect(() => {
     const processPaymentCallback = async () => {
@@ -67,6 +81,16 @@ const PaymentSuccess = () => {
               ) {
                 setPaymentStatus("success");
                 setPaymentData(statusResult);
+                
+                // Update invoice status to paid
+                if (orderId) {
+                  await updateInvoiceStatus(orderId, {
+                    payment_id: transId,
+                    transaction_id: transId,
+                    ...statusResult
+                  });
+                }
+                
                 toast.success(
                   t("paymentSuccessful") || "Payment completed successfully!"
                 );
@@ -101,6 +125,16 @@ const PaymentSuccess = () => {
               currency: params.currency || callbackData.currency,
               transaction_id: transId,
             });
+            
+            // Update invoice status to paid
+            if (orderId) {
+              await updateInvoiceStatus(orderId, {
+                payment_id: transId,
+                transaction_id: transId,
+                ...callbackData
+              });
+            }
+            
             toast.success(
               t("paymentSuccessful") || "Payment completed successfully!"
             );
@@ -150,6 +184,15 @@ const PaymentSuccess = () => {
                   setPaymentStatus("success");
                   setPaymentData(statusResult);
                   localStorage.removeItem("pendingPayment");
+                  
+                  // Update invoice status to paid
+                  if (pendingPayment.order_id) {
+                    await updateInvoiceStatus(pendingPayment.order_id, {
+                      payment_id: pendingPayment.payment_id,
+                      ...statusResult
+                    });
+                  }
+                  
                   toast.success(
                     t("paymentSuccessful") || "Payment completed successfully!"
                   );
@@ -160,6 +203,15 @@ const PaymentSuccess = () => {
                     ...pendingPayment,
                     payment_status: "pending",
                   });
+                  
+                  // Update invoice status to paid even if status is pending
+                  if (pendingPayment.order_id) {
+                    await updateInvoiceStatus(pendingPayment.order_id, {
+                      payment_id: pendingPayment.payment_id,
+                      ...pendingPayment
+                    });
+                  }
+                  
                   toast.success(
                     t("paymentSuccessful") || "Payment completed successfully!"
                   );
@@ -169,6 +221,15 @@ const PaymentSuccess = () => {
                 setPaymentStatus("success");
                 setPaymentData(pendingPayment);
                 localStorage.removeItem("pendingPayment");
+                
+                // Update invoice status to paid
+                if (pendingPayment.order_id) {
+                  await updateInvoiceStatus(pendingPayment.order_id, {
+                    payment_id: pendingPayment.payment_id,
+                    ...pendingPayment
+                  });
+                }
+                
                 toast.success(
                   t("paymentSuccessful") || "Payment completed successfully!"
                 );

@@ -54,6 +54,7 @@ export const ServiceForm = ({ selectedService, onBack }: ServiceFormProps) => {
     paymentCompleted,
     paymentData,
     invoiceId,
+    orderId,
     handlePaymentSuccess,
     handlePaymentFailed,
     handlePayLater,
@@ -226,6 +227,7 @@ export const ServiceForm = ({ selectedService, onBack }: ServiceFormProps) => {
                   travellers={travellers}
                   selectedService={selectedService}
                   applicationId={applicationId}
+                  orderId={orderId}
                   onPaymentSuccess={handlePaymentSuccess}
                   onPaymentFailed={handlePaymentFailed}
                   onPayLater={handlePayLater}

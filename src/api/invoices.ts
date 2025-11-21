@@ -245,6 +245,32 @@ export const fetchInvoicesByClient = async (clientId: string) => {
 };
 
 /**
+ * Fetch application data by invoice client_id
+ */
+export const fetchApplicationByInvoiceClientId = async (clientId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from("visa_applications")
+      .select("*")
+      .eq("id", clientId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching application by client_id:", error);
+      toast.error("Failed to load application details");
+      return null;
+    }
+    
+    console.log("Fetched application data by client_id:", data);
+    return data;
+  } catch (error) {
+    console.error("Error in fetchApplicationByInvoiceClientId:", error);
+    toast.error("An unexpected error occurred");
+    return null;
+  }
+};
+
+/**
  * Create invoice for visa application after successful payment
  */
 export const createVisaInvoice = async (
@@ -379,6 +405,99 @@ export const updateInvoiceStatusToPaid = async (
     return data;
   } catch (error) {
     console.error("Error in updateInvoiceStatusToPaid:", error);
+    throw error;
+  }
+};
+
+/**
+ * Update invoice status to paid by order_id after successful payment
+ */
+export const updateInvoiceStatusToPaidByOrderId = async (
+  orderId: string,
+  paymentData: {
+    payment_id?: string;
+    transaction_id?: string;
+  }
+) => {
+  try {
+    console.log("🚀 ~ Updating invoice status to Paid for order_id:", orderId);
+    
+    // First find the invoice by order_id (it's stored in invoice_number or we need to find via visa_applications)
+    const { data: invoice, error: findError } = await supabase
+      .from("client_invoices")
+      .select("*")
+      .or(`invoice_number.eq.INV-${orderId},invoice_number.like.%${orderId}%`)
+      .single();
+
+    if (findError || !invoice) {
+      console.warn("Invoice not found by order_id, trying to find via visa applications...");
+      
+      // Try to find via visa applications table
+      const { data: application, error: appError } = await supabase
+        .from("visa_applications")
+        .select("id, invoice_id")
+        .eq("order_id", orderId)
+        .single();
+
+      if (appError || !application) {
+        console.error("Could not find invoice or application for order_id:", orderId);
+        toast.error("Invoice not found for this order");
+        return null;
+      }
+
+      if (application.invoice_id) {
+        // Update using the invoice_id from application
+        const { data, error } = await supabase
+          .from("client_invoices")
+          .update({
+            status: "Paid",
+            payment_date: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", application.invoice_id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Error updating invoice status:", error);
+          toast.error("Failed to update invoice status");
+          throw error;
+        }
+
+        console.log("Invoice status updated to paid via application:", data);
+        toast.success("Invoice marked as paid successfully");
+        return data;
+      } else {
+        console.error("Application found but no invoice_id");
+        toast.error("No invoice found for this application");
+        return null;
+      }
+    } else {
+      // Update the found invoice
+      const { data, error } = await supabase
+        .from("client_invoices")
+        .update({
+          status: "Paid",
+          payment_date: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", invoice.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error updating invoice status:", error);
+        toast.error("Failed to update invoice status");
+        throw error;
+      }
+
+      console.log("Invoice status updated to paid:", data);
+      toast.success("Invoice marked as paid successfully");
+      return data;
+    }
+  } catch (error) {
+    console.error("Error in updateInvoiceStatusToPaidByOrderId:", error);
+    toast.error("Failed to update invoice status");
     throw error;
   }
 };

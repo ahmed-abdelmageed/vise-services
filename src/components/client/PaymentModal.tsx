@@ -21,6 +21,8 @@ import {
   useManualCheckPaymentStatus,
 } from "@/hooks/usePaymentQuery";
 import { generateOrderId } from "@/api/payment";
+import { useApplicationByInvoice } from "@/hooks/useApplicationByInvoice";
+import { useUpdateInvoiceStatusByOrderId } from "@/hooks/useUpdateInvoiceStatusByOrderId";
 import { toast } from "sonner";
 
 interface PaymentModalProps {
@@ -42,13 +44,31 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   >("idle");
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [paymentId, setPaymentId] = useState<string | null>(null);
-  const [orderId, setOrderId] = useState<string | null>(null);
   const [statusCheckInterval, setStatusCheckInterval] =
     useState<NodeJS.Timeout | null>(null);
 
   const { mutate: initiatePayment, isPending: isInitiatingPayment } =
     useInitiatePayment();
   const { mutate: checkPaymentStatus } = useManualCheckPaymentStatus();
+  const { mutate: updateInvoiceStatus } = useUpdateInvoiceStatusByOrderId();
+
+  // Fetch application data when invoice with client_id is available
+  const { 
+    data: applicationData, 
+    isLoading: isLoadingApplication,
+    error: applicationError 
+  } = useApplicationByInvoice(invoice?.client_id || "", !!invoice?.client_id);
+
+  // Log application data when it changes
+  useEffect(() => {
+    if (applicationData) {
+      console.log("🚀 ~ PaymentModal ~ Fetched application data:", applicationData);
+    }
+    if (applicationError) {
+      console.error("Error fetching application data:", applicationError);
+      toast.error("Failed to load application details");
+    }
+  }, [applicationData, applicationError]);
 
   // Clean up interval on unmount or when modal closes
   useEffect(() => {
@@ -77,6 +97,17 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               clearInterval(interval);
               setStatusCheckInterval(null);
               setPaymentStatus("success");
+
+              // Update invoice status to paid
+              if (orderId) {
+                updateInvoiceStatus({
+                  orderId,
+                  paymentData: {
+                    payment_id: paymentId,
+                    transaction_id: response.transaction_id
+                  }
+                });
+              }
 
               // Only call onPaymentSuccess when payment is actually completed
               onPaymentSuccess({
@@ -123,23 +154,32 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   };
 
   const handlePayment = async () => {
+    console.log("🚀 ~ handlePayment ~ invoice:", invoice);
+    console.log("🚀 ~ handlePayment ~ applicationData:", applicationData);
     if (!invoice) return;
+
+    // Check if application data is available
+    if (!applicationData) {
+      toast.error("Application data not loaded. Please try again.");
+      return;
+    }
 
     setPaymentStatus("processing");
 
-    const newOrderId = generateOrderId(invoice.client_id);
-    setOrderId(newOrderId);
-
+    // Use application data to enhance payment information
     const paymentData = {
       amount: invoice.amount,
       currency: invoice.currency || "SAR",
-      order_id: newOrderId,
-      description: invoice.service_description,
-      customer_email: invoice.customer_email || "customer@example.com",
-      customer_name: invoice.customer_name || "Customer",
-      return_url: `${window.location.origin}/payment/return?order_id=${newOrderId}`,
+      order_id: invoice.order_id || applicationData.order_id,
+      description: invoice.service_description || `${applicationData.service_type} - ${applicationData.country}`,
+      customer_email: applicationData.email || invoice.customer_email || "customer@example.com",
+      customer_name: `${applicationData.first_name} ${applicationData.last_name}` || invoice.customer_name || "Customer",
+      customer_phone: applicationData.phone,
+      return_url: `${window.location.origin}/payment/return?order_id=${invoice.order_id || applicationData.order_id}`,
       callback_url: `${window.location.origin}/api/payment/callback`,
     };
+
+    console.log("🚀 ~ Payment data with application info:", paymentData);
 
     initiatePayment(paymentData, {
       onSuccess: (response) => {
@@ -150,7 +190,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
           // Start checking payment status periodically
           if (response.payment_id) {
-            startPaymentStatusCheck(response.payment_id, newOrderId);
+            startPaymentStatusCheck(response.payment_id, invoice.order_id);
           }
 
           // The payment window opening is handled in the payment API
@@ -178,7 +218,6 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     setPaymentStatus("idle");
     setPaymentUrl(null);
     setPaymentId("");
-    setOrderId("");
     onClose();
   };
 
@@ -212,6 +251,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           >
             <h3 className="font-semibold text-visa-dark mb-2">
               {t("paymentSummary")}
+              {isLoadingApplication && (
+                <Loader className="inline h-4 w-4 animate-spin text-visa-gold ml-2" />
+              )}
             </h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
@@ -331,9 +373,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 <div className="space-y-2">
                   <Button
                     onClick={() => {
-                      if (paymentId && orderId) {
+                      if (paymentId && invoice.order_id) {
                         setPaymentStatus("checking");
-                        startPaymentStatusCheck(paymentId, orderId);
+                        startPaymentStatusCheck(paymentId, invoice.order_id);
                       }
                     }}
                     className="w-full bg-visa-gold hover:bg-visa-gold/90"

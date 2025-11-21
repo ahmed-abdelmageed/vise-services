@@ -17,6 +17,7 @@ import {
   updateInvoiceStatusToPaid,
 } from "@/api/invoices";
 import { getCurrentUserId } from "@/api/user";
+import { generateOrderId } from "@/api/payment";
 
 export interface UseServiceFormProps {
   selectedService: Service;
@@ -62,6 +63,7 @@ export const useServiceForm = ({
   const serviceType = "prepare-file-only";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
   const [paymentData, setPaymentData] = useState<any>(null);
   const [invoiceId, setInvoiceId] = useState<string | null>(null);
@@ -161,6 +163,7 @@ export const useServiceForm = ({
     setUserLocation("riyadh");
     setVisaCity("Riyadh");
     setApplicationId(null);
+    setOrderId(null);
   }, [visaType, serviceType]);
 
   // Update travellers when number changes
@@ -187,7 +190,7 @@ export const useServiceForm = ({
       // Include the uploaded files in the request body
       const emailData = {
         applicationId: appId,
-        email: formData.email,
+        email: applicationData.email,
         firstName: travellers[0].firstName,
         lastName: travellers[0].lastName,
         country: selectedService?.title.split(" ")[0] || "",
@@ -263,7 +266,7 @@ export const useServiceForm = ({
         applicationId: appId,
         referenceId: applicationData.reference_id,
         formData: {
-          email: formData.email,
+          email: applicationData.email,
           countryCode: formData.countryCode,
           phoneNumber: formData.phoneNumber,
           nationality: formData.nationality,
@@ -332,6 +335,75 @@ export const useServiceForm = ({
       }
     } catch (error) {
       console.error("Error sending team notification email:", error);
+    }
+  };
+
+  const sendPaymentConfirmationEmail = async (
+    appId: string,
+    applicationData: any,
+    paymentInfo: any
+  ) => {
+    try {
+      console.log("Sending payment confirmation email for application:", appId);
+
+      const paymentEmailData = {
+        applicationId: appId,
+        email: applicationData.email,
+        firstName: travellers[0].firstName,
+        lastName: travellers[0].lastName,
+        country: selectedService?.title.split(" ")[0] || "",
+        travelDate: travelDate?.toISOString() || new Date().toISOString(),
+        totalPrice: totalPrice,
+        serviceType:
+          serviceType === "prepare-file-only"
+            ? "Document Preparation"
+            : serviceType,
+        visaCity: visaCity || "Riyadh",
+        numberOfTravellers: formData.numberOfTravellers,
+        travellerDetails: travellers,
+        mothersName: formData.mothersFullName || "",
+        phone: `${formData.countryCode}${formData.phoneNumber}`,
+        referenceId: applicationData.reference_id,
+        paymentDetails: {
+          payment_id: paymentInfo.payment_id,
+          order_id: paymentInfo.order_id,
+          transaction_id: paymentInfo.transaction_id,
+          amount: paymentInfo.amount || totalPrice,
+          currency: paymentInfo.currency || "SAR",
+          payment_date: new Date().toISOString(),
+        },
+        emailType: "payment_confirmation", // Distinguish from application confirmation
+      };
+
+      console.log("Payment confirmation email data:", paymentEmailData);
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      const response = await fetch(
+        `${SUPABASE_API_URL}/functions/v1/send-visa-confirmation`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken || SUPABASE_ANON_KEY}`,
+            apikey: SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify(paymentEmailData),
+        }
+      );
+
+      console.log("Payment email API response status:", response.status);
+      const responseData = await response.json();
+      console.log("Payment email API response data:", responseData);
+
+      if (!response.ok) {
+        console.error("Failed to send payment confirmation email:", responseData);
+      } else {
+        console.log("Payment confirmation email sent successfully!");
+      }
+    } catch (error) {
+      console.error("Error sending payment confirmation email:", error);
     }
   };
 
@@ -446,6 +518,7 @@ export const useServiceForm = ({
       salary_proofs: [],
     });
     setIsSubmitting(false);
+    setOrderId(null);
     onBack();
   };
 
@@ -497,10 +570,22 @@ export const useServiceForm = ({
             toast.error("Failed to update application status");
             return;
           }
+
+          // Get the updated application data for payment confirmation email
+          const { data: applicationData, error: fetchError } = await supabase
+            .from("visa_applications")
+            .select("*")
+            .eq("id", applicationId)
+            .single();
+
+          if (!fetchError && applicationData) {
+            // Send payment confirmation email to customer
+            await sendPaymentConfirmationEmail(applicationId, applicationData, paymentInfo);
+          }
         }
 
         toast.success(
-          "Payment successful! Your visa application is now complete."
+          "Payment successful! Your visa application is now complete. Payment confirmation email has been sent."
         );
         setShowConfirmation(true);
       }
@@ -759,6 +844,9 @@ export const useServiceForm = ({
       );
       const photo_files = uploadedFiles.photos.map((file) => file.preview);
 
+      // Generate order ID before creating the application
+      const orderIdForApp = generateOrderId();
+      
       const applicationData: any = {
         first_name: travellers[0].firstName,
         last_name: travellers[0].lastName,
@@ -775,6 +863,7 @@ export const useServiceForm = ({
         photo_files,
         user_id,
         paid: false,
+        order_id: orderIdForApp,
       };
 
       if (isUSAVisa) {
@@ -801,6 +890,7 @@ export const useServiceForm = ({
       if (data && data.length > 0) {
         const appId = data[0].id;
         setApplicationId(appId);
+        setOrderId(orderIdForApp); // Store the generated order ID in state
 
         // Create pending invoice using the application ID as client_id
         const invoiceData = await createPendingVisaInvoice({
@@ -811,7 +901,7 @@ export const useServiceForm = ({
           customer_name: `${travellers[0]?.firstName} ${travellers[0]?.lastName}`,
           amount: totalPrice,
           currency: "SAR",
-          order_id: `APP${appId}`,
+          order_id: orderIdForApp, // Use the generated order ID instead of APP prefix
         });
 
         if (invoiceData) {
@@ -835,6 +925,10 @@ export const useServiceForm = ({
           toast.success(
             "Application created! Please complete payment to finalize."
           );
+
+          // Send confirmation emails after application creation
+          await sendConfirmationEmail(appId, data[0]);
+          await sendTeamNotificationEmail(appId, data[0]);
         }
 
         console.log("Application and pending invoice created:", {
@@ -897,6 +991,7 @@ export const useServiceForm = ({
     paymentCompleted,
     paymentData,
     invoiceId,
+    orderId,
     handlePaymentSuccess,
     handlePaymentFailed,
     submitVisaApplication,

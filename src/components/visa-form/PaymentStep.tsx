@@ -17,6 +17,8 @@ import {
   PaymentInitiateRequest,
   testPaymentIntegration,
 } from "@/api/payment";
+import { fetchApplicationByInvoiceClientId } from "@/api/invoices";
+import { useApplicationByInvoice } from "@/hooks/useApplicationByInvoice";
 import { useUserEmail } from "@/hooks/useUserQuery";
 import { toast } from "sonner";
 import { useLocation } from "react-router-dom";
@@ -27,6 +29,8 @@ interface PaymentStepProps {
   travellers: any[];
   selectedService: any;
   applicationId?: string;
+  orderId?: string | null;
+  invoice?: any; // Optional invoice data with client_id
   onPaymentSuccess: (paymentData: any) => void;
   onPaymentFailed: (error: string) => void;
   onPayLater?: () => void;
@@ -39,6 +43,8 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
   travellers,
   selectedService,
   applicationId,
+  orderId: propOrderId,
+  invoice,
   onPaymentSuccess,
   onPaymentFailed,
   onPayLater,
@@ -56,24 +62,47 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
     "pending" | "processing" | "completed" | "failed" | null
   >(null);
   const [checkingStatus, setCheckingStatus] = useState(false);
+  
+  // Fetch application data when invoice with client_id is provided
+  const { 
+    data: applicationData, 
+    isLoading: isLoadingApplication,
+    error: applicationError 
+  } = useApplicationByInvoice(invoice?.client_id || "", !!invoice?.client_id);
 
   useEffect(() => {
-    // Generate order ID when component mounts
-    const newOrderId = generateOrderId(applicationId);
+    // Use prop order ID if available, otherwise generate new one
+    const newOrderId = propOrderId || generateOrderId(applicationId);
     setOrderId(newOrderId);
-  }, [applicationId]);
+  }, [applicationId, propOrderId]);
+
+  // Log application data and errors
+  useEffect(() => {
+    if (applicationData) {
+      console.log("🚀 ~ PaymentStep ~ Fetched application data:", applicationData);
+    }
+    if (applicationError) {
+      console.error("Error fetching application data:", applicationError);
+      toast.error("Failed to load application details");
+    }
+  }, [applicationData, applicationError]);
 
   const handlePayment = async () => {
     console.log("🚀 ~ handlePayment ~ formData:", formData);
+    console.log("🚀 ~ handlePayment ~ invoice:", invoice);
+    console.log("🚀 ~ handlePayment ~ applicationData:", applicationData);
 
-    // Get email from form data or current user
-    const customerEmail = formData.email || userEmail;
+    // Get email from application data, form data, or current user (in that priority)
+    const customerEmail = applicationData?.email || formData.email || userEmail;
+    
+    // Get customer name from application data or travellers
+    const customerName = applicationData 
+      ? `${applicationData.first_name} ${applicationData.last_name}`
+      : travellers[0]?.firstName && travellers[0]?.lastName 
+        ? `${travellers[0].firstName} ${travellers[0].lastName}`
+        : "";
 
-    if (
-      !customerEmail ||
-      !travellers[0]?.firstName ||
-      !travellers[0]?.lastName
-    ) {
+    if (!customerEmail || !customerName) {
       toast.error("Missing required information for payment");
       return;
     }
@@ -85,19 +114,24 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
       // Get current route without the base for redirectTo
       const currentRoute = location.pathname; // This gives us the route like "/service/spain-visa"
 
+      // Use application data to enhance payment information when available
       const paymentData: PaymentInitiateRequest = {
         amount: totalPrice,
         currency: "SAR",
         order_id: orderId,
-        description: `${selectedService?.title} - Visa`,
+        description: applicationData 
+          ? `${applicationData.service_type} - ${applicationData.country} Visa` 
+          : `${selectedService?.title} - Visa`,
         customer_email: customerEmail,
-        customer_name: travellers[0]?.firstName + " " + travellers[0]?.lastName,
-        customer_phone: formData.phoneNumber
+        customer_name: customerName,
+        customer_phone: applicationData?.phone || (formData.phoneNumber
           ? `${formData.countryCode}${formData.phoneNumber}`
-          : undefined,
+          : undefined),
         return_url: `${window.location.origin}/payment/return?order_id=${orderId}`,
         callback_url: `${window.location.origin}/api/payment/callback`,
       };
+
+      console.log("🚀 ~ PaymentStep ~ Payment data with application info:", paymentData);
 
       // If test works, try the actual payment
       const response = await initiatePayment(paymentData, currentRoute);
@@ -214,6 +248,9 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
             {language === "ar" ? "ملخص الدفع" : "Payment Summary"}
+            {isLoadingApplication && (
+              <Loader className="h-4 w-4 animate-spin text-visa-gold" />
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -221,13 +258,33 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
             <span className="text-gray-600">
               {language === "ar" ? "الخدمة:" : "Service:"}
             </span>
-            <span className="font-medium">{selectedService?.title}</span>
+            <span className="font-medium">
+              {applicationData 
+                ? `${applicationData.service_type} - ${applicationData.country}`
+                : selectedService?.title
+              }
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600">
+              {language === "ar" ? "العميل:" : "Customer:"}
+            </span>
+            <span className="font-medium">
+              {applicationData 
+                ? `${applicationData.first_name} ${applicationData.last_name}`
+                : travellers.length > 0 
+                  ? `${travellers[0]?.firstName} ${travellers[0]?.lastName}`
+                  : "N/A"
+              }
+            </span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-gray-600">
               {language === "ar" ? "عدد المسافرين:" : "Number of Travelers:"}
             </span>
-            <span className="font-medium">{travellers.length}</span>
+            <span className="font-medium">
+              {applicationData?.adults || travellers.length}
+            </span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-gray-600">
@@ -235,6 +292,14 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
             </span>
             <span className="font-mono text-sm">{orderId}</span>
           </div>
+          {applicationData && (
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">
+                {language === "ar" ? "رقم المرجع:" : "Reference ID:"}
+              </span>
+              <span className="font-mono text-sm">{applicationData.reference_id}</span>
+            </div>
+          )}
           <div className="border-t pt-4">
             <div className="flex justify-between items-center text-lg font-bold">
               <span>{language === "ar" ? "المجموع:" : "Total:"}</span>
