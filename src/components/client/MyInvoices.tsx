@@ -31,6 +31,8 @@ import { useCurrentUserId } from "@/hooks/useUserQuery";
 import { InvoicePreviewModal } from "./InvoicePreviewModal";
 import { PaymentModal } from "./PaymentModal";
 import { downloadInvoicePDF } from "@/utils/invoicePDF";
+import { useApplicationByInvoice } from "@/hooks/useApplicationByInvoice";
+import { fetchApplicationByInvoiceClientId } from "@/api/invoices";
 
 export const MyInvoices = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -107,12 +109,41 @@ export const MyInvoices = () => {
     setIsPreviewOpen(true);
   };
 
-  const handleDownloadInvoice = (invoice: ClientInvoice) => {
+  const handleDownloadInvoice = async (invoice: ClientInvoice) => {
+    console.log("🚀 ~ handleDownloadInvoice ~ invoice:", invoice);
+
     try {
-      downloadInvoicePDF(invoice, language);
+      // Show loading state
+      toast.info(t("fetchingApplicationData"));
+
+      // Fetch application data using the invoice client_id
+      const applicationResponse = await fetchApplicationByInvoiceClientId(
+        invoice.client_id
+      );
+
+      if (!applicationResponse) {
+        toast.error(t("applicationDataNotFound"));
+        return;
+      }
+
+      console.log("🚀 ~ Application data fetched:", applicationResponse);
+
+      // Enhance invoice object with application data
+      const enhancedInvoice = {
+        ...invoice,
+        customer_name:
+          applicationResponse.first_name + " " + applicationResponse.last_name,
+        customer_email: applicationResponse.email || "Email Not Available",
+      };
+
+      // Now download the invoice with the enhanced data
+      downloadInvoicePDF(enhancedInvoice, language);
       toast.success(t("invoiceDownloaded"));
     } catch (error) {
-      console.error("Error downloading invoice:", error);
+      console.error(
+        "Error fetching application or downloading invoice:",
+        error
+      );
       toast.error(t("downloadError"));
     }
   };

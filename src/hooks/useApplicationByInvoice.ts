@@ -9,7 +9,5 @@ export const useApplicationByInvoice = (clientId: string, enabled = true) => {
     queryKey: ['application', 'by-invoice', clientId],
     queryFn: () => fetchApplicationByInvoiceClientId(clientId),
     enabled: enabled && !!clientId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 };

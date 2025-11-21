@@ -15,6 +15,7 @@ export interface InvoiceItem {
   created_at?: string | null;
   updated_at?: string | null;
   user_id?: string | null;
+  order_id?: string | null;
 }
 
 export const fetchInvoices = async (status_filter?: string) => {
@@ -260,7 +261,7 @@ export const fetchApplicationByInvoiceClientId = async (clientId: string) => {
       toast.error("Failed to load application details");
       return null;
     }
-    
+
     console.log("Fetched application data by client_id:", data);
     return data;
   } catch (error) {
@@ -350,6 +351,7 @@ export const createPendingVisaInvoice = async (applicationData: {
       issue_date: new Date().toISOString(),
       due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
       service_description: applicationData.service_description,
+      order_id: applicationData.order_id,
     };
 
     const { data, error } = await supabase
@@ -421,7 +423,7 @@ export const updateInvoiceStatusToPaidByOrderId = async (
 ) => {
   try {
     console.log("🚀 ~ Updating invoice status to Paid for order_id:", orderId);
-    
+
     // First find the invoice by order_id (it's stored in invoice_number or we need to find via visa_applications)
     const { data: invoice, error: findError } = await supabase
       .from("client_invoices")
@@ -430,8 +432,10 @@ export const updateInvoiceStatusToPaidByOrderId = async (
       .single();
 
     if (findError || !invoice) {
-      console.warn("Invoice not found by order_id, trying to find via visa applications...");
-      
+      console.warn(
+        "Invoice not found by order_id, trying to find via visa applications..."
+      );
+
       // Try to find via visa applications table
       const { data: application, error: appError } = await supabase
         .from("visa_applications")
@@ -440,7 +444,10 @@ export const updateInvoiceStatusToPaidByOrderId = async (
         .single();
 
       if (appError || !application) {
-        console.error("Could not find invoice or application for order_id:", orderId);
+        console.error(
+          "Could not find invoice or application for order_id:",
+          orderId
+        );
         toast.error("Invoice not found for this order");
         return null;
       }
