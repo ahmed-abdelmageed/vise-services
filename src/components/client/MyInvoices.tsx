@@ -33,6 +33,7 @@ import { PaymentModal } from "./PaymentModal";
 import { downloadInvoicePDF } from "@/utils/invoicePDF";
 import { useApplicationByInvoice } from "@/hooks/useApplicationByInvoice";
 import { fetchApplicationByInvoiceClientId } from "@/api/invoices";
+import { useFooterInfo } from "@/hooks/useFooterInfo";
 
 export const MyInvoices = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -46,6 +47,9 @@ export const MyInvoices = () => {
 
   // Get current user ID
   const { data: currentUserId, isLoading: userLoading } = useCurrentUserId();
+
+  // Get footer info for company details
+  const { data: footerData, isLoading: footerLoading } = useFooterInfo();
 
   // Use React Query hook to fetch invoices for the current user
   const {
@@ -128,6 +132,11 @@ export const MyInvoices = () => {
 
       console.log("🚀 ~ Application data fetched:", applicationResponse);
 
+      console.log(
+        `🚀 ~ handleDownloadInvoice ~ applicationResponse.first_name + " " + applicationResponse.last_name,:`,
+        applicationResponse.first_name + " " + applicationResponse.last_name
+      );
+
       // Enhance invoice object with application data
       const enhancedInvoice = {
         ...invoice,
@@ -137,7 +146,7 @@ export const MyInvoices = () => {
       };
 
       // Now download the invoice with the enhanced data
-      downloadInvoicePDF(enhancedInvoice, language);
+      await downloadInvoicePDF(enhancedInvoice, "ar", footerData);
       toast.success(t("invoiceDownloaded"));
     } catch (error) {
       console.error(
@@ -197,7 +206,7 @@ export const MyInvoices = () => {
     );
   };
 
-  if (isLoading || userLoading) {
+  if (isLoading || userLoading || footerLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <Loader className="h-8 w-8 animate-spin text-visa-gold mb-4" />

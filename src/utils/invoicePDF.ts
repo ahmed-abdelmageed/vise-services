@@ -1,9 +1,6 @@
-import { jsPDF } from "jspdf";
+import html2pdf from "html2pdf.js";
 import { format } from "date-fns";
-
-// Import additional fonts for better support
-// Note: For production, you should add proper Arabic fonts
-// For now, we'll use built-in fonts with better encoding
+import { FooterItem } from "@/api/footer";
 
 export interface InvoiceData {
   id: string;
@@ -24,34 +21,39 @@ export interface InvoiceData {
 
 export const generateInvoicePDF = (
   invoice: InvoiceData,
-  language: "en" | "ar" = "en"
+  language: "en" | "ar" = "en",
+  footerData?: FooterItem[]
 ) => {
-  // Create PDF with better configuration for text rendering
-  const doc = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "a4",
-    putOnlyUsedFonts: true,
-    compress: true,
-  });
+  // Helper function to extract company info from footer data
+  const getCompanyInfo = (footerData?: FooterItem[]) => {
+    if (!footerData || footerData.length === 0) {
+      return {
+        name: "Vise Services",
+        email: "info@viseservices.com",
+        phone: "+966 11 234 5678",
+        address: "Riyadh, Saudi Arabia",
+        vat: "",
+        cr: "",
+      };
+    }
+
+    const footerInfo = footerData[0];
+    return {
+      name: footerInfo.trade_name || footerInfo.web_name || "Vise Services",
+      email: footerInfo.email || "info@viseservices.com",
+      phone: footerInfo.phone || "+966 11 234 5678",
+      address: "Riyadh, Saudi Arabia",
+      vat: footerInfo.vat_num || "",
+      cr: footerInfo.cr_num || "",
+    };
+  };
 
   const isArabic = language === "ar";
-
-  // Set default font with better support for international characters
-  doc.setFont("helvetica", "normal");
-
-  const pageWidth = doc.internal.pageSize.width;
-  const pageHeight = doc.internal.pageSize.height;
-
-  // Colors
-  const primaryColor = "#1e40af"; // visa-dark
-  const goldColor = "#f59e0b"; // visa-gold
-  const grayColor = "#6b7280";
-  const blackColor = "#000000";
+  const companyInfo = getCompanyInfo(footerData);
 
   // Helper function to format date
   const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return "Not Available";
+    if (!dateString) return isArabic ? "غير متوفر" : "Not Available";
     try {
       return format(new Date(dateString), "dd/MM/yyyy");
     } catch (e) {
@@ -59,276 +61,996 @@ export const generateInvoicePDF = (
     }
   };
 
-  // Helper function to safely render text with better encoding
-  const renderText = (
-    text: string,
-    x: number,
-    y: number,
-    options: any = {}
-  ) => {
-    try {
-      // Ensure text is properly encoded
-      const cleanText = text.toString().replace(/[^\x00-\x7F]/g, ""); // Remove non-ASCII for now
-      doc.text(cleanText || text, x, y, options);
-    } catch (error) {
-      console.warn("Text rendering fallback:", text);
-      // Fallback to basic text
-      doc.text(text.toString(), x, y, options);
-    }
-  };
+  // Create HTML content for the invoice
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html dir="${isArabic ? "rtl" : "ltr"}" lang="${language}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Invoice ${invoice.invoice_number}</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+            
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            body {
+                font-family: ${
+                  isArabic
+                    ? "'Tajawal', Arial, sans-serif"
+                    : "'Inter', Arial, sans-serif"
+                };
+                font-size: 14px;
+                line-height: 1.5;
+                color: #1f2937;
+                direction: ${isArabic ? "rtl" : "ltr"};
+                background: #f9fafb;
+                padding: 20px;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+            
+            .invoice-container {
+                max-width: 800px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
+                border: 1px solid #e5e7eb;
+            }
+            
+            .header {
+                background: white;
+                padding: 40px 40px 30px 40px;
+                border-bottom: 1px solid #f3f4f6;
+            }
+            
+            .header h1 {
+                font-size: 32px;
+                font-weight: 700;
+                margin-bottom: 25px;
+                color: #1f2937;
+                text-align: ${isArabic ? "right" : "left"};
+                letter-spacing: ${isArabic ? "0" : "-0.5px"};
+            }
+            
+            .header-info {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 40px;
+                flex-direction: ${isArabic ? "row-reverse" : "row"};
+                flex-wrap: wrap;
+            }
+            
+            .company-info,
+            .invoice-details {
+                flex: 1;
+                min-width: 280px;
+            }
+            
+            .company-info h3,
+            .invoice-details h3 {
+                font-size: 16px;
+                font-weight: 600;
+                margin-bottom: 16px;
+                color: #374151;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                border-bottom: 2px solid #e5e7eb;
+                padding-bottom: 8px;
+            }
+            
+            .info-item {
+                margin-bottom: 10px;
+                font-size: 14px;
+                color: #6b7280;
+                font-weight: 400;
+                line-height: 1.4;
+            }
+            
+            .info-item strong {
+                color: #374151;
+                font-weight: 500;
+            }
+            
+            .content {
+                padding: 40px;
+            }
+            
+            .bill-to {
+                margin-bottom: 40px;
+                padding: 30px;
+                background: #f8fafc;
+                border-radius: 8px;
+                border: 1px solid #e5e7eb;
+                border-${isArabic ? "right" : "left"}: 3px solid #3b82f6;
+            }
+            
+            .bill-to h3 {
+                color: #1f2937;
+                font-size: 16px;
+                font-weight: 600;
+                margin-bottom: 20px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            
+            .customer-info {
+                display: grid;
+                gap: 12px;
+            }
+            
+            .customer-info div {
+                font-size: 14px;
+                line-height: 1.4;
+                color: #374151;
+            }
+            
+            .customer-info strong {
+                color: #1f2937;
+                font-weight: 600;
+                margin-right: 8px;
+            }
+            
+            .status-badge {
+                display: flex !important;
 
-  // Helper function to calculate tax
-  const calculateTax = (amount: number) => {
-    return (amount * 0.15).toFixed(2);
-  };
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: uppercase;
+                height: fit-content;
+            }
+            
+            .status-paid {
+                background: #ecfdf5;
+                color: #065f46;
+                border: 1px solid #d1fae5;
+            }
+            
+            .status-pending {
+                background: #fffbeb;
+                color: #92400e;
+                border: 1px solid #fde68a;
+            }
+            
+            .status-unpaid {
+                background: #fef2f2;
+                color: #991b1b;
+                border: 1px solid #fecaca;
+            }
+            
+            .services-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 30px 0;
+                border-radius: 8px;
+                overflow: hidden;
+                border: 1px solid #e5e7eb;
+                background: white;
+            }
+            
+            .services-table th {
+                background: #f9fafb;
+                color: #374151;
+                padding: 20px 16px;
+                font-weight: 600;
+                text-align: ${isArabic ? "right" : "left"};
+                border-bottom: 1px solid #e5e7eb;
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            
+            .services-table td {
+                padding: 20px 16px;
+                border-bottom: 1px solid #f3f4f6;
+                text-align: ${isArabic ? "right" : "left"};
+                vertical-align: middle;
+                font-size: 14px;
+                color: #374151;
+            }
+            
+            .services-table tbody tr:last-child td {
+                border-bottom: none;
+            }
+            
+            .description-cell {
+                max-width: 300px;
+                word-wrap: break-word;
+                font-weight: 500;
+                color: #1f2937;
+            }
+            
+            .amount-cell {
+                text-align: center !important;
+                font-weight: 600;
+                color: #1f2937;
+                font-size: 14px;
+            }
+            
+            .totals-section {
+                margin-top: 40px;
+                padding: 0;
+                background: transparent;
+                border: none;
+            }
+            
+            .total-row {
+                display: flex;
+                justify-content: space-between;
+                padding: 16px 0;
+                border-bottom: 1px solid #f3f4f6;
+                flex-direction: ${isArabic ? "row-reverse" : "row"};
+                font-size: 14px;
+                color: #6b7280;
+            }
+            
+            .total-row:last-child {
+                border-bottom: 2px solid #e5e7eb;
+                border-top: 2px solid #e5e7eb;
+                font-weight: 700;
+                font-size: 18px;
+                color: #1f2937;
+                margin-top: 12px;
+                padding: 20px 0;
+                background: #f9fafb;
+                margin-left: -20px;
+                margin-right: -20px;
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            
+            .total-label {
+                font-weight: inherit;
+            }
+            
+            .total-value {
+                font-weight: inherit;
+                color: inherit;
+            }
+            
+            .footer {
+                margin-top: 50px;
+                padding: 30px 40px;
+                background: #f9fafb;
+                color: #6b7280;
+                text-align: center;
+                font-size: 12px;
+                border-top: 1px solid #e5e7eb;
+            }
+            
+            .footer-note {
+                margin-bottom: 16px;
+                font-style: italic;
+                font-size: 13px;
+                color: #374151;
+                font-weight: 400;
+            }
+            
+            .footer-company {
+                margin-bottom: 12px;
+                font-weight: 500;
+                font-size: 12px;
+                color: #6b7280;
+            }
+            
+            .footer-timestamp {
+                font-size: 11px;
+                color: #9ca3af;
+                font-weight: 400;
+            }
+            
+            /* Print optimizations */
+            @media print {
+                body {
+                    margin: 0;
+                    padding: 0;
+                    background: white;
+                }
+                
+                .invoice-container {
+                    border: none;
+                    box-shadow: none;
+                    max-width: none;
+                }
+                
+                .header {
+                    padding: 30px 30px 20px 30px;
+                }
+                
+                .content {
+                    padding: 30px;
+                }
+                
+                .footer {
+                    padding: 20px 30px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="invoice-container">
+            <div class="header">
+                <h1>${isArabic ? "فاتورة" : "INVOICE"}</h1>
+                <div class="header-info">
+                    <div class="company-info">
+                        <h3>${
+                          isArabic ? "معلومات الشركة" : "Company Information"
+                        }</h3>
+                        <div class="info-item">${companyInfo.name}</div>
+                        <div class="info-item">${
+                          isArabic ? "البريد الإلكتروني: " : "Email: "
+                        }${companyInfo.email}</div>
+                        <div class="info-item">${
+                          isArabic ? "الهاتف: " : "Phone: "
+                        }${companyInfo.phone}/div>
+                        <div class="info-item">${
+                          isArabic ? "العنوان: " : "Address: "
+                        }${companyInfo.address}</div>
+                        ${
+                          companyInfo.vat
+                            ? `<div class="info-item">${
+                                isArabic ? "الرقم الضريبي: " : "VAT: "
+                              }${companyInfo.vat}</div>`
+                            : ""
+                        }
+                        ${
+                          companyInfo.cr
+                            ? `<div class="info-item">${
+                                isArabic ? "السجل التجاري: " : "CR: "
+                              }${companyInfo.cr}</div>`
+                            : ""
+                        }
+                    </div>
+                    <div class="invoice-details">
+                        <h3>${
+                          isArabic ? "تفاصيل الفاتورة" : "Invoice Details"
+                        }</h3>
+                        <div class="info-item">${
+                          isArabic ? "رقم الفاتورة: " : "Invoice Number: "
+                        }${invoice.invoice_number}</div>
+                        <div class="info-item">${
+                          isArabic ? "تاريخ الإصدار: " : "Issue Date: "
+                        }${formatDate(invoice.issue_date)}</div>
+                        ${
+                          invoice.due_date
+                            ? `<div class="info-item">${
+                                isArabic ? "تاريخ الاستحقاق: " : "Due Date: "
+                              }${formatDate(invoice.due_date)}</div>`
+                            : ""
+                        }
+                        ${
+                          invoice.payment_date
+                            ? `<div class="info-item">${
+                                isArabic ? "تاريخ الدفع: " : "Payment Date: "
+                              }${formatDate(invoice.payment_date)}</div>`
+                            : ""
+                        }
+                        <div class="info-item">
+                            ${isArabic ? "الحالة: " : "Status: "}
+                            <span class="status-badge status-${invoice.status.toLowerCase()}">
+                                ${
+                                  isArabic
+                                    ? invoice.status === "Paid"
+                                      ? "مدفوع"
+                                      : invoice.status === "Pending"
+                                      ? "قيد الانتظار"
+                                      : "غير مدفوع"
+                                    : invoice.status
+                                }
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div class="bill-to">
+                    <h3>${isArabic ? "إرسال الفاتورة إلى:" : "Bill To:"}</h3>
+                    <div class="customer-info">
+                        <div><strong>${
+                          isArabic ? "الاسم: " : "Name: "
+                        }</strong>${
+    invoice.customer_name || (isArabic ? "غير متوفر" : "Not Available")
+  }</div>
+                        <div><strong>${
+                          isArabic ? "البريد الإلكتروني: " : "Email: "
+                        }</strong>${
+    invoice.customer_email || (isArabic ? "غير متوفر" : "Not Available")
+  }</div>
+                        <div><strong>${
+                          isArabic ? "رقم العميل: " : "Client ID: "
+                        }</strong>${invoice.client_id}</div>
+                    </div>
+                </div>
+                
+                <table class="services-table">
+                    <thead>
+                        <tr>
+                            <th>${isArabic ? "الوصف" : "Description"}</th>
+                            <th>${isArabic ? "الكمية" : "Quantity"}</th>
+                            <th>${isArabic ? "سعر الوحدة" : "Unit Price"}</th>
+                            <th>${isArabic ? "الإجمالي" : "Total"}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="description-cell">${
+                              invoice.service_description ||
+                              (isArabic ? "خدمات التأشيرة" : "Visa Services")
+                            }</td>
+                            <td class="amount-cell">1</td>
+                            <td class="amount-cell">${invoice.amount} ${
+    invoice.currency || "SAR"
+  }</td>
+                            <td class="amount-cell">${invoice.amount} ${
+    invoice.currency || "SAR"
+  }</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="totals-section">
+                    <div class="total-row" dir="rtl">
+                        <span class="total-label">${
+                          isArabic ? "الإجمالي:" : "Total:"
+                        }</span>
+                        <span class="total-value" dir="ltr">${invoice.amount} ${
+    invoice.currency || "SAR"
+  }</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <div class="footer-note">
+                    ${
+                      isArabic
+                        ? "نشكرك لاختيارك خدماتنا. نقدر ثقتك بنا."
+                        : "Thank you for choosing our services. We appreciate your business."
+                    }
+                </div>
+                <div class="footer-company">
+                    ${companyInfo.name} - ${
+    isArabic ? "حلول التأشيرة الاحترافية" : "Professional Visa Solutions"
+  }
+                </div>
+                <div class="footer-timestamp">
+                    ${isArabic ? "تم الإنشاء في: " : "Generated on: "}${format(
+    new Date(),
+    "dd/MM/yyyy HH:mm"
+  )}
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+  `;
 
-  const totalWithTax = (amount: number) => {
-    return (amount + parseFloat(calculateTax(amount))).toFixed(2);
-  };
-
-  // Header with improved text rendering
-  doc.setFontSize(28);
-  doc.setTextColor(primaryColor);
-  doc.setFont("helvetica", "bold");
-
-  const headerText = "INVOICE"; // Use English for consistent rendering
-  const headerX = isArabic ? pageWidth - 20 : 20;
-  renderText(headerText, headerX, 30, { align: isArabic ? "right" : "left" });
-
-  // Company Info with better formatting
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(blackColor);
-
-  const companyInfo = [
-    "Vise Services",
-    "Email: info@viseservices.com",
-    "Phone: +966 11 234 5678",
-    "Address: Riyadh, Saudi Arabia",
-  ];
-
-  companyInfo.forEach((line, index) => {
-    const x = isArabic ? pageWidth - 20 : 20;
-    const align = isArabic ? "right" : "left";
-    renderText(line, x, 50 + index * 6, { align });
-  });
-
-  // Invoice Info (opposite side) with better alignment
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(blackColor);
-
-  const invoiceInfoLabels = {
-    number: "Invoice Number:",
-    issue: "Issue Date:",
-    due: "Due Date:",
-    payment: "Payment Date:",
-  };
-
-  const invoiceInfo = [
-    `${invoiceInfoLabels.number} ${invoice.invoice_number}`,
-    `${invoiceInfoLabels.issue} ${formatDate(invoice.issue_date)}`,
-    ...(invoice.due_date
-      ? [`${invoiceInfoLabels.due} ${formatDate(invoice.due_date)}`]
-      : []),
-    ...(invoice.payment_date
-      ? [`${invoiceInfoLabels.payment} ${formatDate(invoice.payment_date)}`]
-      : []),
-  ];
-
-  invoiceInfo.forEach((line, index) => {
-    const x = isArabic ? 20 : pageWidth - 20;
-    const align = isArabic ? "left" : "right";
-    renderText(line, x, 50 + index * 6, { align });
-  });
-
-  // Status Badge with better styling
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  const statusColor =
-    invoice.status === "Paid"
-      ? "#10b981"
-      : invoice.status === "Pending"
-      ? "#f59e0b"
-      : "#ef4444";
-  doc.setTextColor(statusColor);
-  const statusX = isArabic ? 20 : pageWidth - 20;
-  const statusAlign = isArabic ? "left" : "right";
-  renderText(invoice.status.toUpperCase(), statusX, 80, { align: statusAlign });
-
-  // Bill To Section with improved formatting
-  doc.setFontSize(14);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(primaryColor);
-  const billToLabel = "Bill To:"; // Use English for clarity
-  renderText(billToLabel, 20, 100);
-
-  // Customer details with improved formatting
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(blackColor);
-
-  const customerName = invoice.customer_name || "Customer Name Not Available";
-  const customerEmail = invoice.customer_email || "Email Not Available";
-  const clientId = `Client ID: ${invoice.client_id}`;
-
-  const billToInfo = [
-    `Name: ${customerName}`,
-    `Email: ${customerEmail}`,
-    clientId,
-  ];
-
-  billToInfo.forEach((line, index) => {
-    renderText(line, 20, 110 + index * 6);
-  });
-
-  // Table Header with improved styling
-  const tableTop = 145;
-  doc.setFillColor(245, 245, 245);
-  doc.rect(20, tableTop, pageWidth - 40, 12, "F");
-
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(blackColor);
-
-  const tableHeaders = {
-    description: "Description",
-    qty: "Qty",
-    unitPrice: "Unit Price",
-    total: "Total",
-  };
-
-  // Table headers positioned better
-  renderText(tableHeaders.description, 25, tableTop + 8);
-  renderText(tableHeaders.qty, 100, tableTop + 8, { align: "center" });
-  renderText(tableHeaders.unitPrice, 130, tableTop + 8, { align: "center" });
-  renderText(tableHeaders.total, 160, tableTop + 8, { align: "center" });
-
-  // Table Row with better formatting
-  const rowTop = tableTop + 20;
-  doc.setFont("helvetica", "normal");
-
-  const serviceDesc = invoice.service_description || "Visa Services";
-  const unitPrice = `${invoice.amount} ${invoice.currency || "SAR"}`;
-  const totalPrice = `${invoice.amount} ${invoice.currency || "SAR"}`;
-
-  renderText(serviceDesc, 25, rowTop);
-  renderText("1", 100, rowTop, { align: "center" });
-  renderText(unitPrice, 130, rowTop, { align: "center" });
-  renderText(totalPrice, 160, rowTop, { align: "center" });
-
-  // Add table border
-  doc.setDrawColor(200, 200, 200);
-  doc.rect(20, tableTop, pageWidth - 40, 32);
-
-  // Totals Section with improved alignment and styling
-  const totalsTop = rowTop + 25;
-
-  // Draw separator line
-  doc.setDrawColor(150, 150, 150);
-  doc.line(120, totalsTop, pageWidth - 20, totalsTop);
-
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(blackColor);
-
-  const totalsLabels = {
-    subtotal: "Subtotal:",
-    tax: "Tax (15%):",
-    total: "Total:",
-  };
-
-  //   // Subtotal
-  //   renderText(totalsLabels.subtotal, 120, totalsTop + 12);
-  //   renderText(`${invoice.amount.toFixed(2)} ${invoice.currency || 'SAR'}`, pageWidth - 20, totalsTop + 12, { align: 'right' });
-
-  //   // Tax
-  //   renderText(totalsLabels.tax, 120, totalsTop + 24);
-  //   renderText(`${calculateTax(invoice.amount)} ${invoice.currency || 'SAR'}`, pageWidth - 20, totalsTop + 24, { align: 'right' });
-
-  // Total (highlighted)
-  doc.setFontSize(13);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(primaryColor);
-  renderText(totalsLabels.total, 120, totalsTop + 40);
-  renderText(
-    `${invoice.amount} ${invoice.currency || "SAR"}`,
-    pageWidth - 20,
-    totalsTop + 40,
-    { align: "right" }
-  );
-
-  // Footer with improved formatting
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(grayColor);
-
-  const footerText =
-    "Thank you for choosing our services. We appreciate your business.";
-
-  // Center the footer text
-  renderText(footerText, pageWidth / 2, pageHeight - 40, { align: "center" });
-
-  // Add separator line above footer
-  doc.setDrawColor(200, 200, 200);
-  doc.line(20, pageHeight - 50, pageWidth - 20, pageHeight - 50);
-
-  // Generated timestamp with better formatting
-  doc.setFontSize(9);
-  doc.setTextColor(grayColor);
-  const timestamp = `Generated on: ${format(new Date(), "dd/MM/yyyy HH:mm")}`;
-  renderText(timestamp, pageWidth / 2, pageHeight - 25, { align: "center" });
-
-  // Add company footer info
-  doc.setFontSize(8);
-  const companyFooter = "Visa Services - Professional Visa Solutions";
-  renderText(companyFooter, pageWidth / 2, pageHeight - 15, {
-    align: "center",
-  });
-
-  return doc;
+  return htmlContent;
 };
 
-export const downloadInvoicePDF = (
+export const downloadInvoicePDF = async (
   invoice: InvoiceData,
-  language: "en" | "ar" = "en"
+  language: "en" | "ar" = "ar",
+  footerData?: FooterItem[]
 ) => {
   try {
     console.log("Generating PDF for invoice:", invoice.invoice_number);
-    const doc = generateInvoicePDF(invoice, language);
+
+    // Helper function to extract company info from footer data
+    const getCompanyInfo = (footerData?: FooterItem[]) => {
+      if (!footerData || footerData.length === 0) {
+        return {
+          name: "Vise Services",
+          email: "info@viseservices.com",
+          phone: "+966 11 234 5678",
+          address: "Riyadh, Saudi Arabia",
+          vat: "",
+          cr: "",
+        };
+      }
+
+      const footerInfo = footerData[0];
+      return {
+        name: footerInfo.trade_name || footerInfo.web_name || "Vise Services",
+        email: footerInfo.email || "info@viseservices.com",
+        phone: footerInfo.phone || "+966 11 234 5678",
+        address: "Riyadh, Saudi Arabia",
+        vat: footerInfo.vat_num || "",
+        cr: footerInfo.cr_num || "",
+      };
+    };
+
+    // Create the HTML content without the html/body tags for direct injection
+    const isArabic = language === "ar";
+    const companyInfo = getCompanyInfo(footerData);
+
+    // Helper function to format date
+    const formatDate = (dateString: string | null | undefined) => {
+      if (!dateString) return isArabic ? "غير متوفر" : "Not Available";
+      try {
+        return format(new Date(dateString), "dd/MM/yyyy");
+      } catch (e) {
+        return dateString;
+      }
+    };
+
+    // Create a temporary div with the invoice content
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = `
+      <div class="invoice-container" style="
+        font-family: ${
+          isArabic ? "Tajawal, Arial, sans-serif" : "Inter, Arial, sans-serif"
+        };
+        direction: ${isArabic ? "rtl" : "ltr"};
+        width: 800px;
+        margin: 0 auto;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
+      ">
+        <div style="
+          background: white;
+          padding: 40px 40px 30px 40px;
+          border-bottom: 1px solid #f3f4f6;
+        ">
+          <h1 style="
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: #1f2937;
+            text-align: ${isArabic ? "right" : "left"};
+            letter-spacing: ${isArabic ? "0" : "-0.5px"};
+          ">${isArabic ? "فاتورة" : "INVOICE"}</h1>
+          
+          <div style="
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 40px;
+            flex-direction: ${isArabic ? "row-reverse" : "row"};
+            flex-wrap: wrap;
+          ">
+            <div style="flex: 1; min-width: 280px;" dir="${
+              isArabic ? "rtl" : "ltr"
+            }">
+              <h3 style="
+                font-size: 16px;
+                font-weight: 600;
+                margin-bottom: 16px;
+                color: #374151;
+                border-bottom: 2px solid #e5e7eb;
+                padding-bottom: 8px;
+                letter-spacing: 0px;
+              ">${isArabic ? "معلومات الشركة" : "Company Information"}</h3>
+              <div style="margin-bottom: 10px; font-size: 14px; color: #6b7280; font-weight: 400; line-height: 1.4;"><strong style="color: #374151; font-weight: 500;">${
+                companyInfo.name
+              }</strong></div>
+              <div style="margin-bottom: 10px; font-size: 14px; color: #6b7280; font-weight: 400; line-height: 1.4;">${
+                isArabic ? "البريد الإلكتروني: " : "Email: "
+              }${companyInfo.email}</div>
+              <div style="margin-bottom: 10px; font-size: 14px; color: #6b7280; font-weight: 400; line-height: 1.4;">${
+                isArabic ? "الهاتف: " : "Phone: "
+              }${companyInfo.phone}</div>
+              <div style="margin-bottom: 10px; font-size: 14px; color: #6b7280; font-weight: 400; line-height: 1.4;">${
+                isArabic ? "العنوان: " : "Address: "
+              }${companyInfo.address}</div>
+              ${
+                companyInfo.vat
+                  ? `<div style="margin-bottom: 10px; font-size: 14px; color: #6b7280; font-weight: 400; line-height: 1.4;">${
+                      isArabic ? "الرقم الضريبي: " : "VAT: "
+                    }${companyInfo.vat}</div>`
+                  : ""
+              }
+              ${
+                companyInfo.cr
+                  ? `<div style="margin-bottom: 10px; font-size: 14px; color: #6b7280; font-weight: 400; line-height: 1.4;">${
+                      isArabic ? "السجل التجاري: " : "CR: "
+                    }${companyInfo.cr}</div>`
+                  : ""
+              }
+            </div>
+            
+            <div style="flex: 1; min-width: 280px;">
+              <h3 style="
+                font-size: 16px;
+                font-weight: 600;
+                margin-bottom: 16px;
+                color: #374151;
+                text-transform: uppercase;
+                letter-spacing: 0px;
+                border-bottom: 2px solid #e5e7eb;
+                padding-bottom: 8px;
+              ">${isArabic ? "تفاصيل الفاتورة" : "Invoice Details"}</h3>
+              <div style="margin-bottom: 10px; font-size: 14px; color: #6b7280; font-weight: 400; line-height: 1.4;">${
+                isArabic ? "رقم الفاتورة: " : "Invoice Number: "
+              }<strong style="color: #374151; font-weight: 500;">${
+      invoice.invoice_number
+    }</strong></div>
+              <div style="margin-bottom: 10px; font-size: 14px; color: #6b7280; font-weight: 400; line-height: 1.4;">${
+                isArabic ? "تاريخ الإصدار: " : "Issue Date: "
+              }${formatDate(invoice.issue_date)}</div>
+              ${
+                invoice.due_date
+                  ? `<div style="margin-bottom: 10px; font-size: 14px; color: #6b7280; font-weight: 400; line-height: 1.4;">${
+                      isArabic ? "تاريخ الاستحقاق: " : "Due Date: "
+                    }${formatDate(invoice.due_date)}</div>`
+                  : ""
+              }
+              ${
+                invoice.payment_date
+                  ? `<div style="margin-bottom: 10px; font-size: 14px; color: #6b7280; font-weight: 400; line-height: 1.4;">${
+                      isArabic ? "تاريخ الدفع: " : "Payment Date: "
+                    }${formatDate(invoice.payment_date)}</div>`
+                  : ""
+              }
+              <div style="margin-bottom: 10px; font-size: 14px; color: #6b7280; font-weight: 400; line-height: 1.4;">
+                ${isArabic ? "الحالة: " : "Status: "}
+                <span style="
+                  display: inline-block;
+                  padding: 16px !important;
+                  padding-top: 0px !important;
+                  padding-bottom: 16px !important;
+                  margin-top: 16px;
+                  border-radius: 20px;
+                  text-align: center;
+                  font-size: 11px;
+                  font-weight: 600;
+                  text-transform: uppercase;
+                  letter-spacing: 0px;
+                  background: ${
+                    invoice.status === "Paid"
+                      ? "#ecfdf5"
+                      : invoice.status === "Pending"
+                      ? "#fffbeb"
+                      : "#fef2f2"
+                  };
+                  color: ${
+                    invoice.status === "Paid"
+                      ? "#065f46"
+                      : invoice.status === "Pending"
+                      ? "#92400e"
+                      : "#991b1b"
+                  };
+                  border: 1px solid ${
+                    invoice.status === "Paid"
+                      ? "#d1fae5"
+                      : invoice.status === "Pending"
+                      ? "#fde68a"
+                      : "#fecaca"
+                  };
+                ">
+                  ${
+                    isArabic
+                      ? invoice.status === "Paid"
+                        ? "مدفوع"
+                        : invoice.status === "Pending"
+                        ? "قيد الانتظار"
+                        : "غير مدفوع"
+                      : invoice.status
+                  }
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div style="padding: 40px;">
+          <div style="
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            border-${isArabic ? "right" : "left"}: 3px solid #3b82f6;
+          ">
+            <h3 style="
+              color: #1f2937;
+              font-size: 16px;
+              font-weight: 600;
+              margin-bottom: 20px;
+              text-transform: uppercase;
+              letter-spacing: 0px;
+            ">${isArabic ? "إرسال الفاتورة إلى:" : "Bill To:"}</h3>
+            
+            <div style="display: grid; gap: 12px;">
+              <div style="font-size: 14px; line-height: 1.4; color: #374151;">
+                <strong style="color: #1f2937; font-weight: 600; margin-right: 8px;">${
+                  isArabic ? "الاسم: " : "Name: "
+                }</strong>${
+      invoice.customer_name || (isArabic ? "غير متوفر" : "Not Available")
+    }
+              </div>
+              <div style="font-size: 14px; line-height: 1.4; color: #374151;">
+                <strong style="color: #1f2937; font-weight: 600; margin-right: 8px;">${
+                  isArabic ? "البريد الإلكتروني: " : "Email: "
+                }</strong>${
+      invoice.customer_email || (isArabic ? "غير متوفر" : "Not Available")
+    }
+              </div>
+              <div style="font-size: 14px; line-height: 1.4; color: #374151;">
+                <strong style="color: #1f2937; font-weight: 600; margin-right: 8px;">${
+                  isArabic ? "رقم العميل: " : "Client ID: "
+                }</strong>${invoice.client_id}
+              </div>
+            </div>
+          </div>
+          
+          <table style="
+            width: 100% !important;
+            border-collapse: collapse;
+            margin: 30px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+            background: white;
+          ">
+            <thead>
+              <tr>
+                <th style="
+                  background: #f9fafb;
+                  color: #374151;
+                  padding: 20px 16px;
+                  font-weight: 600;
+                  text-align: ${isArabic ? "right" : "left"};
+                  border-bottom: 1px solid #e5e7eb;
+                  font-size: 12px;
+                  text-transform: uppercase;
+                  width: 40%;
+                  letter-spacing: 0px;
+                ">${isArabic ? "الوصف" : "Description"}</th>
+                <th style="
+                  background: #f9fafb;
+                  color: #374151;
+                  padding: 20px 16px;
+                  font-weight: 600;
+                  text-align: center;
+                  border-bottom: 1px solid #e5e7eb;
+                  font-size: 12px;
+                  text-transform: uppercase;
+                  letter-spacing: 0px;
+                  width: 10%;
+                ">${isArabic ? "الكمية" : "Quantity"}</th>
+                <th style="
+                  background: #f9fafb;
+                  color: #374151;
+                  padding: 20px 16px;
+                  font-weight: 600;
+                  text-align: center;
+                  border-bottom: 1px solid #e5e7eb;
+                  font-size: 12px;
+                  text-transform: uppercase;
+                  letter-spacing: 0px;
+                  width: 10%;
+                ">${isArabic ? "سعر الوحدة" : "Unit Price"}</th>
+                <th style="
+                  background: #f9fafb;
+                  color: #374151;
+                  padding: 20px 16px;
+                  font-weight: 600;
+                  text-align: center;
+                  border-bottom: 1px solid #e5e7eb;
+                  font-size: 12px;
+                  text-transform: uppercase;
+                  letter-spacing: 0px;
+                  width: 10%;
+                ">${isArabic ? "الإجمالي" : "Total"}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="
+                  padding: 20px 16px;
+                  text-align: ${isArabic ? "right" : "left"};
+                  vertical-align: middle;
+                  font-size: 14px;
+                  color: #374151;
+                  max-width: 300px;
+                  word-wrap: break-word;
+                  font-weight: 500;
+                  color: #1f2937;
+                "
+                dir="ltr">${
+                  invoice.service_description ||
+                  (isArabic ? "خدمات التأشيرة" : "Visa Services")
+                }</td>
+                <td style="
+                  padding: 20px 16px;
+                  text-align: center;
+                  vertical-align: middle;
+                  font-size: 14px;
+                  color: #374151;
+                  font-weight: 600;
+                  color: #1f2937;
+                "
+                dir="ltr">1</td>
+                <td style="
+                  padding: 20px 16px;
+                  text-align: center;
+                  vertical-align: middle;
+                  font-size: 14px;
+                  color: #374151;
+                  font-weight: 600;
+                  color: #1f2937;
+                "
+                dir="ltr">${invoice.amount} ${invoice.currency || "SAR"}</td>
+                <td style="
+                  padding: 20px 16px;
+                  text-align: center;
+                  vertical-align: middle;
+                  font-size: 14px;
+                  color: #374151;
+                  font-weight: 600;
+                  color: #1f2937;
+                "
+                dir="ltr">${invoice.amount} ${invoice.currency || "SAR"}</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div style="margin-top: 40px; padding: 0; background: transparent; border: none;">
+            <div style="
+              display: flex;
+              justify-content: space-between;
+              padding: 20px 0;
+              border-bottom: 2px solid #e5e7eb;
+              border-top: 2px solid #e5e7eb;
+              font-weight: 700;
+              font-size: 18px;
+              color: #1f2937;
+              margin-top: 12px;
+              background: #f9fafb;
+              margin-left: -20px;
+              margin-right: -20px;
+              padding-left: 20px;
+              padding-right: 20px;
+              flex-direction: row;
+            ">
+              <span>${isArabic ? "الإجمالي:" : "Total:"}</span>
+              <span dir="ltr">${invoice.amount} ${
+      invoice.currency || "SAR"
+    }</span>
+            </div>
+          </div>
+        </div>
+        
+        <div style="
+          margin-top: 50px;
+          padding: 30px 40px;
+          background: #f9fafb;
+          color: #6b7280;
+          text-align: center;
+          font-size: 12px;
+          border-top: 1px solid #e5e7eb;
+        ">
+          <div style="
+            margin-bottom: 16px;
+            font-style: italic;
+            font-size: 13px;
+            color: #374151;
+            font-weight: 400;
+          ">${
+            isArabic
+              ? "نشكرك لاختيارك خدماتنا. نقدر ثقتك بنا."
+              : "Thank you for choosing our services. We appreciate your business."
+          }</div>
+          
+          <div style="
+            margin-bottom: 12px;
+            font-weight: 500;
+            font-size: 12px;
+            color: #6b7280;
+          ">${companyInfo.name} - ${
+      isArabic ? "حلول التأشيرة الاحترافية" : "Professional Visa Solutions"
+    }</div>
+          
+          <div style="
+            font-size: 11px;
+            color: #9ca3af;
+            font-weight: 400;
+          ">${isArabic ? "تم الإنشاء في: " : "Generated on: "}${format(
+      new Date(),
+      "dd/MM/yyyy HH:mm"
+    )}</div>
+        </div>
+      </div>
+    `;
+
+    tempDiv.style.position = "absolute";
+    tempDiv.style.top = "0";
+    tempDiv.style.left = "0";
+    tempDiv.style.width = "800px";
+    tempDiv.style.zIndex = "-1000";
+    tempDiv.style.backgroundColor = "white";
+    tempDiv.style.padding = "20px";
+
+    document.body.appendChild(tempDiv);
+
+    // Wait for any potential font loading
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     const filename = `invoice-${invoice.invoice_number}.pdf`;
+
+    // Configure html2pdf options
+    const opt = {
+      margin: [0.5, 0.5, 0.5, 0.5] as [number, number, number, number],
+      filename: filename,
+      image: { type: "jpeg" as const, quality: 0.95 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        letterRendering: true,
+        allowTaint: true,
+        logging: true,
+        width: 800,
+        height: 1000,
+      },
+      jsPDF: {
+        unit: "mm",
+        format: "a4",
+        orientation: "portrait" as const,
+      },
+    };
+
     console.log("Downloading PDF as:", filename);
-    doc.save(filename);
+
+    // Generate and download the PDF
+    await html2pdf().set(opt).from(tempDiv).save();
+
+    // Clean up
+    document.body.removeChild(tempDiv);
+
     console.log("PDF download initiated successfully");
   } catch (error) {
     console.error("Error generating/downloading PDF:", error);
+    // Clean up on error
+    const tempElements = document.querySelectorAll('[style*="z-index: -1000"]');
+    tempElements.forEach((el) => {
+      if (el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    });
     throw new Error("Failed to generate PDF. Please try again.");
   }
 };
 
-export const previewInvoicePDF = (
+export const previewInvoicePDF = async (
   invoice: InvoiceData,
-  language: "en" | "ar" = "en"
+  language: "en" | "ar" = "en",
+  footerData?: FooterItem[]
 ) => {
   try {
     console.log("Generating PDF preview for invoice:", invoice.invoice_number);
-    const doc = generateInvoicePDF(invoice, language);
-    const pdfBlob = doc.output("blob");
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    const previewWindow = window.open(pdfUrl, "_blank");
 
+    // Just create a simple HTML preview window
+    const htmlContent = generateInvoicePDF(invoice, language, footerData);
+
+    // Create a new window for preview
+    const previewWindow = window.open(
+      "",
+      "_blank",
+      "width=900,height=700,scrollbars=yes"
+    );
     if (!previewWindow) {
       throw new Error("Popup blocked. Please allow popups for this site.");
     }
 
-    console.log("PDF preview opened successfully");
+    // Write the HTML content to the new window
+    previewWindow.document.write(htmlContent);
+    previewWindow.document.close();
 
-    // Clean up the object URL after some time
-    setTimeout(() => {
-      URL.revokeObjectURL(pdfUrl);
-    }, 10000);
+    console.log("Invoice preview opened successfully");
   } catch (error) {
-    console.error("Error generating PDF preview:", error);
-    throw new Error("Failed to preview PDF. Please try again.");
+    console.error("Error generating invoice preview:", error);
+    throw new Error("Failed to preview invoice. Please try again.");
   }
 };
