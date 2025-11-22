@@ -62,6 +62,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
     "pending" | "processing" | "completed" | "failed" | null
   >(null);
   const [checkingStatus, setCheckingStatus] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   
   // Fetch application data when invoice with client_id is provided
   const { 
@@ -410,6 +411,86 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
           </div>
         </CardContent>
       </Card>
+
+      {/* Terms and Conditions */}
+      <div className="text-right">
+        <button
+          onClick={() => setShowTermsModal(true)}
+          className="text-visa-gold hover:text-visa-dark underline text-sm"
+        >
+          {language === "ar" 
+            ? "اقرأ الشروط والأحكام"
+            : "Read Terms and Conditions"}
+        </button>
+      </div>
+
+      {/* Terms Modal */}
+      {showTermsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl max-h-[80vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-visa-dark">
+                {language === "ar" ? "الشروط والأحكام" : "Terms and Conditions"}
+              </h3>
+              <button
+                onClick={() => setShowTermsModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <XCircle className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4 text-right" dir="rtl">
+              <div className="space-y-3 text-sm leading-relaxed">
+                <p>1. يكون العميل مسؤولاً مسؤولية كاملة عن صحة ودقة المعلومات المقدمة من قبله والمتضمنة في طلب استخراج التأشيرة، ويتحمّل العميل كافة الآثار المالية والقانونية التي قد تحدث نتيجة لذلك.</p>
+                
+                <p>2. تلتزم Global Visa Services بتقديم طلب استخراج التأشيرة بأسرع وقت ممكن، وأي تأخير في إصدار التأشيرة من السفارة أو مركز التأشيرات الموحّد لأي سبب كان بعد رفع الطلب لا يقع ضمن مسؤولية Global Visa Services.</p>
+                
+                <p>3. في حال رفض إصدار التأشيرة من السفارة أو مركز التأشيرات الموحّد لأيّ سبب كان، لا تلتزم Global Visa Services بأي تعويض للعميل عن أي أضرار قد تنشأ عن ذلك.</p>
+                
+                <p>4. رسوم الخدمة التي تتقاضاها Global Visa Services غير مستردّة بعد تأكيد حجز الموعد.</p>
+                
+                <p>5. في حال عدم حضور العميل للموعد المحدد لدى السفارة أو مركز التأشيرات الموحّد، لا يحق له استرداد أيّ من المبالغ المدفوعة.</p>
+                
+                <p>6. في حال فقدان مستندات/وثائق العميل نتيجة خطأ أو تقصير من طرف ثالث (السفارة، مركز التأشيرات الموحّد، شركات التوصيل) لا تتحمل Global Visa Services أي مسؤولية تجاه العميل.</p>
+                
+                <p>7. في حال التقدم بطلب الحصول على تأشيرة الدخول إلى الولايات المتحدة، فإن Global Visa Services لا تتحمل أي مسؤولية في حال حدوث أي تأخير في تفعيل رقم الـ (CGI).</p>
+                
+                <p>8. في حال التقدم بطلب الحصول على تأشيرة الدخول لأي من الدول الأوروبية الموقعة على اتفاقية (شنغن)، فإنه يتعيّن على العميل دفع رسوم حجز موعد جديد متى قام بتغيير موقع المركز المحدد أو السفارة المحددة من قبله لتقديم الخدمة (البصمة).</p>
+                
+                <p>9. في حال رغبة العميل في إعادة جدولة الموعد بعد تأكيده، فإن الشركة تحتفظ بحقها في فرض رسوم حجز جديدة، ويُشترط توفر موعد جديد متاح.</p>
+                
+                <p>10. يكون العميل مسؤولاً عن الحضور لموعد السفارة أو مركز التأشيرات الموحد في الموعد والتاريخ المحددين مع إحضار المتطلبات اللازمة.</p>
+                
+                <p>11. عند إجراء أي تعديلات على البيانات المقدمة من قبل العميل بعد انشاء الطلب، فإن الأمر قد يتطلب دفع رسوم إضافية.</p>
+                
+                <p>12. لا تتحمل Global Visa Services أي مسؤولية تجاه العميل بعد إصدار التأشيرة.</p>
+                
+                <p>13. لا تكون Global Visa Services مسؤولة عن تعويض العميل عن أي مبالغ إضافية قد يدفعها العميل للسفارة أو مركز التأشيرات الموحّد أو شركات الشحن بعد تقديم طلب اصدار التأشيرة.</p>
+                
+                <p>14. عند تقديم التأشيرة (لغير السعوديين)، يكون مبلغ التأشيرة والخدمة والتأمين الطبي والموعد والترجمة غير مسترد وذلك لتعدد المتطلبات للسفارة والحاجة للعمل على ترجمة المستندات بعد رفع الطلب.</p>
+                
+                <p>15. قبول طلب التأشيرة من عدمه وكذلك الوقت المحدد لإصدار التأشيرة هو قرار خاص بالسفارة، وGlobal Visa Services لا تضمن قبول الطلب أو المدة المتوقعة لذلك.</p>
+                
+                <p>16. لا تتحمل Global Visa Services أي تبعات أو أضرار قد تلحق بالعميل جراء إلغاء الموعد أو تأجيله من السفارة.</p>
+                
+                <p>17. يُنصح تجنباً لأي خسائر مالية قد يتكبدها العميل بعدم إجراء حجوزات طيران أو فنادق مدفوعة حتى تصدر التأشيرة، ويستثنى من ذلك بعض السفارات التي يتطلب قبول طلب التأشيرة لديها وجود حجوزات مؤكدة مثل ألمانيا أو أي سفارة أخرى، ولا تكون Global Visa Services مسؤولة عن تعويض العميل في حال قيامه بإلغاء الحجوزات.</p>
+                
+                <p>18. في حال طلب العميل إجراء حجوزات مبدئية "غير مؤكدة" من قبل Global Visa Services وذلك عند تقدمه بطلب تأشيرة من أي من السفارات التي تتطلب وجود حجوزات مؤكدة لقبول الطلب، فإنه يكون مسؤولاً مسؤولية منفردةً في حال رفض الطلب.</p>
+                
+                <p>19. تتم عملية استرداد المدفوعات خلال 5 أيام عمل، وسيتم رد المبالغ بنفس طريقة الدفع التي استخدمها العميل لإجراء الطلب.</p>
+              </div>
+            </div>
+            <div className="sticky bottom-0 bg-white border-t p-4">
+              <Button
+                onClick={() => setShowTermsModal(false)}
+                className="w-full bg-visa-gold hover:bg-visa-gold/90"
+              >
+                {language === "ar" ? "إغلاق" : "Close"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="flex gap-4 pt-6">

@@ -10,10 +10,10 @@ export const Hero = () => {
   const isMobile = useIsMobile();
   
   return (
-    <div className="relative min-h-[38vh] md:min-h-[38vh] flex items-center justify-center overflow-hidden bg-gradient-to-b from-visa-light to-white">
+    <div className="relative min-h-[60vh] md:min-h-[47vh] flex items-center justify-center overflow-hidden bg-gradient-to-b from-visa-light to-white">
       <div className="absolute inset-0 bg-gradient-to-r from-visa-gold/20 to-visa-dark/10 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-20 mix-blend-multiply"></div>
-        <div className="absolute inset-0 backdrop-blur-[2px]"></div>
+        <div className="absolute inset-0 bg-[url('/header-img.jpg')] bg-cover bg-center opacity-20 mix-blend-multiply"></div>
+        <div className="absolute inset-0 backdrop-blur-[1px]"></div>
       </div>
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-3xl mx-auto text-center space-y-6 md:space-y-8 animate-fadeIn">

@@ -255,7 +255,7 @@ export const adminDashboardTranslations: TranslationDictionary = {
     'idFilesRequiredDesc': 'طلب ملفات وثائق الهوية.',
     'salaryProofRequired': 'تعريف راتب',
     'salaryProofRequiredDesc': 'طلب شهادة راتب أو إثبات دخل.',
-    'photoFilesRequired': 'صورة الهوية',
+    'photoFilesRequired': 'صورة شخصية',
     'photoFilesRequiredDesc': 'طلب ملفات صور بحجم جواز السفر.',
     'passportFilesRequired': 'جواز السفر',
     'passportFilesRequiredDesc': 'طلب ملفات وثائق جواز السفر.',

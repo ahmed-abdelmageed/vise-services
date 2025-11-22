@@ -86,7 +86,7 @@ export const RequirementToggles = ({ form }: RequirementTogglesProps) => {
           )}
         />
         
-        <FormField
+        {/* <FormField
           control={form.control}
           name="requiresVisaCitySelection"
           render={({ field }) => (
@@ -105,7 +105,7 @@ export const RequirementToggles = ({ form }: RequirementTogglesProps) => {
               </FormControl>
             </FormItem>
           )}
-        />
+        /> */}
         
         <FormField
           control={form.control}

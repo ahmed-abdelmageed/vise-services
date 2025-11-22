@@ -125,8 +125,8 @@ export const SPAIN_APPOINTMENT_TYPES = [
   }
 ];
 
-// Define Spain Visa locations
-export const SPAIN_LOCATIONS = [
+// Define visa application locations (user's location in Saudi Arabia)
+export const VISA_APPLICATION_LOCATIONS = [
   {
     id: "riyadh",
     name: "الرياض",
@@ -143,6 +143,9 @@ export const SPAIN_LOCATIONS = [
     englishName: "Jeddah"
   }
 ];
+
+// Keep the old export for backward compatibility
+export const SPAIN_LOCATIONS = VISA_APPLICATION_LOCATIONS;
 
 // Import the visa configurations from the main config file
 export { VISA_CONFIGS, DEFAULT_VISA_CONFIG } from "@/config/visaConfig";

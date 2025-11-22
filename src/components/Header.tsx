@@ -54,7 +54,7 @@ export const Header = ({ className }: HeaderProps) => {
           </div>
           <div className="flex items-center">
             <h1 className="text-xl font-bold text-visa-dark truncate mt-2">
-              VISA<span className="text-visa-gold">Services</span>
+            <span className="text-visa-gold">Global</span>  VISA <span className="text-visa-gold">Services</span>
             </h1>
           </div>
           <div>

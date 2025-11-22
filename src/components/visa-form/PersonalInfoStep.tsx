@@ -18,7 +18,7 @@ import {
   GCC_NATIONALITIES,
   OTHER_NATIONALITIES,
   SPAIN_APPOINTMENT_TYPES,
-  SPAIN_LOCATIONS,
+  VISA_APPLICATION_LOCATIONS,
 } from "./constants";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -91,23 +91,11 @@ export const PersonalInfoStep = ({
     }
   };
 
-  // Check if this is one of the European visas that need to show location selection
-  const isEuropeanVisaWithLocationSelection =
-    [
-      "Spain Visa",
-      "France Visa",
-      "Germany Visa",
-      "Austria Visa",
-      "Czech Republic Visa",
-      "Greece Visa",
-      "Italy Visa",
-      "Ireland Visa",
-      "Norway Visa",
-      "Portugal Visa",
-      "Poland Visa",
-      "Switzerland Visa",
-    ].includes(selectedService.title) && visaConfig.requiresLocationSelection;
-
+  const isEuropeanVisaWithLocationSelection = 
+    (selectedService as any).requireslocationselection || 
+    selectedService.requiresLocationSelection;
+  
+ 
   // Only Spain has appointment type selection
   const showAppointmentTypeSelection =
     selectedService.title === "Spain Visa" &&
@@ -158,20 +146,23 @@ export const PersonalInfoStep = ({
             onValueChange={setUserLocation}
             className="flex flex-wrap justify-center gap-4 sm:gap-8"
           >
-            {SPAIN_LOCATIONS.map((location) => (
-              <div key={location.id} className="flex items-center space-x-2">
-                <RadioGroupItem
-                  value={location.id}
-                  id={`location-${location.id}`}
-                />
-                <Label
-                  htmlFor={`location-${location.id}`}
-                  className="cursor-pointer text-sm"
-                >
-                  {location.name}
-                </Label>
-              </div>
-            ))}
+            {VISA_APPLICATION_LOCATIONS.map((location) => {
+              console.log("Rendering location:", location);
+              return (
+                <div key={location.id} className="flex items-center space-x-2">
+                  <RadioGroupItem
+                    value={location.id}
+                    id={`location-${location.id}`}
+                  />
+                  <Label
+                    htmlFor={`location-${location.id}`}
+                    className="cursor-pointer text-sm"
+                  >
+                    {location.name}
+                  </Label>
+                </div>
+              );
+            })}
           </RadioGroup>
         </div>
       )}

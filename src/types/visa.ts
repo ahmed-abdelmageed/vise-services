@@ -20,7 +20,6 @@ export interface Service {
   formTitle_ar?: string;
   processingTime?: string;
   processingTime_ar?: string;
-  // Add the missing property that is causing the current error
   requiresNationalitySelection?: boolean;
   requiresServiceSelection?: boolean;
   requiresAppointmentTypeSelection?: boolean;
@@ -31,6 +30,16 @@ export interface Service {
   salaryProofRequired?: boolean;
   photoFilesRequired?: boolean;
   passportFilesRequired?: boolean;
+  requiresnationalityselection?: boolean;
+  requiresserviceselection?: boolean;
+  requiresappointmenttypeselection?: boolean;
+  requireslocationselection?: boolean;
+  requiresvisacityselection?: boolean;
+  requiressaudiidiqama?: boolean;
+  id_files_required?: boolean;
+  salary_proof_required?: boolean;
+  photo_files_required?: boolean;
+  passport_files_required?: boolean;
 }
 
 export interface VisaServiceDetails {
