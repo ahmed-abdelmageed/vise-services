@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import { format } from "date-fns";
+import { FooterItem } from "@/api/footer";
 
 // Import additional fonts for better support
 // Note: For production, you should add proper Arabic fonts
@@ -24,7 +25,8 @@ export interface InvoiceData {
 
 export const generateInvoicePDF = (
   invoice: InvoiceData,
-  language: "en" | "ar" = "en"
+  language: "en" | "ar" = "en",
+  footerData?: FooterItem[]
 ) => {
   // Create PDF with better configuration for text rendering
   const doc = new jsPDF({
@@ -34,6 +36,61 @@ export const generateInvoicePDF = (
     putOnlyUsedFonts: true,
     compress: true,
   });
+
+  // const { data } = useFooterInfo();
+  // console.log("🚀 ~ generateInvoicePDF ~ data:", data);
+  
+  // Helper function to extract company info from footer data
+  const getCompanyInfo = (footerData?: FooterItem[]) => {
+    if (!footerData || footerData.length === 0) {
+      // Default company info if no footer data available
+      return [
+        "Vise Services",
+        "Email: info@viseservices.com",
+        "Phone: +966 11 234 5678",
+        "Address: Riyadh, Saudi Arabia",
+      ];
+    }
+
+    // Use the first footer item (assuming there's only one company info record)
+    const footerInfo = footerData[0];
+    const info = [];
+    
+    // Add company/trade name
+    if (footerInfo.trade_name) {
+      info.push(footerInfo.trade_name);
+    } else if (footerInfo.web_name) {
+      info.push(footerInfo.web_name);
+    }
+
+    // Add email
+    if (footerInfo.email) {
+      info.push(`Email: ${footerInfo.email}`);
+    }
+
+    // Add phone
+    if (footerInfo.phone) {
+      info.push(`Phone: ${footerInfo.phone}`);
+    }
+
+    // Add VAT number if available
+    if (footerInfo.vat_num) {
+      info.push(`VAT: ${footerInfo.vat_num}`);
+    }
+
+    // Add CR number if available
+    if (footerInfo.cr_num) {
+      info.push(`CR: ${footerInfo.cr_num}`);
+    }
+
+    // If no info found, return default
+    return info.length > 0 ? info : [
+      "Vise Services",
+      "Email: info@viseservices.com", 
+      "Phone: +966 11 234 5678",
+      "Address: Riyadh, Saudi Arabia",
+    ];
+  };
 
   const isArabic = language === "ar";
 
@@ -79,28 +136,29 @@ export const generateInvoicePDF = (
 
   // Helper function to wrap text within a given width
   const wrapText = (text: string, maxWidth: number, maxLines?: number) => {
-    const words = text.split(' ');
+    const words = text.split(" ");
     const lines = [];
-    let currentLine = '';
+    let currentLine = "";
 
     for (let word of words) {
-      const testLine = currentLine + (currentLine ? ' ' : '') + word;
+      const testLine = currentLine + (currentLine ? " " : "") + word;
       const textWidth = doc.getTextWidth(testLine);
-      
+
       if (textWidth > maxWidth && currentLine) {
         lines.push(currentLine);
         currentLine = word;
-        
+
         // Check if we've reached max lines
         if (maxLines && lines.length >= maxLines - 1) {
           // Add ellipsis to indicate truncation
-          const remaining = words.slice(words.indexOf(word)).join(' ');
+          const remaining = words.slice(words.indexOf(word)).join(" ");
           if (remaining.length > 0) {
-            const truncatedLine = currentLine + '...';
+            const truncatedLine = currentLine + "...";
             if (doc.getTextWidth(truncatedLine) <= maxWidth) {
               currentLine = truncatedLine;
             } else {
-              currentLine = currentLine.substring(0, currentLine.length - 3) + '...';
+              currentLine =
+                currentLine.substring(0, currentLine.length - 3) + "...";
             }
           }
           break;
@@ -109,11 +167,11 @@ export const generateInvoicePDF = (
         currentLine = testLine;
       }
     }
-    
+
     if (currentLine) {
       lines.push(currentLine);
     }
-    
+
     return lines;
   };
 
@@ -128,12 +186,12 @@ export const generateInvoicePDF = (
   ) => {
     const lines = wrapText(text, maxWidth, maxLines);
     let currentY = y;
-    
+
     lines.forEach((line, index) => {
       renderText(line, x, currentY, options);
       currentY += 6; // Line height
     });
-    
+
     return currentY; // Return the final Y position
   };
 
@@ -160,12 +218,7 @@ export const generateInvoicePDF = (
   doc.setFont("helvetica", "normal");
   doc.setTextColor(blackColor);
 
-  const companyInfo = [
-    "Vise Services",
-    "Email: info@viseservices.com",
-    "Phone: +966 11 234 5678",
-    "Address: Riyadh, Saudi Arabia",
-  ];
+  const companyInfo = getCompanyInfo(footerData);
 
   companyInfo.forEach((line, index) => {
     const x = isArabic ? pageWidth - 20 : 20;
@@ -258,7 +311,7 @@ export const generateInvoicePDF = (
     unitPrice: 35,
     total: 35,
   };
-  
+
   // Column positions
   const colPositions = {
     description: 20,
@@ -282,10 +335,29 @@ export const generateInvoicePDF = (
   };
 
   // Table headers positioned with proper spacing
-  renderText(tableHeaders.description, colPositions.description + 2, tableTop + 8);
-  renderText(tableHeaders.qty, colPositions.qty + colWidths.qty / 2, tableTop + 8, { align: "center" });
-  renderText(tableHeaders.unitPrice, colPositions.unitPrice + colWidths.unitPrice / 2, tableTop + 8, { align: "center" });
-  renderText(tableHeaders.total, colPositions.total + colWidths.total / 2, tableTop + 8, { align: "center" });
+  renderText(
+    tableHeaders.description,
+    colPositions.description + 2,
+    tableTop + 8
+  );
+  renderText(
+    tableHeaders.qty,
+    colPositions.qty + colWidths.qty / 2,
+    tableTop + 8,
+    { align: "center" }
+  );
+  renderText(
+    tableHeaders.unitPrice,
+    colPositions.unitPrice + colWidths.unitPrice / 2,
+    tableTop + 8,
+    { align: "center" }
+  );
+  renderText(
+    tableHeaders.total,
+    colPositions.total + colWidths.total / 2,
+    tableTop + 8,
+    { align: "center" }
+  );
 
   // Table Row with text wrapping
   const rowTop = tableTop + 20;
@@ -309,23 +381,47 @@ export const generateInvoicePDF = (
 
   // Render other cells centered vertically in the row
   const centerY = rowTop + (rowHeight - 6) / 2;
-  renderText("1", colPositions.qty + colWidths.qty / 2, centerY, { align: "center" });
-  renderText(unitPrice, colPositions.unitPrice + colWidths.unitPrice / 2, centerY, { align: "center" });
-  renderText(totalPrice, colPositions.total + colWidths.total / 2, centerY, { align: "center" });
+  renderText("1", colPositions.qty + colWidths.qty / 2, centerY, {
+    align: "center",
+  });
+  renderText(
+    unitPrice,
+    colPositions.unitPrice + colWidths.unitPrice / 2,
+    centerY,
+    { align: "center" }
+  );
+  renderText(totalPrice, colPositions.total + colWidths.total / 2, centerY, {
+    align: "center",
+  });
 
   // Draw table borders with proper row height
   doc.setDrawColor(200, 200, 200);
-  
+
   // Outer border
   doc.rect(20, tableTop, tableWidth, 12 + rowHeight);
-  
+
   // Header separator line
   doc.line(20, tableTop + 12, 20 + tableWidth, tableTop + 12);
-  
+
   // Vertical column separators
-  doc.line(colPositions.qty, tableTop, colPositions.qty, tableTop + 12 + rowHeight);
-  doc.line(colPositions.unitPrice, tableTop, colPositions.unitPrice, tableTop + 12 + rowHeight);
-  doc.line(colPositions.total, tableTop, colPositions.total, tableTop + 12 + rowHeight);
+  doc.line(
+    colPositions.qty,
+    tableTop,
+    colPositions.qty,
+    tableTop + 12 + rowHeight
+  );
+  doc.line(
+    colPositions.unitPrice,
+    tableTop,
+    colPositions.unitPrice,
+    tableTop + 12 + rowHeight
+  );
+  doc.line(
+    colPositions.total,
+    tableTop,
+    colPositions.total,
+    tableTop + 12 + rowHeight
+  );
 
   // Totals Section with improved alignment and styling
   const totalsTop = tableTop + 12 + rowHeight + 15;
@@ -387,7 +483,11 @@ export const generateInvoicePDF = (
 
   // Add company footer info
   doc.setFontSize(8);
-  const companyFooter = "Visa Services - Professional Visa Solutions";
+  const companyFooter = footerData && footerData[0]?.trade_name 
+    ? `${footerData[0].trade_name} - Professional Visa Solutions`
+    : footerData && footerData[0]?.web_name
+    ? `${footerData[0].web_name} - Professional Visa Solutions`
+    : "Visa Services - Professional Visa Solutions";
   renderText(companyFooter, pageWidth / 2, pageHeight - 15, {
     align: "center",
   });
@@ -397,11 +497,12 @@ export const generateInvoicePDF = (
 
 export const downloadInvoicePDF = (
   invoice: InvoiceData,
-  language: "en" | "ar" = "en"
+  language: "en" | "ar" = "en",
+  footerData?: FooterItem[]
 ) => {
   try {
     console.log("Generating PDF for invoice:", invoice.invoice_number);
-    const doc = generateInvoicePDF(invoice, language);
+    const doc = generateInvoicePDF(invoice, language, footerData);
     const filename = `invoice-${invoice.invoice_number}.pdf`;
     console.log("Downloading PDF as:", filename);
     doc.save(filename);
@@ -414,11 +515,12 @@ export const downloadInvoicePDF = (
 
 export const previewInvoicePDF = (
   invoice: InvoiceData,
-  language: "en" | "ar" = "en"
+  language: "en" | "ar" = "en",
+  footerData?: FooterItem[]
 ) => {
   try {
     console.log("Generating PDF preview for invoice:", invoice.invoice_number);
-    const doc = generateInvoicePDF(invoice, language);
+    const doc = generateInvoicePDF(invoice, language, footerData);
     const pdfBlob = doc.output("blob");
     const pdfUrl = URL.createObjectURL(pdfBlob);
     const previewWindow = window.open(pdfUrl, "_blank");

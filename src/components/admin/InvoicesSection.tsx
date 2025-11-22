@@ -45,6 +45,7 @@ import { VisaApplication, ClientInvoice, InvoiceStatusType } from "@/types/crm";
 import { downloadInvoicePDF } from "@/utils/invoicePDF";
 import { fetchApplicationByInvoiceClientId } from "@/api/invoices";
 import { InvoicePreviewModal } from "@/components/client/InvoicePreviewModal";
+import { useFooterInfo } from "@/hooks/useFooterInfo";
 
 interface CreateInvoiceDialogProps {
   isOpen: boolean;
@@ -211,6 +212,9 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const queryClient = useQueryClient();
 
+  // Get footer info for company details
+  const { data: footerData, isLoading: footerLoading } = useFooterInfo();
+
   const { data: invoices, isLoading: isLoadingInvoices } = useQuery({
     queryKey: ['invoices'],
     queryFn: async () => {
@@ -287,7 +291,7 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
     },
   });
 
-  const isLoading = isLoadingInvoices || isLoadingClients || propsLoading;
+  const isLoading = isLoadingInvoices || isLoadingClients || propsLoading || footerLoading;
 
   const handleCreateInvoice = () => {
     setCreateDialogOpen(true);
@@ -326,7 +330,7 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
       };
 
       // Now download the invoice with the enhanced data
-      downloadInvoicePDF(enhancedInvoice, 'en'); // Admin section defaults to English
+      downloadInvoicePDF(enhancedInvoice, 'en', footerData); // Admin section defaults to English
       toast.success("Invoice downloaded successfully");
     } catch (error) {
       console.error(
