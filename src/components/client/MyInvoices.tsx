@@ -146,7 +146,7 @@ export const MyInvoices = () => {
       };
 
       // Now download the invoice with the enhanced data
-      await downloadInvoicePDF(enhancedInvoice, "en", footerData);
+      await downloadInvoicePDF(enhancedInvoice, "ar", footerData);
       toast.success(t("invoiceDownloaded"));
     } catch (error) {
       console.error(
