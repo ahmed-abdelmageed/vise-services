@@ -132,6 +132,11 @@ export const MyInvoices = () => {
 
       console.log("🚀 ~ Application data fetched:", applicationResponse);
 
+      console.log(
+        `🚀 ~ handleDownloadInvoice ~ applicationResponse.first_name + " " + applicationResponse.last_name,:`,
+        applicationResponse.first_name + " " + applicationResponse.last_name
+      );
+
       // Enhance invoice object with application data
       const enhancedInvoice = {
         ...invoice,
@@ -141,7 +146,7 @@ export const MyInvoices = () => {
       };
 
       // Now download the invoice with the enhanced data
-      downloadInvoicePDF(enhancedInvoice, language, footerData);
+      await downloadInvoicePDF(enhancedInvoice, "en", footerData);
       toast.success(t("invoiceDownloaded"));
     } catch (error) {
       console.error(

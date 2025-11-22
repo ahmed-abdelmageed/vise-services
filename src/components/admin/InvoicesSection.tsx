@@ -1,7 +1,17 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Download, Plus, Eye, Loader, Check, X, CreditCard, FileText } from "lucide-react";
+import {
+  Search,
+  Download,
+  Plus,
+  Eye,
+  Loader,
+  Check,
+  X,
+  CreditCard,
+  FileText,
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -53,7 +63,11 @@ interface CreateInvoiceDialogProps {
   clients: VisaApplication[];
 }
 
-const CreateInvoiceDialog: React.FC<CreateInvoiceDialogProps> = ({ isOpen, onClose, clients }) => {
+const CreateInvoiceDialog: React.FC<CreateInvoiceDialogProps> = ({
+  isOpen,
+  onClose,
+  clients,
+}) => {
   const [selectedClient, setSelectedClient] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
@@ -62,26 +76,30 @@ const CreateInvoiceDialog: React.FC<CreateInvoiceDialogProps> = ({ isOpen, onClo
 
   const createInvoiceMutation = useMutation({
     mutationFn: async (invoiceData: Partial<ClientInvoice>) => {
-      const invoiceNumber = `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
-      
-      const { data, error } = await supabase
-        .from('client_invoices')
-        .insert([{
+      const invoiceNumber = `INV-${new Date().getFullYear()}-${Math.floor(
+        Math.random() * 10000
+      )
+        .toString()
+        .padStart(4, "0")}`;
+
+      const { data, error } = await supabase.from("client_invoices").insert([
+        {
           invoice_number: invoiceNumber,
           client_id: invoiceData.client_id,
           amount: invoiceData.amount,
-          currency: '﷼',
-          status: 'Unpaid',
+          currency: "﷼",
+          status: "Unpaid",
           issue_date: new Date().toISOString(),
           due_date: invoiceData.due_date,
-          service_description: invoiceData.service_description
-        }]);
-      
+          service_description: invoiceData.service_description,
+        },
+      ]);
+
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
       toast.success("Invoice created successfully");
       onClose();
       // Reset form
@@ -106,7 +124,7 @@ const CreateInvoiceDialog: React.FC<CreateInvoiceDialogProps> = ({ isOpen, onClo
       client_id: selectedClient,
       amount: parseFloat(amount),
       due_date: dueDate,
-      service_description: description
+      service_description: description,
     });
   };
 
@@ -116,32 +134,35 @@ const CreateInvoiceDialog: React.FC<CreateInvoiceDialogProps> = ({ isOpen, onClo
         <DialogHeader>
           <DialogTitle>Create New Invoice</DialogTitle>
           <DialogDescription>
-            Create a new invoice for a client. The invoice will be marked as unpaid by default.
+            Create a new invoice for a client. The invoice will be marked as
+            unpaid by default.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <label htmlFor="client" className="text-sm font-medium">Client</label>
-            <Select
-              value={selectedClient}
-              onValueChange={setSelectedClient}
-            >
+            <label htmlFor="client" className="text-sm font-medium">
+              Client
+            </label>
+            <Select value={selectedClient} onValueChange={setSelectedClient}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a client" />
               </SelectTrigger>
               <SelectContent>
                 {clients.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
-                    {client.first_name} {client.last_name || ''} ({client.email})
+                    {client.first_name} {client.last_name || ""} ({client.email}
+                    )
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="grid gap-2">
-            <label htmlFor="description" className="text-sm font-medium">Service Description</label>
+            <label htmlFor="description" className="text-sm font-medium">
+              Service Description
+            </label>
             <Input
               id="description"
               value={description}
@@ -149,9 +170,11 @@ const CreateInvoiceDialog: React.FC<CreateInvoiceDialogProps> = ({ isOpen, onClo
               placeholder="Visa Application Processing"
             />
           </div>
-          
+
           <div className="grid gap-2">
-            <label htmlFor="amount" className="text-sm font-medium">Amount (﷼)</label>
+            <label htmlFor="amount" className="text-sm font-medium">
+              Amount (﷼)
+            </label>
             <Input
               id="amount"
               type="number"
@@ -161,9 +184,11 @@ const CreateInvoiceDialog: React.FC<CreateInvoiceDialogProps> = ({ isOpen, onClo
               placeholder="0.00"
             />
           </div>
-          
+
           <div className="grid gap-2">
-            <label htmlFor="dueDate" className="text-sm font-medium">Due Date</label>
+            <label htmlFor="dueDate" className="text-sm font-medium">
+              Due Date
+            </label>
             <Input
               id="dueDate"
               type="date"
@@ -172,18 +197,21 @@ const CreateInvoiceDialog: React.FC<CreateInvoiceDialogProps> = ({ isOpen, onClo
             />
           </div>
         </div>
-        
+
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button 
-            onClick={handleCreateInvoice} 
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleCreateInvoice}
             className="bg-visa-gold hover:bg-visa-gold/90"
             disabled={createInvoiceMutation.isPending}
           >
-            {createInvoiceMutation.isPending ? 
-              <Loader className="mr-2 h-4 w-4 animate-spin" /> : 
+            {createInvoiceMutation.isPending ? (
+              <Loader className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
               <Plus className="mr-2 h-4 w-4" />
-            }
+            )}
             Create Invoice
           </Button>
         </DialogFooter>
@@ -199,7 +227,10 @@ interface InvoicesSectionProps {
   onDataChanged?: () => Promise<void>;
 }
 
-export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: InvoicesSectionProps) => {
+export const InvoicesSection = ({
+  isLoading: propsLoading,
+  onDataChanged,
+}: InvoicesSectionProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedInvoices, setSelectedInvoices] = useState<string[]>([]);
@@ -208,7 +239,9 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bulkStatusDialogOpen, setBulkStatusDialogOpen] = useState(false);
   const [bulkStatus, setBulkStatus] = useState<InvoiceStatusType>("Paid");
-  const [selectedInvoice, setSelectedInvoice] = useState<ClientInvoice | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<ClientInvoice | null>(
+    null
+  );
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -216,26 +249,28 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
   const { data: footerData, isLoading: footerLoading } = useFooterInfo();
 
   const { data: invoices, isLoading: isLoadingInvoices } = useQuery({
-    queryKey: ['invoices'],
+    queryKey: ["invoices"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('client_invoices')
-        .select('*, client:client_id(first_name, last_name, email)')
-        .order('issue_date', { ascending: false });
-      
+        .from("client_invoices")
+        .select("*, client:client_id(first_name, last_name, email)")
+        .order("issue_date", { ascending: false });
+
       if (error) throw error;
-      return data as (ClientInvoice & { client: { first_name: string, last_name: string, email: string } })[];
+      return data as (ClientInvoice & {
+        client: { first_name: string; last_name: string; email: string };
+      })[];
     },
   });
 
   const { data: clients, isLoading: isLoadingClients } = useQuery({
-    queryKey: ['clients'],
+    queryKey: ["clients"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('visa_applications')
-        .select('id, first_name, last_name, email')
-        .order('created_at', { ascending: false });
-      
+        .from("visa_applications")
+        .select("id, first_name, last_name, email")
+        .order("created_at", { ascending: false });
+
       if (error) throw error;
       return data as VisaApplication[];
     },
@@ -244,16 +279,18 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
   const deleteInvoicesMutation = useMutation({
     mutationFn: async (invoiceIds: string[]) => {
       const { error } = await supabase
-        .from('client_invoices')
+        .from("client_invoices")
         .delete()
-        .in('id', invoiceIds);
-      
+        .in("id", invoiceIds);
+
       if (error) throw error;
       return { success: true };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      toast.success(`${selectedInvoices.length} invoice(s) deleted successfully`);
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      toast.success(
+        `${selectedInvoices.length} invoice(s) deleted successfully`
+      );
       setSelectedInvoices([]);
       setDeleteDialogOpen(false);
       if (onDataChanged) {
@@ -267,18 +304,26 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
   });
 
   const updateInvoiceStatusMutation = useMutation({
-    mutationFn: async ({ invoiceIds, status }: { invoiceIds: string[], status: string }) => {
+    mutationFn: async ({
+      invoiceIds,
+      status,
+    }: {
+      invoiceIds: string[];
+      status: string;
+    }) => {
       const { error } = await supabase
-        .from('client_invoices')
+        .from("client_invoices")
         .update({ status })
-        .in('id', invoiceIds);
-      
+        .in("id", invoiceIds);
+
       if (error) throw error;
       return { success: true };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      toast.success(`${selectedInvoices.length} invoice(s) marked as ${bulkStatus}`);
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      toast.success(
+        `${selectedInvoices.length} invoice(s) marked as ${bulkStatus}`
+      );
       setSelectedInvoices([]);
       setBulkStatusDialogOpen(false);
       if (onDataChanged) {
@@ -291,7 +336,8 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
     },
   });
 
-  const isLoading = isLoadingInvoices || isLoadingClients || propsLoading || footerLoading;
+  const isLoading =
+    isLoadingInvoices || isLoadingClients || propsLoading || footerLoading;
 
   const handleCreateInvoice = () => {
     setCreateDialogOpen(true);
@@ -306,9 +352,6 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
     console.log("🚀 ~ handleDownloadInvoice ~ invoice:", invoice);
 
     try {
-      // Show loading state
-      toast.info("Fetching application data...");
-
       // Fetch application data using the invoice client_id
       const applicationResponse = await fetchApplicationByInvoiceClientId(
         invoice.client_id
@@ -321,6 +364,11 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
 
       console.log("🚀 ~ Application data fetched:", applicationResponse);
 
+      console.log(
+        `🚀 ~ handleDownloadInvoice ~ applicationResponse.first_name + " " + applicationResponse.last_name:`,
+        applicationResponse?.first_name + " " + applicationResponse?.last_name
+      );
+
       // Enhance invoice object with application data
       const enhancedInvoice = {
         ...invoice,
@@ -330,7 +378,7 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
       };
 
       // Now download the invoice with the enhanced data
-      downloadInvoicePDF(enhancedInvoice, 'en', footerData); // Admin section defaults to English
+      await downloadInvoicePDF(enhancedInvoice, "en", footerData); // Admin section defaults to English
       toast.success("Invoice downloaded successfully");
     } catch (error) {
       console.error(
@@ -356,54 +404,62 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
   const confirmUpdateStatus = () => {
     updateInvoiceStatusMutation.mutate({
       invoiceIds: selectedInvoices,
-      status: bulkStatus
+      status: bulkStatus,
     });
   };
 
   const toggleSelectInvoice = (id: string) => {
     if (selectedInvoices.includes(id)) {
-      setSelectedInvoices(selectedInvoices.filter(invoiceId => invoiceId !== id));
+      setSelectedInvoices(
+        selectedInvoices.filter((invoiceId) => invoiceId !== id)
+      );
     } else {
       setSelectedInvoices([...selectedInvoices, id]);
     }
   };
-  
+
   const toggleSelectAll = () => {
     if (selectAll) {
       setSelectedInvoices([]);
     } else {
-      setSelectedInvoices(filteredInvoices.map(invoice => invoice.id));
+      setSelectedInvoices(filteredInvoices.map((invoice) => invoice.id));
     }
     setSelectAll(!selectAll);
   };
 
   // Process and filter invoices
-  const processedInvoices = invoices?.map(invoice => {
-    return {
-      ...invoice,
-      clientName: invoice.client 
-        ? `${invoice.client.first_name} ${invoice.client.last_name || ''}` 
-        : 'Unknown Client',
-      formattedAmount: `${invoice.amount} ${invoice.currency}`
-    };
-  }) || [];
+  const processedInvoices =
+    invoices?.map((invoice) => {
+      return {
+        ...invoice,
+        clientName: invoice.client
+          ? `${invoice.client.first_name} ${invoice.client.last_name || ""}`
+          : "Unknown Client",
+        formattedAmount: `${invoice.amount} ${invoice.currency}`,
+      };
+    }) || [];
 
   // Filter invoices based on search term and status filter
   const filteredInvoices = processedInvoices.filter(
     (invoice) =>
       (invoice.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (invoice.service_description && invoice.service_description.toLowerCase().includes(searchTerm.toLowerCase()))) &&
+        invoice.invoice_number
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        (invoice.service_description &&
+          invoice.service_description
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()))) &&
       (statusFilter === "all" || invoice.status === statusFilter)
   );
 
   // Format date for display
   const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return "N/A";
     try {
-      return format(new Date(dateString), 'yyyy-MM-dd');
+      return format(new Date(dateString), "yyyy-MM-dd");
     } catch (e) {
-      return 'Invalid date';
+      return "Invalid date";
     }
   };
 
@@ -423,16 +479,12 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
         <div className="flex space-x-2">
           {selectedInvoices.length > 0 && (
             <>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleUpdateStatus}
-              >
+              <Button variant="outline" size="sm" onClick={handleUpdateStatus}>
                 <Check className="h-4 w-4 mr-2" />
                 Mark as Paid
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 className="text-red-600 border-red-200 hover:bg-red-50"
                 onClick={handleDeleteSelected}
@@ -442,7 +494,7 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
               </Button>
             </>
           )}
-          <Button 
+          <Button
             className="bg-visa-gold hover:bg-visa-gold/90"
             onClick={handleCreateInvoice}
           >
@@ -462,10 +514,7 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Select
-          value={statusFilter}
-          onValueChange={setStatusFilter}
-        >
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
@@ -484,9 +533,9 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
           <TableHeader>
             <TableRow>
               <TableHead className="w-[40px]">
-                <Checkbox 
-                  checked={selectAll} 
-                  onCheckedChange={toggleSelectAll} 
+                <Checkbox
+                  checked={selectAll}
+                  onCheckedChange={toggleSelectAll}
                   aria-label="Select all invoices"
                 />
               </TableHead>
@@ -503,19 +552,28 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
           <TableBody>
             {filteredInvoices.length > 0 ? (
               filteredInvoices.map((invoice) => (
-                <TableRow key={invoice.id} className={selectedInvoices.includes(invoice.id) ? "bg-blue-50" : ""}>
+                <TableRow
+                  key={invoice.id}
+                  className={
+                    selectedInvoices.includes(invoice.id) ? "bg-blue-50" : ""
+                  }
+                >
                   <TableCell>
-                    <Checkbox 
-                      checked={selectedInvoices.includes(invoice.id)} 
+                    <Checkbox
+                      checked={selectedInvoices.includes(invoice.id)}
                       onCheckedChange={() => toggleSelectInvoice(invoice.id)}
                       aria-label={`Select invoice ${invoice.invoice_number}`}
                     />
                   </TableCell>
-                  <TableCell className="font-medium">{invoice.invoice_number}</TableCell>
+                  <TableCell className="font-medium">
+                    {invoice.invoice_number}
+                  </TableCell>
                   <TableCell>{invoice.clientName}</TableCell>
                   <TableCell>{formatDate(invoice.issue_date)}</TableCell>
                   <TableCell>{formatDate(invoice.due_date)}</TableCell>
-                  <TableCell>{invoice.service_description || 'Visa Services'}</TableCell>
+                  <TableCell>
+                    {invoice.service_description || "Visa Services"}
+                  </TableCell>
                   <TableCell>{invoice.formattedAmount}</TableCell>
                   <TableCell>
                     <StatusBadge status={invoice.status} />
@@ -544,7 +602,10 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+                <TableCell
+                  colSpan={9}
+                  className="text-center py-8 text-gray-500"
+                >
                   No invoices found
                 </TableCell>
               </TableRow>
@@ -561,20 +622,20 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
       />
 
       {/* Delete Selected Invoices Dialog */}
-      <AlertDialog 
-        open={deleteDialogOpen} 
-        onOpenChange={setDeleteDialogOpen}
-      >
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete {selectedInvoices.length} Invoices?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Delete {selectedInvoices.length} Invoices?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. The selected invoices will be permanently deleted.
+              This action cannot be undone. The selected invoices will be
+              permanently deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={confirmDeleteSelected}
               className="bg-red-600 hover:bg-red-700"
             >
@@ -585,13 +646,15 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
       </AlertDialog>
 
       {/* Bulk Status Update Dialog */}
-      <AlertDialog 
-        open={bulkStatusDialogOpen} 
+      <AlertDialog
+        open={bulkStatusDialogOpen}
         onOpenChange={setBulkStatusDialogOpen}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Update {selectedInvoices.length} Invoices to {bulkStatus}?</AlertDialogTitle>
+            <AlertDialogTitle>
+              Update {selectedInvoices.length} Invoices to {bulkStatus}?
+            </AlertDialogTitle>
             <AlertDialogDescription>
               This will change the status of all selected invoices.
             </AlertDialogDescription>
@@ -599,7 +662,9 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
           <div className="py-4">
             <Select
               value={bulkStatus}
-              onValueChange={(value) => setBulkStatus(value as InvoiceStatusType)}
+              onValueChange={(value) =>
+                setBulkStatus(value as InvoiceStatusType)
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select new status" />
@@ -614,7 +679,7 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={confirmUpdateStatus}
               className="bg-visa-gold hover:bg-visa-gold/90"
             >
