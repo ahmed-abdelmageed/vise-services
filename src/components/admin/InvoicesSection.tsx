@@ -42,6 +42,9 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { VisaApplication, ClientInvoice, InvoiceStatusType } from "@/types/crm";
+import { downloadInvoicePDF } from "@/utils/invoicePDF";
+import { fetchApplicationByInvoiceClientId } from "@/api/invoices";
+import { InvoicePreviewModal } from "@/components/client/InvoicePreviewModal";
 
 interface CreateInvoiceDialogProps {
   isOpen: boolean;
@@ -204,6 +207,8 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bulkStatusDialogOpen, setBulkStatusDialogOpen] = useState(false);
   const [bulkStatus, setBulkStatus] = useState<InvoiceStatusType>("Paid");
+  const [selectedInvoice, setSelectedInvoice] = useState<ClientInvoice | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: invoices, isLoading: isLoadingInvoices } = useQuery({
@@ -288,12 +293,48 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
     setCreateDialogOpen(true);
   };
 
-  const handleViewInvoice = (id: string) => {
-    toast.info(`Viewing invoice ${id}`);
+  const handleViewInvoice = (invoice: ClientInvoice) => {
+    setSelectedInvoice(invoice);
+    setIsPreviewOpen(true);
   };
 
-  const handleDownloadInvoice = (id: string) => {
-    toast.info(`Downloading invoice ${id}`);
+  const handleDownloadInvoice = async (invoice: ClientInvoice) => {
+    console.log("🚀 ~ handleDownloadInvoice ~ invoice:", invoice);
+
+    try {
+      // Show loading state
+      toast.info("Fetching application data...");
+
+      // Fetch application data using the invoice client_id
+      const applicationResponse = await fetchApplicationByInvoiceClientId(
+        invoice.client_id
+      );
+
+      if (!applicationResponse) {
+        toast.error("Application data not found");
+        return;
+      }
+
+      console.log("🚀 ~ Application data fetched:", applicationResponse);
+
+      // Enhance invoice object with application data
+      const enhancedInvoice = {
+        ...invoice,
+        customer_name:
+          applicationResponse.first_name + " " + applicationResponse.last_name,
+        customer_email: applicationResponse.email || "Email Not Available",
+      };
+
+      // Now download the invoice with the enhanced data
+      downloadInvoicePDF(enhancedInvoice, 'en'); // Admin section defaults to English
+      toast.success("Invoice downloaded successfully");
+    } catch (error) {
+      console.error(
+        "Error fetching application or downloading invoice:",
+        error
+      );
+      toast.error("Failed to download invoice");
+    }
   };
 
   const handleDeleteSelected = () => {
@@ -481,7 +522,7 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
                         variant="ghost"
                         size="icon"
                         title="View Invoice"
-                        onClick={() => handleViewInvoice(invoice.id)}
+                        onClick={() => handleViewInvoice(invoice)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -489,7 +530,7 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
                         variant="ghost"
                         size="icon"
                         title="Download Invoice"
-                        onClick={() => handleDownloadInvoice(invoice.id)}
+                        onClick={() => handleDownloadInvoice(invoice)}
                       >
                         <Download className="h-4 w-4" />
                       </Button>
@@ -578,6 +619,27 @@ export const InvoicesSection = ({ isLoading: propsLoading, onDataChanged }: Invo
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Invoice Preview Modal */}
+      {selectedInvoice && (
+        <InvoicePreviewModal
+          invoice={selectedInvoice}
+          isOpen={isPreviewOpen}
+          onClose={() => {
+            setIsPreviewOpen(false);
+            setSelectedInvoice(null);
+          }}
+          onDownload={(invoiceId) => {
+            if (selectedInvoice) {
+              handleDownloadInvoice(selectedInvoice);
+            }
+          }}
+          onPay={(invoiceId) => {
+            // Admin section doesn't need pay functionality
+            toast.info("Payment functionality not available in admin section");
+          }}
+        />
+      )}
     </div>
   );
 };

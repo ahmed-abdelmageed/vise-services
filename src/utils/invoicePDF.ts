@@ -77,6 +77,66 @@ export const generateInvoicePDF = (
     }
   };
 
+  // Helper function to wrap text within a given width
+  const wrapText = (text: string, maxWidth: number, maxLines?: number) => {
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+
+    for (let word of words) {
+      const testLine = currentLine + (currentLine ? ' ' : '') + word;
+      const textWidth = doc.getTextWidth(testLine);
+      
+      if (textWidth > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+        
+        // Check if we've reached max lines
+        if (maxLines && lines.length >= maxLines - 1) {
+          // Add ellipsis to indicate truncation
+          const remaining = words.slice(words.indexOf(word)).join(' ');
+          if (remaining.length > 0) {
+            const truncatedLine = currentLine + '...';
+            if (doc.getTextWidth(truncatedLine) <= maxWidth) {
+              currentLine = truncatedLine;
+            } else {
+              currentLine = currentLine.substring(0, currentLine.length - 3) + '...';
+            }
+          }
+          break;
+        }
+      } else {
+        currentLine = testLine;
+      }
+    }
+    
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+    
+    return lines;
+  };
+
+  // Helper function to render wrapped text
+  const renderWrappedText = (
+    text: string,
+    x: number,
+    y: number,
+    maxWidth: number,
+    options: any = {},
+    maxLines?: number
+  ) => {
+    const lines = wrapText(text, maxWidth, maxLines);
+    let currentY = y;
+    
+    lines.forEach((line, index) => {
+      renderText(line, x, currentY, options);
+      currentY += 6; // Line height
+    });
+    
+    return currentY; // Return the final Y position
+  };
+
   // Helper function to calculate tax
   const calculateTax = (amount: number) => {
     return (amount * 0.15).toFixed(2);
@@ -163,7 +223,7 @@ export const generateInvoicePDF = (
   const billToLabel = "Bill To:"; // Use English for clarity
   renderText(billToLabel, 20, 100);
 
-  // Customer details with improved formatting
+  // Customer details with improved formatting and text wrapping
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(blackColor);
@@ -172,20 +232,43 @@ export const generateInvoicePDF = (
   const customerEmail = invoice.customer_email || "Email Not Available";
   const clientId = `Client ID: ${invoice.client_id}`;
 
-  const billToInfo = [
-    `Name: ${customerName}`,
-    `Email: ${customerEmail}`,
-    clientId,
-  ];
+  let customerY = 110;
+  const maxWidth = 100; // Maximum width for customer info
 
-  billToInfo.forEach((line, index) => {
-    renderText(line, 20, 110 + index * 6);
-  });
+  // Name with wrapping
+  const nameText = `Name: ${customerName}`;
+  customerY = renderWrappedText(nameText, 20, customerY, maxWidth);
+  customerY += 2; // Small spacing
 
-  // Table Header with improved styling
-  const tableTop = 145;
+  // Email with wrapping
+  const emailText = `Email: ${customerEmail}`;
+  customerY = renderWrappedText(emailText, 20, customerY, maxWidth);
+  customerY += 2; // Small spacing
+
+  // Client ID
+  renderText(clientId, 20, customerY);
+
+  // Table Header with improved styling and proper column widths
+  // Adjust table position based on customer info height
+  const tableTop = Math.max(145, customerY + 20); // Ensure minimum spacing
+  const tableWidth = pageWidth - 40;
+  const colWidths = {
+    description: 80, // Wider for description
+    qty: 20,
+    unitPrice: 35,
+    total: 35,
+  };
+  
+  // Column positions
+  const colPositions = {
+    description: 20,
+    qty: 20 + colWidths.description,
+    unitPrice: 20 + colWidths.description + colWidths.qty,
+    total: 20 + colWidths.description + colWidths.qty + colWidths.unitPrice,
+  };
+
   doc.setFillColor(245, 245, 245);
-  doc.rect(20, tableTop, pageWidth - 40, 12, "F");
+  doc.rect(20, tableTop, tableWidth, 12, "F");
 
   doc.setFontSize(11);
   doc.setFont("helvetica", "bold");
@@ -198,13 +281,13 @@ export const generateInvoicePDF = (
     total: "Total",
   };
 
-  // Table headers positioned better
-  renderText(tableHeaders.description, 25, tableTop + 8);
-  renderText(tableHeaders.qty, 100, tableTop + 8, { align: "center" });
-  renderText(tableHeaders.unitPrice, 130, tableTop + 8, { align: "center" });
-  renderText(tableHeaders.total, 160, tableTop + 8, { align: "center" });
+  // Table headers positioned with proper spacing
+  renderText(tableHeaders.description, colPositions.description + 2, tableTop + 8);
+  renderText(tableHeaders.qty, colPositions.qty + colWidths.qty / 2, tableTop + 8, { align: "center" });
+  renderText(tableHeaders.unitPrice, colPositions.unitPrice + colWidths.unitPrice / 2, tableTop + 8, { align: "center" });
+  renderText(tableHeaders.total, colPositions.total + colWidths.total / 2, tableTop + 8, { align: "center" });
 
-  // Table Row with better formatting
+  // Table Row with text wrapping
   const rowTop = tableTop + 20;
   doc.setFont("helvetica", "normal");
 
@@ -212,17 +295,40 @@ export const generateInvoicePDF = (
   const unitPrice = `${invoice.amount} ${invoice.currency || "SAR"}`;
   const totalPrice = `${invoice.amount} ${invoice.currency || "SAR"}`;
 
-  renderText(serviceDesc, 25, rowTop);
-  renderText("1", 100, rowTop, { align: "center" });
-  renderText(unitPrice, 130, rowTop, { align: "center" });
-  renderText(totalPrice, 160, rowTop, { align: "center" });
+  // Calculate row height based on wrapped description text
+  doc.setFontSize(11);
+  const descriptionLines = wrapText(serviceDesc, colWidths.description - 4, 4); // Max 4 lines, 4px padding
+  const rowHeight = Math.max(12, descriptionLines.length * 6 + 6); // Minimum 12px height
 
-  // Add table border
+  // Render wrapped description text
+  let currentY = rowTop;
+  descriptionLines.forEach((line, index) => {
+    renderText(line, colPositions.description + 2, currentY);
+    currentY += 6;
+  });
+
+  // Render other cells centered vertically in the row
+  const centerY = rowTop + (rowHeight - 6) / 2;
+  renderText("1", colPositions.qty + colWidths.qty / 2, centerY, { align: "center" });
+  renderText(unitPrice, colPositions.unitPrice + colWidths.unitPrice / 2, centerY, { align: "center" });
+  renderText(totalPrice, colPositions.total + colWidths.total / 2, centerY, { align: "center" });
+
+  // Draw table borders with proper row height
   doc.setDrawColor(200, 200, 200);
-  doc.rect(20, tableTop, pageWidth - 40, 32);
+  
+  // Outer border
+  doc.rect(20, tableTop, tableWidth, 12 + rowHeight);
+  
+  // Header separator line
+  doc.line(20, tableTop + 12, 20 + tableWidth, tableTop + 12);
+  
+  // Vertical column separators
+  doc.line(colPositions.qty, tableTop, colPositions.qty, tableTop + 12 + rowHeight);
+  doc.line(colPositions.unitPrice, tableTop, colPositions.unitPrice, tableTop + 12 + rowHeight);
+  doc.line(colPositions.total, tableTop, colPositions.total, tableTop + 12 + rowHeight);
 
   // Totals Section with improved alignment and styling
-  const totalsTop = rowTop + 25;
+  const totalsTop = tableTop + 12 + rowHeight + 15;
 
   // Draw separator line
   doc.setDrawColor(150, 150, 150);
