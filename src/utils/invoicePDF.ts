@@ -538,7 +538,7 @@ export const generateInvoicePDF = (
 
 export const downloadInvoicePDF = async (
   invoice: InvoiceData,
-  language: "en" | "ar" = "en",
+  language: "en" | "ar" = "ar",
   footerData?: FooterItem[]
 ) => {
   try {

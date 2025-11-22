@@ -378,7 +378,7 @@ export const InvoicesSection = ({
       };
 
       // Now download the invoice with the enhanced data
-      await downloadInvoicePDF(enhancedInvoice, "en", footerData); // Admin section defaults to English
+      await downloadInvoicePDF(enhancedInvoice, "ar", footerData); // Admin section defaults to English
       toast.success("Invoice downloaded successfully");
     } catch (error) {
       console.error(
