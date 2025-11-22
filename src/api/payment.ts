@@ -149,7 +149,7 @@ export const initiatePayment = async (
     formData.append("payer_ip", payerIP);
 
     // Set term_url_3ds properly - this is where users return after 3DS authentication
-    let termUrl = `https://vise-services.vercel.app/#/payment/success`;
+    let termUrl = `https://gvisaksa.com/#/payment/success`;
 
     // For development, you can use local URL
     // if (
@@ -168,7 +168,7 @@ export const initiatePayment = async (
     } catch (error) {
       console.error("Invalid URL format:", termUrl, error);
       // Fallback to production URL with hash routing
-      termUrl = `https://vise-services.vercel.app/#/payment/success`;
+      termUrl = `https://gvisaksa.com/#/payment/success`;
       console.log("Using fallback URL:", termUrl);
     }
 
@@ -473,8 +473,8 @@ export const testPaymentIntegration =
       customer_email: "test@example.com",
       customer_name: "Test Customer",
       customer_phone: "966565555555",
-      return_url: "https://vise-services.vercel.app/#/payment/success",
-      callback_url: "https://vise-services.vercel.app/api/payment/callback",
+      return_url: "https://gvisaksa.com/#/payment/success",
+      callback_url: "https://gvisaksa.com/api/payment/callback",
       payer_first_name: "Test",
       payer_last_name: "Customer",
       payer_address: "Test Address",
