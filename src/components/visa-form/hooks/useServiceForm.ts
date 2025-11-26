@@ -853,6 +853,12 @@ export const useServiceForm = ({
       );
       const photo_files = uploadedFiles.photos.map((file) => file.preview);
 
+      const ids_photos = uploadedFiles.ids_photos.map((file) => file.preview);
+
+      const salary_proofs = uploadedFiles.salary_proofs.map(
+        (file) => file.preview
+      );
+
       // Generate order ID before creating the application
       const orderIdForApp = generateOrderId();
 
@@ -870,6 +876,8 @@ export const useServiceForm = ({
         service_type: serviceType,
         passport_files,
         photo_files,
+        id_files: ids_photos,
+        salary_proof: salary_proofs,
         user_id,
         paid: false,
         order_id: orderIdForApp,
