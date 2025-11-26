@@ -216,6 +216,7 @@ export const useServiceForm = ({
             travelerIndex: index,
           })),
         },
+        userLocation: userLocation,
       };
 
       console.log("Email data being sent:", emailData);
@@ -306,6 +307,7 @@ export const useServiceForm = ({
             })
             .filter(Boolean),
         },
+        userLocation: userLocation,
       };
 
       console.log("Team notification data being sent:", teamNotificationData);
@@ -398,7 +400,10 @@ export const useServiceForm = ({
       console.log("Payment email API response data:", responseData);
 
       if (!response.ok) {
-        console.error("Failed to send payment confirmation email:", responseData);
+        console.error(
+          "Failed to send payment confirmation email:",
+          responseData
+        );
       } else {
         console.log("Payment confirmation email sent successfully!");
       }
@@ -580,7 +585,11 @@ export const useServiceForm = ({
 
           if (!fetchError && applicationData) {
             // Send payment confirmation email to customer
-            await sendPaymentConfirmationEmail(applicationId, applicationData, paymentInfo);
+            await sendPaymentConfirmationEmail(
+              applicationId,
+              applicationData,
+              paymentInfo
+            );
           }
         }
 
@@ -846,7 +855,7 @@ export const useServiceForm = ({
 
       // Generate order ID before creating the application
       const orderIdForApp = generateOrderId();
-      
+
       const applicationData: any = {
         first_name: travellers[0].firstName,
         last_name: travellers[0].lastName,
@@ -864,6 +873,7 @@ export const useServiceForm = ({
         user_id,
         paid: false,
         order_id: orderIdForApp,
+        user_location: userLocation,
       };
 
       if (isUSAVisa) {
