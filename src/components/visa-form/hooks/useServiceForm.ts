@@ -546,49 +546,70 @@ export const useServiceForm = ({
       setPaymentData(paymentInfo);
       setPaymentCompleted(true);
 
-      // Update invoice status to paid
-      if (invoiceId) {
-        await updateInvoiceStatusToPaid(invoiceId, {
-          payment_id: paymentInfo.payment_id,
-          transaction_id: paymentInfo.transaction_id,
-        });
+      // إنشاء الفاتورة بعد نجاح الدفع فقط
+      // جلب بيانات العميل من التطبيق الحالي
+      let applicationData = null;
+      if (applicationId) {
+        const { data, error } = await supabase
+          .from("visa_applications")
+          .select("*")
+          .eq("id", applicationId)
+          .single();
+        if (!error && data) {
+          applicationData = data;
+        }
+      }
 
-        // Update application status to paid
-        if (applicationId) {
-          const { error } = await supabase
-            .from("visa_applications")
-            .update({
-              paid: true,
-              payment_id: paymentInfo.payment_id,
-              order_id: paymentInfo.order_id,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", applicationId);
-
-          if (error) {
-            console.error("Error updating application payment status:", error);
-            toast.error("Failed to update application status");
-            return;
+      // إنشاء الفاتورة
+      if (applicationData) {
+        await createVisaInvoice(
+          {
+            payment_id: paymentInfo.payment_id,
+            order_id: paymentInfo.order_id,
+            transaction_id: paymentInfo.transaction_id,
+            amount: paymentInfo.amount,
+            currency: paymentInfo.currency,
+          },
+          {
+            user_id: applicationData.user_id,
+            client_id: applicationData.id,
+            service_description: applicationData.service_type
+              ? `${applicationData.service_type} - ${applicationData.country} Visa`
+              : "Visa Service",
+            customer_email: applicationData.email,
+            customer_name: `${applicationData.first_name} ${applicationData.last_name}`,
           }
+        );
+      }
 
-          // Get the updated application data for payment confirmation email
-          const { data: applicationData, error: fetchError } = await supabase
-            .from("visa_applications")
-            .select("*")
-            .eq("id", applicationId)
-            .single();
+      // Update application status to paid
+      if (applicationId) {
+        const { error } = await supabase
+          .from("visa_applications")
+          .update({
+            paid: true,
+            payment_id: paymentInfo.payment_id,
+            order_id: paymentInfo.order_id,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", applicationId);
 
-          if (!fetchError && applicationData) {
-            // Send payment confirmation email to customer
-            await sendPaymentConfirmationEmail(applicationId, applicationData, paymentInfo);
-          }
+        if (error) {
+          console.error("Error updating application payment status:", error);
+          toast.error("Failed to update application status");
+          return;
         }
 
-        toast.success(
-          "Payment successful! Your visa application is now complete. Payment confirmation email has been sent."
-        );
-        setShowConfirmation(true);
+        // Send payment confirmation email to customer
+        if (applicationData) {
+          await sendPaymentConfirmationEmail(applicationId, applicationData, paymentInfo);
+        }
       }
+
+      toast.success(
+        "Payment successful! Your visa application is now complete. Payment confirmation email has been sent."
+      );
+      setShowConfirmation(true);
     } catch (error) {
       console.error("Error handling payment success:", error);
       toast.error(
@@ -892,49 +913,14 @@ export const useServiceForm = ({
         setApplicationId(appId);
         setOrderId(orderIdForApp); // Store the generated order ID in state
 
-        // Create pending invoice using the application ID as client_id
-        const invoiceData = await createPendingVisaInvoice({
-          user_id: user_id,
-          client_id: appId, // Use application ID as client_id
-          service_description: `${selectedService?.title} - Visa Service for ${travellers[0]?.firstName} ${travellers[0]?.lastName}`,
-          customer_email: formData.email,
-          customer_name: `${travellers[0]?.firstName} ${travellers[0]?.lastName}`,
-          amount: totalPrice,
-          currency: "SAR",
-          order_id: orderIdForApp, // Use the generated order ID instead of APP prefix
-        });
-
-        if (invoiceData) {
-          setInvoiceId(invoiceData.id);
-
-          // Update the application with the invoice_id
-          const { error: updateError } = await supabase
-            .from("visa_applications")
-            .update({
-              invoice_id: invoiceData.id,
-            })
-            .eq("id", appId);
-
-          if (updateError) {
-            console.error(
-              "Error updating application with invoice ID:",
-              updateError
-            );
-          }
-
-          toast.success(
-            "Application created! Please complete payment to finalize."
-          );
-
-          // Send confirmation emails after application creation
-          await sendConfirmationEmail(appId, data[0]);
-          await sendTeamNotificationEmail(appId, data[0]);
-        }
-
-        console.log("Application and pending invoice created:", {
-          appId,
-          invoiceId: invoiceData?.id,
-        });
+        // لم يعد يتم إنشاء الفاتورة هنا، سيتم إنشاؤها فقط بعد نجاح الدفع
+        toast.success(
+          "Application created! Please complete payment to finalize."
+        );
+        // Send confirmation emails after application creation
+        await sendConfirmationEmail(appId, data[0]);
+        await sendTeamNotificationEmail(appId, data[0]);
+        console.log("Application created (no invoice yet):", { appId });
       }
     } catch (error) {
       console.error("Error creating application with pending invoice:", error);
