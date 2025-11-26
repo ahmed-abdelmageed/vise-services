@@ -81,7 +81,6 @@ const PaymentSuccess = () => {
               ) {
                 setPaymentStatus("success");
                 setPaymentData(statusResult);
-                
                 // Update invoice status to paid
                 if (orderId) {
                   await updateInvoiceStatus(orderId, {
@@ -90,7 +89,6 @@ const PaymentSuccess = () => {
                     ...statusResult
                   });
                 }
-                
                 toast.success(
                   t("paymentSuccessful") || "Payment completed successfully!"
                 );
@@ -105,7 +103,14 @@ const PaymentSuccess = () => {
               }
               return;
             } catch (error) {
-              console.error("Error checking payment status:", error);
+              setPaymentStatus("failed");
+              setPaymentData({
+                order_id: orderId,
+                payment_id: transId,
+                error_message: t("paymentFailed") || "Payment failed"
+              });
+              toast.error(t("paymentFailed") || "Payment failed");
+              return;
             }
           }
 
@@ -125,7 +130,6 @@ const PaymentSuccess = () => {
               currency: params.currency || callbackData.currency,
               transaction_id: transId,
             });
-            
             // Update invoice status to paid
             if (orderId) {
               await updateInvoiceStatus(orderId, {
@@ -134,11 +138,11 @@ const PaymentSuccess = () => {
                 ...callbackData
               });
             }
-            
             toast.success(
               t("paymentSuccessful") || "Payment completed successfully!"
             );
           } else {
+            // إذا لم تكن الحالة ناجحة
             setPaymentStatus("failed");
             setPaymentData({
               ...callbackData,
@@ -147,7 +151,7 @@ const PaymentSuccess = () => {
               error_message:
                 params.decline_reason ||
                 params.error_message ||
-                callbackData.error_message,
+                callbackData.error_message || t("paymentFailed") || "Payment failed",
             });
             toast.error(
               callbackData.error_message ||
