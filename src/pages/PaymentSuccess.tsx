@@ -73,6 +73,25 @@ const PaymentSuccess = () => {
               const statusResult = await checkPaymentStatus(transId, orderId);
               console.log("Status API result:", statusResult);
 
+              // Check for 406 or PGRST116 error (no invoice found)
+              // Defensive: check for error properties on statusResult (API error shape)
+              const statusResultAny = statusResult as any;
+              if (
+                statusResultAny?.code === "PGRST116" ||
+                statusResultAny?.message === "Cannot coerce the result to a single JSON object" ||
+                statusResultAny?.details === "The result contains 0 rows"
+              ) {
+                setPaymentStatus("failed");
+                setPaymentData({
+                  ...statusResult,
+                  order_id: orderId,
+                  payment_id: transId,
+                  error_message: t("paymentFailed") || "Payment failed"
+                });
+                toast.error(t("paymentFailed") || "Payment failed");
+                return;
+              }
+
               if (
                 statusResult.payment_status === "completed" ||
                 statusResult.status === "success" ||
