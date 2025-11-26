@@ -79,7 +79,10 @@ export const ClientDetailsDialog = ({
   const [applicationFiles, setApplicationFiles] = useState<{
     passportFiles: FileData[];
     photoFiles: FileData[];
-  }>({ passportFiles: [], photoFiles: [] });
+    idFiles: FileData[];
+    salaryProofs: FileData[];
+  }>({ passportFiles: [], photoFiles: [], idFiles: [], salaryProofs: [] });
+  console.log("🚀 ~ ClientDetailsDialog ~ applicationFiles:", applicationFiles)
   const [documentsFetching, setDocumentsFetching] = useState(false);
   const [activeTab, setActiveTab] = useState("details");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -126,9 +129,18 @@ export const ClientDetailsDialog = ({
             ? files.passportFiles
             : [],
           photoFiles: Array.isArray(files.photoFiles) ? files.photoFiles : [],
+          idFiles: Array.isArray(files.idFiles) ? files.idFiles : [],
+          salaryProofs: Array.isArray(files.salaryProofs)
+            ? files.salaryProofs
+            : [],
         });
       } else {
-        setApplicationFiles({ passportFiles: [], photoFiles: [] });
+        setApplicationFiles({
+          passportFiles: [],
+          photoFiles: [],
+          idFiles: [],
+          salaryProofs: [],
+        });
       }
     } catch (error) {
       console.error("Error fetching client data:", error);
@@ -283,7 +295,9 @@ export const ClientDetailsDialog = ({
   const hasFiles =
     clientDocuments.length > 0 ||
     applicationFiles.passportFiles.length > 0 ||
-    applicationFiles.photoFiles.length > 0;
+    applicationFiles.photoFiles.length > 0 ||
+    applicationFiles.idFiles.length > 0 ||
+    applicationFiles.salaryProofs.length > 0;
 
   return (
     <>
@@ -529,6 +543,22 @@ export const ClientDetailsDialog = ({
                           files: applicationFiles.photoFiles,
                           keyPrefix: "photo",
                           type: "photo",
+                          icon: ImageIcon,
+                          color: "purple",
+                        },
+                        {
+                          title: "ID Documents",
+                          files: applicationFiles.idFiles,
+                          keyPrefix: "id",
+                          type: "id",
+                          icon: ImageIcon,
+                          color: "purple",
+                        },
+                        {
+                          title: "Salary Proofs",
+                          files: applicationFiles.salaryProofs,
+                          keyPrefix: "salary",
+                          type: "salary",
                           icon: ImageIcon,
                           color: "purple",
                         },

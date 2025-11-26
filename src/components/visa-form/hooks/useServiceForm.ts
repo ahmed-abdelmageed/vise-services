@@ -216,6 +216,7 @@ export const useServiceForm = ({
             travelerIndex: index,
           })),
         },
+        userLocation: userLocation,
       };
 
       console.log("Email data being sent:", emailData);
@@ -306,6 +307,7 @@ export const useServiceForm = ({
             })
             .filter(Boolean),
         },
+        userLocation: userLocation,
       };
 
       console.log("Team notification data being sent:", teamNotificationData);
@@ -398,7 +400,10 @@ export const useServiceForm = ({
       console.log("Payment email API response data:", responseData);
 
       if (!response.ok) {
-        console.error("Failed to send payment confirmation email:", responseData);
+        console.error(
+          "Failed to send payment confirmation email:",
+          responseData
+        );
       } else {
         console.log("Payment confirmation email sent successfully!");
       }
@@ -597,10 +602,8 @@ export const useServiceForm = ({
         if (error) {
           console.error("Error updating application payment status:", error);
           toast.error("Failed to update application status");
-          return;
         }
-
-        // Send payment confirmation email to customer
+        // Always send payment confirmation email if applicationData exists
         if (applicationData) {
           await sendPaymentConfirmationEmail(applicationId, applicationData, paymentInfo);
         }
@@ -865,9 +868,15 @@ export const useServiceForm = ({
       );
       const photo_files = uploadedFiles.photos.map((file) => file.preview);
 
+      const ids_photos = uploadedFiles.ids_photos.map((file) => file.preview);
+
+      const salary_proofs = uploadedFiles.salary_proofs.map(
+        (file) => file.preview
+      );
+
       // Generate order ID before creating the application
       const orderIdForApp = generateOrderId();
-      
+
       const applicationData: any = {
         first_name: travellers[0].firstName,
         last_name: travellers[0].lastName,
@@ -882,9 +891,12 @@ export const useServiceForm = ({
         service_type: serviceType,
         passport_files,
         photo_files,
+        id_files: ids_photos,
+        salary_proof: salary_proofs,
         user_id,
         paid: false,
         order_id: orderIdForApp,
+        user_location: userLocation,
       };
 
       if (isUSAVisa) {
