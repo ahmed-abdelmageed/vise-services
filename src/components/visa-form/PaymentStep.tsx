@@ -337,7 +337,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                     </p>
                   </div>
 
-                  <Button
+                  {/* <Button
                     onClick={openPaymentWindow}
                     className="bg-visa-gold hover:bg-visa-gold/90"
                     size="lg"
@@ -346,7 +346,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                     {language === "ar"
                       ? "افتح صفحة الدفع"
                       : "Open Payment Page"}
-                  </Button>
+                  </Button> */}
 
                   <p className="text-sm text-gray-500">
                     {language === "ar"
@@ -504,10 +504,10 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
           {language === "ar" ? "السابق" : "Previous"}
         </Button>
 
-        {!paymentUrl && paymentStatus !== "completed" && (
+        { paymentStatus !== "completed" && (
           <>
             <Button
-              onClick={handlePayment}
+              onClick={openPaymentWindow}
               disabled={isProcessing}
               className="flex-1 bg-visa-gold hover:bg-visa-gold/90"
             >
