@@ -159,19 +159,11 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
         };
         localStorage.setItem("pendingPayment", JSON.stringify(paymentInfo));
         console.log("Stored payment info:", paymentInfo);
+        
         setPaymentUrl(response.payment_url);
         setPaymentId(response.payment_id || "");
         setPaymentStatus("pending");
         toast.success("Payment link generated successfully");
-        // Immediately open the payment window after generating the link
-        const win = window.open(
-          response.payment_url,
-          "_blank",
-          "width=800,height=600,scrollbars=yes,resizable=yes"
-        );
-        if (!win || win.closed || typeof win.closed === "undefined") {
-          window.location.href = response.payment_url;
-        }
       } else {
         console.error("Payment initiation failed with response:", response);
         throw new Error(response.error_message || "Failed to initiate payment");
@@ -230,17 +222,11 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
 
   const openPaymentWindow = () => {
     if (paymentUrl) {
-      const win = window.open(
+      window.open(
         paymentUrl,
         "_blank",
         "width=800,height=600,scrollbars=yes,resizable=yes"
       );
-      // Fallback: if popup blocked, open in current tab
-      if (!win || win.closed || typeof win.closed === "undefined") {
-        window.location.href = paymentUrl;
-      }
-    } else {
-      toast.error("No payment link available. Please try again.");
     }
   };
 
@@ -357,7 +343,9 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                     size="lg"
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
-                   {t("payNow")}
+                    {language === "ar"
+                      ? "افتح صفحة الدفع"
+                      : "Open Payment Page"}
                   </Button>
 
                   <p className="text-sm text-gray-500">
@@ -516,32 +504,22 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
           {language === "ar" ? "السابق" : "Previous"}
         </Button>
 
-        {paymentStatus !== "completed" && (
+        {!paymentUrl && paymentStatus !== "completed" && (
           <>
-            {!paymentUrl ? (
-              <Button
-                onClick={handlePayment}
-                disabled={isProcessing}
-                className="flex-1 bg-visa-gold hover:bg-visa-gold/90"
-              >
-                {isProcessing ? (
-                  <Loader className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <CreditCard className="h-4 w-4 mr-2" />
-                )}
-                {t("payNow")}
-              </Button>
-            ) : (
-              <Button
-                onClick={openPaymentWindow}
-                className="flex-1 bg-visa-gold hover:bg-visa-gold/90"
-                size="lg"
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                {t("payNow")}
-              </Button>
-            )}
-            {onPayLater && !paymentUrl && (
+            <Button
+              onClick={handlePayment}
+              disabled={isProcessing}
+              className="flex-1 bg-visa-gold hover:bg-visa-gold/90"
+            >
+              {isProcessing ? (
+                <Loader className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <CreditCard className="h-4 w-4 mr-2" />
+              )}
+              {t("payNow")}
+            </Button>
+
+            {onPayLater && (
               <Button
                 onClick={onPayLater}
                 variant="outline"
