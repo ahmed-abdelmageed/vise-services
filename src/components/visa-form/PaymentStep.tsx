@@ -63,12 +63,12 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
   >(null);
   const [checkingStatus, setCheckingStatus] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
-
+  
   // Fetch application data when invoice with client_id is provided
-  const {
-    data: applicationData,
+  const { 
+    data: applicationData, 
     isLoading: isLoadingApplication,
-    error: applicationError,
+    error: applicationError 
   } = useApplicationByInvoice(invoice?.client_id || "", !!invoice?.client_id);
 
   useEffect(() => {
@@ -80,10 +80,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
   // Log application data and errors
   useEffect(() => {
     if (applicationData) {
-      console.log(
-        "🚀 ~ PaymentStep ~ Fetched application data:",
-        applicationData
-      );
+      console.log("🚀 ~ PaymentStep ~ Fetched application data:", applicationData);
     }
     if (applicationError) {
       console.error("Error fetching application data:", applicationError);
@@ -98,13 +95,13 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
 
     // Get email from application data, form data, or current user (in that priority)
     const customerEmail = applicationData?.email || formData.email || userEmail;
-
+    
     // Get customer name from application data or travellers
-    const customerName = applicationData
+    const customerName = applicationData 
       ? `${applicationData.first_name} ${applicationData.last_name}`
-      : travellers[0]?.firstName && travellers[0]?.lastName
-      ? `${travellers[0].firstName} ${travellers[0].lastName}`
-      : "";
+      : travellers[0]?.firstName && travellers[0]?.lastName 
+        ? `${travellers[0].firstName} ${travellers[0].lastName}`
+        : "";
 
     if (!customerEmail || !customerName) {
       toast.error("Missing required information for payment");
@@ -123,24 +120,19 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
         amount: totalPrice,
         currency: "SAR",
         order_id: orderId,
-        description: applicationData
-          ? `${applicationData.service_type} - ${applicationData.country} Visa`
+        description: applicationData 
+          ? `${applicationData.service_type} - ${applicationData.country} Visa` 
           : `${selectedService?.title} - Visa`,
         customer_email: customerEmail,
         customer_name: customerName,
-        customer_phone:
-          applicationData?.phone ||
-          (formData.phoneNumber
-            ? `${formData.countryCode}${formData.phoneNumber}`
-            : undefined),
+        customer_phone: applicationData?.phone || (formData.phoneNumber
+          ? `${formData.countryCode}${formData.phoneNumber}`
+          : undefined),
         return_url: `${window.location.origin}/payment/return?order_id=${orderId}`,
         callback_url: `${window.location.origin}/api/payment/callback`,
       };
 
-      console.log(
-        "🚀 ~ PaymentStep ~ Payment data with application info:",
-        paymentData
-      );
+      console.log("🚀 ~ PaymentStep ~ Payment data with application info:", paymentData);
 
       // If test works, try the actual payment
       const response = await initiatePayment(paymentData, currentRoute);
@@ -167,7 +159,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
         };
         localStorage.setItem("pendingPayment", JSON.stringify(paymentInfo));
         console.log("Stored payment info:", paymentInfo);
-
+        
         setPaymentUrl(response.payment_url);
         setPaymentId(response.payment_id || "");
         setPaymentStatus("pending");
@@ -198,10 +190,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
 
     try {
       const statusResponse = await checkPaymentStatus(paymentId, orderId);
-      console.log(
-        "🚀 ~ handleCheckPaymentStatus ~ statusResponse:",
-        statusResponse
-      );
+      console.log("🚀 ~ handleCheckPaymentStatus ~ statusResponse:", statusResponse)
 
       if (statusResponse.payment_status === "completed") {
         setPaymentStatus("completed");
@@ -271,9 +260,10 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
               {language === "ar" ? "الخدمة:" : "Service:"}
             </span>
             <span className="font-medium">
-              {applicationData
+              {applicationData 
                 ? `${applicationData.service_type} - ${applicationData.country}`
-                : selectedService?.title}
+                : selectedService?.title
+              }
             </span>
           </div>
           <div className="flex justify-between items-center">
@@ -281,11 +271,12 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
               {language === "ar" ? "العميل:" : "Customer:"}
             </span>
             <span className="font-medium">
-              {applicationData
+              {applicationData 
                 ? `${applicationData.first_name} ${applicationData.last_name}`
-                : travellers.length > 0
-                ? `${travellers[0]?.firstName} ${travellers[0]?.lastName}`
-                : "N/A"}
+                : travellers.length > 0 
+                  ? `${travellers[0]?.firstName} ${travellers[0]?.lastName}`
+                  : "N/A"
+              }
             </span>
           </div>
           <div className="flex justify-between items-center">
@@ -307,9 +298,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
               <span className="text-gray-600">
                 {language === "ar" ? "رقم المرجع:" : "Reference ID:"}
               </span>
-              <span className="font-mono text-sm">
-                {applicationData.reference_id}
-              </span>
+              <span className="font-mono text-sm">{applicationData.reference_id}</span>
             </div>
           )}
           <div className="border-t pt-4">
@@ -429,7 +418,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
           onClick={() => setShowTermsModal(true)}
           className="text-visa-gold hover:text-visa-dark underline text-sm"
         >
-          {language === "ar"
+          {language === "ar" 
             ? "اقرأ الشروط والأحكام"
             : "Read Terms and Conditions"}
         </button>
@@ -452,119 +441,43 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
             </div>
             <div className="p-6 space-y-4 text-right" dir="rtl">
               <div className="space-y-3 text-sm leading-relaxed">
-                <p>
-                  1. يكون العميل مسؤولاً مسؤولية كاملة عن صحة ودقة المعلومات
-                  المقدمة من قبله والمتضمنة في طلب استخراج التأشيرة، ويتحمّل
-                  العميل كافة الآثار المالية والقانونية التي قد تحدث نتيجة لذلك.
-                </p>
-
-                <p>
-                  2. تلتزم Global Visa Services بتقديم طلب استخراج التأشيرة
-                  بأسرع وقت ممكن، وأي تأخير في إصدار التأشيرة من السفارة أو مركز
-                  التأشيرات الموحّد لأي سبب كان بعد رفع الطلب لا يقع ضمن مسؤولية
-                  Global Visa Services.
-                </p>
-
-                <p>
-                  3. في حال رفض إصدار التأشيرة من السفارة أو مركز التأشيرات
-                  الموحّد لأيّ سبب كان، لا تلتزم Global Visa Services بأي تعويض
-                  للعميل عن أي أضرار قد تنشأ عن ذلك.
-                </p>
-
-                <p>
-                  4. رسوم الخدمة التي تتقاضاها Global Visa Services غير مستردّة
-                  بعد تأكيد حجز الموعد.
-                </p>
-
-                <p>
-                  5. في حال عدم حضور العميل للموعد المحدد لدى السفارة أو مركز
-                  التأشيرات الموحّد، لا يحق له استرداد أيّ من المبالغ المدفوعة.
-                </p>
-
-                <p>
-                  6. في حال فقدان مستندات/وثائق العميل نتيجة خطأ أو تقصير من طرف
-                  ثالث (السفارة، مركز التأشيرات الموحّد، شركات التوصيل) لا تتحمل
-                  Global Visa Services أي مسؤولية تجاه العميل.
-                </p>
-
-                <p>
-                  7. في حال التقدم بطلب الحصول على تأشيرة الدخول إلى الولايات
-                  المتحدة، فإن Global Visa Services لا تتحمل أي مسؤولية في حال
-                  حدوث أي تأخير في تفعيل رقم الـ (CGI).
-                </p>
-
-                <p>
-                  8. في حال التقدم بطلب الحصول على تأشيرة الدخول لأي من الدول
-                  الأوروبية الموقعة على اتفاقية (شنغن)، فإنه يتعيّن على العميل
-                  دفع رسوم حجز موعد جديد متى قام بتغيير موقع المركز المحدد أو
-                  السفارة المحددة من قبله لتقديم الخدمة (البصمة).
-                </p>
-
-                <p>
-                  9. في حال رغبة العميل في إعادة جدولة الموعد بعد تأكيده، فإن
-                  الشركة تحتفظ بحقها في فرض رسوم حجز جديدة، ويُشترط توفر موعد
-                  جديد متاح.
-                </p>
-
-                <p>
-                  10. يكون العميل مسؤولاً عن الحضور لموعد السفارة أو مركز
-                  التأشيرات الموحد في الموعد والتاريخ المحددين مع إحضار
-                  المتطلبات اللازمة.
-                </p>
-
-                <p>
-                  11. عند إجراء أي تعديلات على البيانات المقدمة من قبل العميل
-                  بعد انشاء الطلب، فإن الأمر قد يتطلب دفع رسوم إضافية.
-                </p>
-
-                <p>
-                  12. لا تتحمل Global Visa Services أي مسؤولية تجاه العميل بعد
-                  إصدار التأشيرة.
-                </p>
-
-                <p>
-                  13. لا تكون Global Visa Services مسؤولة عن تعويض العميل عن أي
-                  مبالغ إضافية قد يدفعها العميل للسفارة أو مركز التأشيرات
-                  الموحّد أو شركات الشحن بعد تقديم طلب اصدار التأشيرة.
-                </p>
-
-                <p>
-                  14. عند تقديم التأشيرة (لغير السعوديين)، يكون مبلغ التأشيرة
-                  والخدمة والتأمين الطبي والموعد والترجمة غير مسترد وذلك لتعدد
-                  المتطلبات للسفارة والحاجة للعمل على ترجمة المستندات بعد رفع
-                  الطلب.
-                </p>
-
-                <p>
-                  15. قبول طلب التأشيرة من عدمه وكذلك الوقت المحدد لإصدار
-                  التأشيرة هو قرار خاص بالسفارة، وGlobal Visa Services لا تضمن
-                  قبول الطلب أو المدة المتوقعة لذلك.
-                </p>
-
-                <p>
-                  16. لا تتحمل Global Visa Services أي تبعات أو أضرار قد تلحق
-                  بالعميل جراء إلغاء الموعد أو تأجيله من السفارة.
-                </p>
-
-                <p>
-                  17. يُنصح تجنباً لأي خسائر مالية قد يتكبدها العميل بعدم إجراء
-                  حجوزات طيران أو فنادق مدفوعة حتى تصدر التأشيرة، ويستثنى من ذلك
-                  بعض السفارات التي يتطلب قبول طلب التأشيرة لديها وجود حجوزات
-                  مؤكدة مثل ألمانيا أو أي سفارة أخرى، ولا تكون Global Visa
-                  Services مسؤولة عن تعويض العميل في حال قيامه بإلغاء الحجوزات.
-                </p>
-
-                <p>
-                  18. في حال طلب العميل إجراء حجوزات مبدئية "غير مؤكدة" من قبل
-                  Global Visa Services وذلك عند تقدمه بطلب تأشيرة من أي من
-                  السفارات التي تتطلب وجود حجوزات مؤكدة لقبول الطلب، فإنه يكون
-                  مسؤولاً مسؤولية منفردةً في حال رفض الطلب.
-                </p>
-
-                <p>
-                  19. تتم عملية استرداد المدفوعات خلال 5 أيام عمل، وسيتم رد
-                  المبالغ بنفس طريقة الدفع التي استخدمها العميل لإجراء الطلب.
-                </p>
+                <p>1. يكون العميل مسؤولاً مسؤولية كاملة عن صحة ودقة المعلومات المقدمة من قبله والمتضمنة في طلب استخراج التأشيرة، ويتحمّل العميل كافة الآثار المالية والقانونية التي قد تحدث نتيجة لذلك.</p>
+                
+                <p>2. تلتزم Global Visa Services بتقديم طلب استخراج التأشيرة بأسرع وقت ممكن، وأي تأخير في إصدار التأشيرة من السفارة أو مركز التأشيرات الموحّد لأي سبب كان بعد رفع الطلب لا يقع ضمن مسؤولية Global Visa Services.</p>
+                
+                <p>3. في حال رفض إصدار التأشيرة من السفارة أو مركز التأشيرات الموحّد لأيّ سبب كان، لا تلتزم Global Visa Services بأي تعويض للعميل عن أي أضرار قد تنشأ عن ذلك.</p>
+                
+                <p>4. رسوم الخدمة التي تتقاضاها Global Visa Services غير مستردّة بعد تأكيد حجز الموعد.</p>
+                
+                <p>5. في حال عدم حضور العميل للموعد المحدد لدى السفارة أو مركز التأشيرات الموحّد، لا يحق له استرداد أيّ من المبالغ المدفوعة.</p>
+                
+                <p>6. في حال فقدان مستندات/وثائق العميل نتيجة خطأ أو تقصير من طرف ثالث (السفارة، مركز التأشيرات الموحّد، شركات التوصيل) لا تتحمل Global Visa Services أي مسؤولية تجاه العميل.</p>
+                
+                <p>7. في حال التقدم بطلب الحصول على تأشيرة الدخول إلى الولايات المتحدة، فإن Global Visa Services لا تتحمل أي مسؤولية في حال حدوث أي تأخير في تفعيل رقم الـ (CGI).</p>
+                
+                <p>8. في حال التقدم بطلب الحصول على تأشيرة الدخول لأي من الدول الأوروبية الموقعة على اتفاقية (شنغن)، فإنه يتعيّن على العميل دفع رسوم حجز موعد جديد متى قام بتغيير موقع المركز المحدد أو السفارة المحددة من قبله لتقديم الخدمة (البصمة).</p>
+                
+                <p>9. في حال رغبة العميل في إعادة جدولة الموعد بعد تأكيده، فإن الشركة تحتفظ بحقها في فرض رسوم حجز جديدة، ويُشترط توفر موعد جديد متاح.</p>
+                
+                <p>10. يكون العميل مسؤولاً عن الحضور لموعد السفارة أو مركز التأشيرات الموحد في الموعد والتاريخ المحددين مع إحضار المتطلبات اللازمة.</p>
+                
+                <p>11. عند إجراء أي تعديلات على البيانات المقدمة من قبل العميل بعد انشاء الطلب، فإن الأمر قد يتطلب دفع رسوم إضافية.</p>
+                
+                <p>12. لا تتحمل Global Visa Services أي مسؤولية تجاه العميل بعد إصدار التأشيرة.</p>
+                
+                <p>13. لا تكون Global Visa Services مسؤولة عن تعويض العميل عن أي مبالغ إضافية قد يدفعها العميل للسفارة أو مركز التأشيرات الموحّد أو شركات الشحن بعد تقديم طلب اصدار التأشيرة.</p>
+                
+                <p>14. عند تقديم التأشيرة (لغير السعوديين)، يكون مبلغ التأشيرة والخدمة والتأمين الطبي والموعد والترجمة غير مسترد وذلك لتعدد المتطلبات للسفارة والحاجة للعمل على ترجمة المستندات بعد رفع الطلب.</p>
+                
+                <p>15. قبول طلب التأشيرة من عدمه وكذلك الوقت المحدد لإصدار التأشيرة هو قرار خاص بالسفارة، وGlobal Visa Services لا تضمن قبول الطلب أو المدة المتوقعة لذلك.</p>
+                
+                <p>16. لا تتحمل Global Visa Services أي تبعات أو أضرار قد تلحق بالعميل جراء إلغاء الموعد أو تأجيله من السفارة.</p>
+                
+                <p>17. يُنصح تجنباً لأي خسائر مالية قد يتكبدها العميل بعدم إجراء حجوزات طيران أو فنادق مدفوعة حتى تصدر التأشيرة، ويستثنى من ذلك بعض السفارات التي يتطلب قبول طلب التأشيرة لديها وجود حجوزات مؤكدة مثل ألمانيا أو أي سفارة أخرى، ولا تكون Global Visa Services مسؤولة عن تعويض العميل في حال قيامه بإلغاء الحجوزات.</p>
+                
+                <p>18. في حال طلب العميل إجراء حجوزات مبدئية "غير مؤكدة" من قبل Global Visa Services وذلك عند تقدمه بطلب تأشيرة من أي من السفارات التي تتطلب وجود حجوزات مؤكدة لقبول الطلب، فإنه يكون مسؤولاً مسؤولية منفردةً في حال رفض الطلب.</p>
+                
+                <p>19. تتم عملية استرداد المدفوعات خلال 5 أيام عمل، وسيتم رد المبالغ بنفس طريقة الدفع التي استخدمها العميل لإجراء الطلب.</p>
               </div>
             </div>
             <div className="sticky bottom-0 bg-white border-t p-4">
@@ -591,18 +504,32 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
           {language === "ar" ? "السابق" : "Previous"}
         </Button>
 
-        {!paymentUrl && paymentStatus !== "completed" && (
+        {paymentStatus !== "completed" && (
           <>
-            <Button
-              onClick={openPaymentWindow}
-              className="bg-visa-gold hover:bg-visa-gold/90"
-              size="lg"
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              {language === "ar" ? "افتح صفحة الدفع" : t("payNow")}
-            </Button>
-
-            {onPayLater && (
+            {!paymentUrl ? (
+              <Button
+                onClick={handlePayment}
+                disabled={isProcessing}
+                className="flex-1 bg-visa-gold hover:bg-visa-gold/90"
+              >
+                {isProcessing ? (
+                  <Loader className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <CreditCard className="h-4 w-4 mr-2" />
+                )}
+                {t("payNow")}
+              </Button>
+            ) : (
+              <Button
+                onClick={openPaymentWindow}
+                className="flex-1 bg-visa-gold hover:bg-visa-gold/90"
+                size="lg"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                {t("payNow")}
+              </Button>
+            )}
+            {onPayLater && !paymentUrl && (
               <Button
                 onClick={onPayLater}
                 variant="outline"
