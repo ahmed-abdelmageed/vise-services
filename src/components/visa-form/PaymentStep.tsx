@@ -159,11 +159,19 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
         };
         localStorage.setItem("pendingPayment", JSON.stringify(paymentInfo));
         console.log("Stored payment info:", paymentInfo);
-        
         setPaymentUrl(response.payment_url);
         setPaymentId(response.payment_id || "");
         setPaymentStatus("pending");
         toast.success("Payment link generated successfully");
+        // Immediately open the payment window after generating the link
+        const win = window.open(
+          response.payment_url,
+          "_blank",
+          "width=800,height=600,scrollbars=yes,resizable=yes"
+        );
+        if (!win || win.closed || typeof win.closed === "undefined") {
+          window.location.href = response.payment_url;
+        }
       } else {
         console.error("Payment initiation failed with response:", response);
         throw new Error(response.error_message || "Failed to initiate payment");
