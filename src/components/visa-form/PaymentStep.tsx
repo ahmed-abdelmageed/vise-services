@@ -222,11 +222,17 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
 
   const openPaymentWindow = () => {
     if (paymentUrl) {
-      window.open(
+      const win = window.open(
         paymentUrl,
         "_blank",
         "width=800,height=600,scrollbars=yes,resizable=yes"
       );
+      // Fallback: if popup blocked, open in current tab
+      if (!win || win.closed || typeof win.closed === "undefined") {
+        window.location.href = paymentUrl;
+      }
+    } else {
+      toast.error("No payment link available. Please try again.");
     }
   };
 
