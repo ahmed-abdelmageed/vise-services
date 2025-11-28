@@ -349,9 +349,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                     size="lg"
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
-                    {language === "ar"
-                      ? "افتح صفحة الدفع"
-                      : "Open Payment Page"}
+                   {t("payNow")}
                   </Button>
 
                   <p className="text-sm text-gray-500">
