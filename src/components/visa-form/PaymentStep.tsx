@@ -95,13 +95,12 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
 
     // Get email from application data, form data, or current user (in that priority)
     const customerEmail = applicationData?.email || formData.email || userEmail;
-    
     // Get customer name from application data or travellers
-    const customerName = applicationData 
+    const customerName = applicationData
       ? `${applicationData.first_name} ${applicationData.last_name}`
-      : travellers[0]?.firstName && travellers[0]?.lastName 
-        ? `${travellers[0].firstName} ${travellers[0].lastName}`
-        : "";
+      : travellers[0]?.firstName && travellers[0]?.lastName
+      ? `${travellers[0].firstName} ${travellers[0].lastName}`
+      : "";
 
     if (!customerEmail || !customerName) {
       toast.error("Missing required information for payment");
@@ -112,22 +111,33 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
     setPaymentStatus("processing");
 
     try {
+      // تحقق من أن بيانات الفاتورة أو التطبيق سليمة (مثال: لا يوجد خطأ 406)
+      if (applicationError && applicationError.message && applicationError.message.includes("406")) {
+        toast.error("فشل في الدفع: لم يتم العثور على بيانات الفاتورة أو الطلب (406)");
+        setPaymentStatus("failed");
+        onPaymentFailed("Invoice or application not found (406)");
+        setIsProcessing(false);
+        return;
+      }
+
       // Get current route without the base for redirectTo
-      const currentRoute = location.pathname; // This gives us the route like "/service/spain-visa"
+      const currentRoute = location.pathname;
 
       // Use application data to enhance payment information when available
       const paymentData: PaymentInitiateRequest = {
         amount: totalPrice,
         currency: "SAR",
         order_id: orderId,
-        description: applicationData 
-          ? `${applicationData.service_type} - ${applicationData.country} Visa` 
+        description: applicationData
+          ? `${applicationData.service_type} - ${applicationData.country} Visa`
           : `${selectedService?.title} - Visa`,
         customer_email: customerEmail,
         customer_name: customerName,
-        customer_phone: applicationData?.phone || (formData.phoneNumber
-          ? `${formData.countryCode}${formData.phoneNumber}`
-          : undefined),
+        customer_phone:
+          applicationData?.phone ||
+          (formData.phoneNumber
+            ? `${formData.countryCode}${formData.phoneNumber}`
+            : undefined),
         return_url: `${window.location.origin}/payment/return?order_id=${orderId}`,
         callback_url: `${window.location.origin}/api/payment/callback`,
       };
@@ -138,12 +148,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
       const response = await initiatePayment(paymentData, currentRoute);
       console.log("🚀 ~ handlePayment ~ response:", response);
       console.log("🚀 ~ handlePayment ~ response.status:", response.status);
-      console.log(
-        "🚀 ~ handlePayment ~ response.payment_url:",
-        response.payment_url
-      );
-
-      // const response = await testPaymentIntegration();
+      console.log("🚀 ~ handlePayment ~ response.payment_url:", response.payment_url);
 
       if (
         (response.status === "success" || response.status === "redirect") &&
@@ -159,7 +164,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
         };
         localStorage.setItem("pendingPayment", JSON.stringify(paymentInfo));
         console.log("Stored payment info:", paymentInfo);
-        
+
         setPaymentUrl(response.payment_url);
         setPaymentId(response.payment_id || "");
         setPaymentStatus("pending");
@@ -168,13 +173,19 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
         console.error("Payment initiation failed with response:", response);
         throw new Error(response.error_message || "Failed to initiate payment");
       }
-    } catch (error) {
-      console.error("Payment initiation error:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Payment initiation failed";
-      toast.error(errorMessage);
-      setPaymentStatus("failed");
-      onPaymentFailed(errorMessage);
+    } catch (error: any) {
+      // إذا كان الخطأ من نوع 406 أو فيه رسالة 406
+      if (error?.status === 406 || error?.message?.includes("406")) {
+        toast.error("فشل في الدفع: لم يتم العثور على بيانات الفاتورة أو الطلب (406)");
+        setPaymentStatus("failed");
+        onPaymentFailed("Invoice or application not found (406)");
+      } else {
+        const errorMessage =
+          error instanceof Error ? error.message : "Payment initiation failed";
+        toast.error(errorMessage);
+        setPaymentStatus("failed");
+        onPaymentFailed(errorMessage);
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -190,75 +201,45 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
 
     try {
       const statusResponse = await checkPaymentStatus(paymentId, orderId);
-      console.log("🚀 ~ handleCheckPaymentStatus ~ statusResponse:", statusResponse);
+      console.log("🚀 ~ handleCheckPaymentStatus ~ statusResponse:", statusResponse)
 
-      // If payment_status is not 'completed', treat as failed
-      if (!statusResponse || statusResponse.payment_status !== "completed") {
+      if (statusResponse.payment_status === "completed") {
+        setPaymentStatus("completed");
+        toast.success("Payment completed successfully!");
+        onPaymentSuccess({
+          payment_id: paymentId,
+          order_id: orderId,
+          transaction_id: statusResponse.transaction_id,
+          amount: totalPrice,
+          currency: "SAR",
+        });
+      } else if (
+        statusResponse.payment_status === "failed" ||
+        statusResponse.payment_status === "cancelled"
+      ) {
         setPaymentStatus("failed");
-        toast.error(statusResponse?.error_message || "Payment failed or was cancelled");
-        onPaymentFailed(statusResponse?.error_message || "Payment failed");
-        return;
+        toast.error("Payment failed or was cancelled");
+        onPaymentFailed(statusResponse.error_message || "Payment failed");
+      } else {
+        toast.info("Payment is still pending. Please wait...");
       }
-
-      // Success
-      setPaymentStatus("completed");
-      toast.success("Payment completed successfully!");
-      onPaymentSuccess({
-        payment_id: paymentId,
-        order_id: orderId,
-        transaction_id: statusResponse.transaction_id,
-        amount: totalPrice,
-        currency: "SAR",
-      });
     } catch (error) {
       console.error("Payment status check error:", error);
-      setPaymentStatus("failed");
-      toast.error("Payment failed or was cancelled");
-      onPaymentFailed("Payment failed");
+      toast.error("Failed to check payment status");
     } finally {
       setCheckingStatus(false);
     }
   };
 
-  // Polling for payment status after opening payment window
-  useEffect(() => {
-    let pollingInterval: NodeJS.Timeout | null = null;
-    if (paymentStatus === "pending" && paymentId && orderId) {
-      pollingInterval = setInterval(async () => {
-        try {
-          const statusResponse = await checkPaymentStatus(paymentId, orderId);
-          if (!statusResponse || statusResponse.payment_status !== "completed") {
-            if (statusResponse.payment_status === "failed" || statusResponse.payment_status === "cancelled") {
-              setPaymentStatus("failed");
-              toast.error(statusResponse?.error_message || "Payment failed or was cancelled");
-              onPaymentFailed(statusResponse?.error_message || "Payment failed");
-              if (pollingInterval) clearInterval(pollingInterval);
-            }
-            // else still pending, do nothing
-          } else {
-            setPaymentStatus("completed");
-            toast.success("Payment completed successfully!");
-            onPaymentSuccess({
-              payment_id: paymentId,
-              order_id: orderId,
-              transaction_id: statusResponse.transaction_id,
-              amount: totalPrice,
-              currency: "SAR",
-            });
-            if (pollingInterval) clearInterval(pollingInterval);
-          }
-        } catch (error) {
-          setPaymentStatus("failed");
-          toast.error("Payment failed or was cancelled");
-          onPaymentFailed("Payment failed");
-          if (pollingInterval) clearInterval(pollingInterval);
-        }
-      }, 3000);
+  const openPaymentWindow = () => {
+    if (paymentUrl) {
+      window.open(
+        paymentUrl,
+        "_blank",
+        "width=800,height=600,scrollbars=yes,resizable=yes"
+      );
     }
-    return () => {
-      if (pollingInterval) clearInterval(pollingInterval);
-    };
-  }, [paymentStatus, paymentId, orderId]);
+  };
 
   return (
     <div className="space-y-6">
@@ -362,15 +343,40 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                     <CheckCircle className="h-8 w-8 text-yellow-500" />
                     <p className="text-gray-600">
                       {language === "ar"
-                        ? "تم فتح صفحة الدفع، يرجى إتمام العملية..."
-                        : "Payment page opened, please complete the payment..."}
+                        ? "تم إنشاء رابط الدفع"
+                        : "Payment link generated"}
                     </p>
                   </div>
+
+                  <Button
+                    onClick={openPaymentWindow}
+                    className="bg-visa-gold hover:bg-visa-gold/90"
+                    size="lg"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    {language === "ar"
+                      ? "افتح صفحة الدفع"
+                      : "Open Payment Page"}
+                  </Button>
+
                   <p className="text-sm text-gray-500">
                     {language === "ar"
-                      ? 'انتظر حتى يتم تأكيد الدفع تلقائياً.'
-                      : 'Please wait, payment will be confirmed automatically.'}
+                      ? 'بعد إتمام الدفع، انقر على "التحقق من حالة الدفع" أدناه'
+                      : 'After completing payment, click "Check Payment Status" below'}
                   </p>
+
+                  <Button
+                    onClick={handleCheckPaymentStatus}
+                    variant="outline"
+                    disabled={checkingStatus}
+                  >
+                    {checkingStatus ? (
+                      <Loader className="h-4 w-4 animate-spin mr-2" />
+                    ) : null}
+                    {language === "ar"
+                      ? "التحقق من حالة الدفع"
+                      : "Check Payment Status"}
+                  </Button>
                 </div>
               )}
 
@@ -509,20 +515,10 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
           {language === "ar" ? "السابق" : "Previous"}
         </Button>
 
-        {paymentStatus === null && (
+        { paymentStatus !== "completed" && (
           <>
             <Button
-              onClick={async () => {
-                await handlePayment();
-                // بعد إنشاء رابط الدفع ونجاحه، افتح صفحة الدفع مباشرة
-                if (paymentUrl) {
-                  window.open(
-                    paymentUrl,
-                    "_blank",
-                    "width=800,height=600,scrollbars=yes,resizable=yes"
-                  );
-                }
-              }}
+              onClick={openPaymentWindow}
               disabled={isProcessing}
               className="flex-1 bg-visa-gold hover:bg-visa-gold/90"
             >
