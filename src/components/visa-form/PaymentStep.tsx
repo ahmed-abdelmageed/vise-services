@@ -220,15 +220,16 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
     }
   };
 
-  const openPaymentWindow = () => {
-    if (paymentUrl) {
+  // Open payment window automatically after paymentUrl is set
+  useEffect(() => {
+    if (paymentStatus === "pending" && paymentUrl) {
       window.open(
         paymentUrl,
         "_blank",
         "width=800,height=600,scrollbars=yes,resizable=yes"
       );
     }
-  };
+  }, [paymentStatus, paymentUrl]);
 
   return (
     <div className="space-y-6">
@@ -504,10 +505,10 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
           {language === "ar" ? "السابق" : "Previous"}
         </Button>
 
-        { paymentStatus !== "completed" && (
+        {paymentStatus === null && (
           <>
             <Button
-              onClick={openPaymentWindow}
+              onClick={handlePayment}
               disabled={isProcessing}
               className="flex-1 bg-visa-gold hover:bg-visa-gold/90"
             >
