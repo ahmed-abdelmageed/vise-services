@@ -220,16 +220,45 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
     }
   };
 
-  // Open payment window automatically after paymentUrl is set
+  // Polling for payment status after opening payment window
   useEffect(() => {
-    if (paymentStatus === "pending" && paymentUrl) {
-      window.open(
-        paymentUrl,
-        "_blank",
-        "width=800,height=600,scrollbars=yes,resizable=yes"
-      );
+    let pollingInterval: NodeJS.Timeout | null = null;
+    if (paymentStatus === "pending" && paymentId && orderId) {
+      pollingInterval = setInterval(async () => {
+        try {
+          const statusResponse = await checkPaymentStatus(paymentId, orderId);
+          if (!statusResponse || statusResponse.payment_status !== "completed") {
+            if (statusResponse.payment_status === "failed" || statusResponse.payment_status === "cancelled") {
+              setPaymentStatus("failed");
+              toast.error(statusResponse?.error_message || "Payment failed or was cancelled");
+              onPaymentFailed(statusResponse?.error_message || "Payment failed");
+              if (pollingInterval) clearInterval(pollingInterval);
+            }
+            // else still pending, do nothing
+          } else {
+            setPaymentStatus("completed");
+            toast.success("Payment completed successfully!");
+            onPaymentSuccess({
+              payment_id: paymentId,
+              order_id: orderId,
+              transaction_id: statusResponse.transaction_id,
+              amount: totalPrice,
+              currency: "SAR",
+            });
+            if (pollingInterval) clearInterval(pollingInterval);
+          }
+        } catch (error) {
+          setPaymentStatus("failed");
+          toast.error("Payment failed or was cancelled");
+          onPaymentFailed("Payment failed");
+          if (pollingInterval) clearInterval(pollingInterval);
+        }
+      }, 3000);
     }
-  }, [paymentStatus, paymentUrl]);
+    return () => {
+      if (pollingInterval) clearInterval(pollingInterval);
+    };
+  }, [paymentStatus, paymentId, orderId]);
 
   return (
     <div className="space-y-6">
@@ -333,40 +362,15 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                     <CheckCircle className="h-8 w-8 text-yellow-500" />
                     <p className="text-gray-600">
                       {language === "ar"
-                        ? "تم إنشاء رابط الدفع"
-                        : "Payment link generated"}
+                        ? "تم فتح صفحة الدفع، يرجى إتمام العملية..."
+                        : "Payment page opened, please complete the payment..."}
                     </p>
                   </div>
-
-                  {/* <Button
-                    onClick={openPaymentWindow}
-                    className="bg-visa-gold hover:bg-visa-gold/90"
-                    size="lg"
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    {language === "ar"
-                      ? "افتح صفحة الدفع"
-                      : "Open Payment Page"}
-                  </Button> */}
-
                   <p className="text-sm text-gray-500">
                     {language === "ar"
-                      ? 'بعد إتمام الدفع، انقر على "التحقق من حالة الدفع" أدناه'
-                      : 'After completing payment, click "Check Payment Status" below'}
+                      ? 'انتظر حتى يتم تأكيد الدفع تلقائياً.'
+                      : 'Please wait, payment will be confirmed automatically.'}
                   </p>
-
-                  <Button
-                    onClick={handleCheckPaymentStatus}
-                    variant="outline"
-                    disabled={checkingStatus}
-                  >
-                    {checkingStatus ? (
-                      <Loader className="h-4 w-4 animate-spin mr-2" />
-                    ) : null}
-                    {language === "ar"
-                      ? "التحقق من حالة الدفع"
-                      : "Check Payment Status"}
-                  </Button>
                 </div>
               )}
 
@@ -508,7 +512,17 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
         {paymentStatus === null && (
           <>
             <Button
-              onClick={handlePayment}
+              onClick={async () => {
+                await handlePayment();
+                // بعد إنشاء رابط الدفع ونجاحه، افتح صفحة الدفع مباشرة
+                if (paymentUrl) {
+                  window.open(
+                    paymentUrl,
+                    "_blank",
+                    "width=800,height=600,scrollbars=yes,resizable=yes"
+                  );
+                }
+              }}
               disabled={isProcessing}
               className="flex-1 bg-visa-gold hover:bg-visa-gold/90"
             >
