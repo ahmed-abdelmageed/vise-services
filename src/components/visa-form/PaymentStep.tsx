@@ -190,31 +190,31 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
 
     try {
       const statusResponse = await checkPaymentStatus(paymentId, orderId);
-      console.log("🚀 ~ handleCheckPaymentStatus ~ statusResponse:", statusResponse)
+      console.log("🚀 ~ handleCheckPaymentStatus ~ statusResponse:", statusResponse);
 
-      if (statusResponse.payment_status === "completed") {
-        setPaymentStatus("completed");
-        toast.success("Payment completed successfully!");
-        onPaymentSuccess({
-          payment_id: paymentId,
-          order_id: orderId,
-          transaction_id: statusResponse.transaction_id,
-          amount: totalPrice,
-          currency: "SAR",
-        });
-      } else if (
-        statusResponse.payment_status === "failed" ||
-        statusResponse.payment_status === "cancelled"
-      ) {
+      // If payment_status is not 'completed', treat as failed
+      if (!statusResponse || statusResponse.payment_status !== "completed") {
         setPaymentStatus("failed");
-        toast.error("Payment failed or was cancelled");
-        onPaymentFailed(statusResponse.error_message || "Payment failed");
-      } else {
-        toast.info("Payment is still pending. Please wait...");
+        toast.error(statusResponse?.error_message || "Payment failed or was cancelled");
+        onPaymentFailed(statusResponse?.error_message || "Payment failed");
+        return;
       }
+
+      // Success
+      setPaymentStatus("completed");
+      toast.success("Payment completed successfully!");
+      onPaymentSuccess({
+        payment_id: paymentId,
+        order_id: orderId,
+        transaction_id: statusResponse.transaction_id,
+        amount: totalPrice,
+        currency: "SAR",
+      });
     } catch (error) {
       console.error("Payment status check error:", error);
-      toast.error("Failed to check payment status");
+      setPaymentStatus("failed");
+      toast.error("Payment failed or was cancelled");
+      onPaymentFailed("Payment failed");
     } finally {
       setCheckingStatus(false);
     }
