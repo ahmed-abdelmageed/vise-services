@@ -169,6 +169,13 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
         setPaymentId(response.payment_id || "");
         setPaymentStatus("pending");
         toast.success("Payment link generated successfully");
+
+        // فتح نافذة الدفع مباشرة
+        window.open(
+          response.payment_url,
+          "_blank",
+          "width=800,height=600,scrollbars=yes,resizable=yes"
+        );
       } else {
         console.error("Payment initiation failed with response:", response);
         throw new Error(response.error_message || "Failed to initiate payment");
@@ -231,15 +238,19 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
     }
   };
 
-  const openPaymentWindow = () => {
-    if (paymentUrl) {
+
+
+
+  // افتح صفحة الدفع تلقائيًا بعد توليد paymentUrl
+  useEffect(() => {
+    if (paymentStatus === "pending" && paymentUrl) {
       window.open(
         paymentUrl,
         "_blank",
         "width=800,height=600,scrollbars=yes,resizable=yes"
       );
     }
-  };
+  }, [paymentStatus, paymentUrl]);
 
   return (
     <div className="space-y-6">
@@ -348,16 +359,7 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
                     </p>
                   </div>
 
-                  <Button
-                    onClick={openPaymentWindow}
-                    className="bg-visa-gold hover:bg-visa-gold/90"
-                    size="lg"
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    {language === "ar"
-                      ? "افتح صفحة الدفع"
-                      : "Open Payment Page"}
-                  </Button>
+
 
                   <p className="text-sm text-gray-500">
                     {language === "ar"
@@ -517,8 +519,9 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
 
         { paymentStatus !== "completed" && (
           <>
+
             <Button
-              onClick={openPaymentWindow}
+              onClick={handlePayment}
               disabled={isProcessing}
               className="flex-1 bg-visa-gold hover:bg-visa-gold/90"
             >
