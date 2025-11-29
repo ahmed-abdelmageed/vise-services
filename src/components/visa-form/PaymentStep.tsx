@@ -112,8 +112,21 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
     setPaymentStatus("processing");
 
     try {
+      // إذا كان هناك خطأ في جلب بيانات التطبيق أو الفاتورة (مثلاً 406)
+      if (applicationError) {
+        let errorMsg = "Failed to load application or invoice details";
+        if (applicationError.message && applicationError.message.includes("406")) {
+          errorMsg = "فشل في الدفع: لم يتم العثور على بيانات الفاتورة أو الطلب (406)";
+        }
+        toast.error(errorMsg);
+        setPaymentStatus("failed");
+        onPaymentFailed(errorMsg);
+        setIsProcessing(false);
+        return;
+      }
+
       // Get current route without the base for redirectTo
-      const currentRoute = location.pathname; // This gives us the route like "/service/spain-visa"
+      const currentRoute = location.pathname;
 
       // Use application data to enhance payment information when available
       const paymentData: PaymentInitiateRequest = {
@@ -138,36 +151,39 @@ export const PaymentStep: React.FC<PaymentStepProps> = ({
       const response = await initiatePayment(paymentData, currentRoute);
       console.log("🚀 ~ handlePayment ~ response:", response);
       console.log("🚀 ~ handlePayment ~ response.status:", response.status);
-      console.log(
-        "🚀 ~ handlePayment ~ response.payment_url:",
-        response.payment_url
-      );
+      console.log("🚀 ~ handlePayment ~ response.payment_url:", response.payment_url);
 
-      // const response = await testPaymentIntegration();
-
-      if (
-        (response.status === "success" || response.status === "redirect") &&
-        response.payment_url
-      ) {
-        // Store payment info in localStorage for the success page
-        const paymentInfo = {
-          order_id: orderId,
-          payment_id: response.payment_id || "",
-          amount: totalPrice,
-          currency: "SAR",
-          timestamp: new Date().toISOString(),
-        };
-        localStorage.setItem("pendingPayment", JSON.stringify(paymentInfo));
-        console.log("Stored payment info:", paymentInfo);
-        
-        setPaymentUrl(response.payment_url);
-        setPaymentId(response.payment_id || "");
-        setPaymentStatus("pending");
-        toast.success("Payment link generated successfully");
-      } else {
-        console.error("Payment initiation failed with response:", response);
-        throw new Error(response.error_message || "Failed to initiate payment");
+      // إذا لم تكن حالة الدفع ناجحة أو لم يرجع رابط دفع، اعتبرها فشل
+      if (!response || response.status !== "success" && response.status !== "redirect" || !response.payment_url) {
+        const failMsg = response?.error_message || "Payment initiation failed";
+        toast.error(failMsg);
+        setPaymentStatus("failed");
+        onPaymentFailed(failMsg);
+        setIsProcessing(false);
+        return;
       }
+
+      // Store payment info in localStorage for the success page
+      const paymentInfo = {
+        order_id: orderId,
+        payment_id: response.payment_id || "",
+        amount: totalPrice,
+        currency: "SAR",
+        timestamp: new Date().toISOString(),
+      };
+      localStorage.setItem("pendingPayment", JSON.stringify(paymentInfo));
+      console.log("Stored payment info:", paymentInfo);
+      
+      setPaymentUrl(response.payment_url);
+      setPaymentId(response.payment_id || "");
+      setPaymentStatus("pending");
+      toast.success("Payment link generated successfully");
+      // فتح نافذة الدفع مباشرة
+      window.open(
+        response.payment_url,
+        "_blank",
+        "width=800,height=600,scrollbars=yes,resizable=yes"
+      );
     } catch (error) {
       console.error("Payment initiation error:", error);
       const errorMessage =
