@@ -30,14 +30,24 @@ export interface PaymentInitiateResponse {
 }
 
 export interface PaymentStatusResponse {
-  status: string;
-  payment_id: string;
-  order_id: string;
-  amount: number;
-  currency: string;
-  payment_status: "pending" | "completed" | "failed" | "cancelled";
-  transaction_id?: string;
-  error_message?: string;
+  statusCode: number;
+  responseBody: {
+    date: string;
+    status: string;
+    brand: string;
+    reason: string;
+    order: {
+      number: string;
+      amount: string;
+      currency: string;
+      description: string;
+    };
+    customer: {
+      name: string;
+      email: string;
+    };
+    payment_id: string;
+  };
 }
 
 const PAYMENT_CONFIG = {
@@ -368,57 +378,65 @@ export const checkPaymentStatus = async (
   paymentId: string,
   orderId: string
 ): Promise<PaymentStatusResponse> => {
+  console.log("🚀 ~ checkPaymentStatus ~ orderId:", orderId);
+  console.log("🚀 ~ checkPaymentStatus ~ paymentId:", paymentId);
   try {
-    const formData = new FormData();
-    formData.append("merchant_id", PAYMENT_CONFIG.merchantKey);
-    formData.append("gway_Payment_Id", paymentId);
-    formData.append("order_id", orderId);
-
     // Generate hash for status request: payment_id + order_id + password
     const hashInput = `${paymentId}${orderId}${PAYMENT_CONFIG.password}`;
     const md5Hash = CryptoJS.MD5(hashInput.toUpperCase()).toString();
     const hash = CryptoJS.SHA1(md5Hash).toString();
-    formData.append("hash", hash);
 
     console.log("Status request hash input:", hashInput);
     console.log("Status request hash:", hash);
 
+    // Create JSON payload as shown in the example
+    const requestBody = {
+      order_id: orderId,
+      merchant_id: PAYMENT_CONFIG.merchantKey,
+      gway_Payment_id: paymentId, // Note: lowercase 'd' as in the example
+      hash: hash,
+    };
+
+    console.log("Status request body:", JSON.stringify(requestBody, null, 2));
+
     const response = await fetch(PAYMENT_CONFIG.statusUrl, {
       method: "POST",
-      body: formData,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
     });
+
+    console.log("Status response status:", response.status);
+    console.log(
+      "Status response headers:",
+      Object.fromEntries(response.headers.entries())
+    );
+
+    const responseText = await response.text();
+    console.log("Status raw response:", responseText);
 
     if (!response.ok) {
       throw new Error(
-        `Payment status API error: ${response.status} ${response.statusText}`
+        `Payment status API error: ${response.status} ${response.statusText} - ${responseText}`
       );
     }
 
-    const result = await response.json();
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error("JSON parse error:", parseError);
+      console.error("Response that failed to parse:", responseText);
+      throw new Error(`Invalid JSON response: ${responseText}`);
+    }
+
     console.log("Payment status response:", result);
 
-    return {
-      status: result.status || "error",
-      payment_id: paymentId,
-      order_id: orderId,
-      amount: result.amount || 0,
-      currency: result.currency || "SAR",
-      payment_status: result.payment_status || "failed",
-      transaction_id: result.transaction_id,
-      error_message: result.error_message,
-    };
+    return result;
   } catch (error) {
     console.error("Payment status check error:", error);
-    return {
-      status: "error",
-      payment_id: paymentId,
-      order_id: orderId,
-      amount: 0,
-      currency: "SAR",
-      payment_status: "failed",
-      error_message:
-        error instanceof Error ? error.message : "Unknown error occurred",
-    };
+    return error;
   }
 };
 
@@ -426,38 +444,38 @@ export const checkPaymentStatus = async (
  * Validate payment response from callback
  * According to EdfaPay docs, callback hash should be validated
  */
-export const validatePaymentCallback = (
-  callbackData: any
-): PaymentStatusResponse => {
-  // For successful transactions, validate hash if present
-  if (callbackData.hash && callbackData.action === "SALE") {
-    // Hash validation logic depends on the payment method
-    // For card payments: action + result + status + order_id + trans_id + trans_date + amount + currency + password
-    // Note: Implement this based on your specific callback validation needs
-    console.log("Validating callback hash:", callbackData.hash);
-  }
+// export const validatePaymentCallback = (
+//   callbackData: any
+// ): PaymentStatusResponse => {
+//   // For successful transactions, validate hash if present
+//   if (callbackData.hash && callbackData.action === "SALE") {
+//     // Hash validation logic depends on the payment method
+//     // For card payments: action + result + status + order_id + trans_id + trans_date + amount + currency + password
+//     // Note: Implement this based on your specific callback validation needs
+//     console.log("Validating callback hash:", callbackData.hash);
+//   }
 
-  return {
-    status:
-      callbackData.result === "SUCCESS"
-        ? "success"
-        : callbackData.result?.toLowerCase() || "error",
-    payment_id: callbackData.trans_id || callbackData.payment_id || "",
-    order_id: callbackData.order_id || "",
-    amount: parseFloat(callbackData.amount) || 0,
-    currency: callbackData.currency || "SAR",
-    payment_status:
-      callbackData.status === "SETTLED"
-        ? "completed"
-        : callbackData.status === "PENDING"
-        ? "pending"
-        : callbackData.status === "DECLINED"
-        ? "failed"
-        : "failed",
-    transaction_id: callbackData.trans_id,
-    error_message: callbackData.decline_reason || callbackData.error_message,
-  };
-};
+//   return {
+//     status:
+//       callbackData.result === "SUCCESS"
+//         ? "success"
+//         : callbackData.result?.toLowerCase() || "error",
+//     payment_id: callbackData.trans_id || callbackData.payment_id || "",
+//     order_id: callbackData.order_id || "",
+//     amount: parseFloat(callbackData.amount) || 0,
+//     currency: callbackData.currency || "SAR",
+//     payment_status:
+//       callbackData.status === "SETTLED"
+//         ? "completed"
+//         : callbackData.status === "PENDING"
+//         ? "pending"
+//         : callbackData.status === "DECLINED"
+//         ? "failed"
+//         : "failed",
+//     transaction_id: callbackData.trans_id,
+//     error_message: callbackData.decline_reason || callbackData.error_message,
+//   };
+// };
 
 /**
  * Test payment integration with EdfaPay

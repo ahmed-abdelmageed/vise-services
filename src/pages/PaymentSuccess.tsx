@@ -11,8 +11,11 @@ import {
 } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Header } from "@/components/Header";
-import { validatePaymentCallback, checkPaymentStatus } from "@/api/payment";
-import { updateInvoiceStatusToPaidByOrderId } from "@/api/invoices";
+import { checkPaymentStatus, PaymentStatusResponse } from "@/api/payment";
+import {
+  updateInvoiceStatusToPaidByOrderId,
+  getInvoiceByOrderId,
+} from "@/api/invoices";
 import { toast } from "sonner";
 
 const PaymentSuccess = () => {
@@ -20,19 +23,31 @@ const PaymentSuccess = () => {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const [paymentStatus, setPaymentStatus] = useState<
-    "loading" | "success" | "failed"
+    "loading" | "Pending" | "Paid"
   >("loading");
-  const [paymentData, setPaymentData] = useState<any>(null);
+  const [paymentData, setPaymentData] = useState<PaymentStatusResponse | null>(
+    null
+  );
+  const [invoiceData, setInvoiceData] = useState<any>(null);
+  console.log("🚀 ~ PaymentSuccess ~ invoiceData:", invoiceData);
+  const pendingPayment = localStorage.getItem("pendingPayment") || "";
+  console.log("🚀 ~ PaymentSuccess ~ pendingPayment:", pendingPayment);
+
+  const order_id = JSON.parse(pendingPayment).order_id || null;
+  console.log("🚀 ~ PaymentSuccess ~ order_id:", order_id);
 
   // Function to update invoice status when payment is successful
-  // const updateInvoiceStatus = async (orderId: string, paymentInfo: any) => {
-  //   try {
-  //     await updateInvoiceStatusToPaidByOrderId(orderId, {});
-  //   } catch (error) {
-  //     console.error("Failed to update invoice status:", error);
-  //     // Don't show error to user as payment was successful
-  //   }
-  // };
+  const updateInvoiceStatus = async (orderId: string, paymentInfo: any) => {
+    try {
+      await updateInvoiceStatusToPaidByOrderId(orderId, {
+        payment_id: paymentInfo.payment_id || paymentInfo.trans_id,
+        transaction_id: paymentInfo.transaction_id || paymentInfo.trans_id,
+      });
+    } catch (error) {
+      console.error("Failed to update invoice status:", error);
+      // Don't show error to user as payment was successful
+    }
+  };
 
   useEffect(() => {
     // const processPaymentCallback = async () => {
@@ -41,7 +56,6 @@ const PaymentSuccess = () => {
     //     const params = Object.fromEntries(searchParams.entries());
     //     console.log("Payment callback parameters:", params);
     //     console.log("All URL params:", window.location.href);
-
     //     // EdfaPay might send: action, result, status, order_id, trans_id, amount, currency, etc.
     //     const orderId = params.order_id || params.order || params.orderid;
     //     const transId =
@@ -49,7 +63,6 @@ const PaymentSuccess = () => {
     //     const result = params.result;
     //     const status = params.status;
     //     const action = params.action;
-
     //     console.log("Extracted params:", {
     //       orderId,
     //       transId,
@@ -57,19 +70,16 @@ const PaymentSuccess = () => {
     //       status,
     //       action,
     //     });
-
     //     // Check if we have payment data from EdfaPay callback
     //     if (orderId || transId || result || status) {
     //       // Validate using the callback data
     //       const callbackData = validatePaymentCallback(params);
     //       console.log("Validated callback data:", callbackData);
-
     //       // Try to get status from API if we have IDs
     //       if (transId && orderId) {
     //         try {
     //           const statusResult = await checkPaymentStatus(transId, orderId);
     //           console.log("Status API result:", statusResult);
-
     //           // Check for 406 or PGRST116 error (no invoice found)
     //           // Defensive: check for error properties on statusResult (API error shape)
     //           const statusResultAny = statusResult as any;
@@ -89,7 +99,6 @@ const PaymentSuccess = () => {
     //             toast.error(t("paymentFailed") || "Payment failed");
     //             return;
     //           }
-
     //           if (
     //             statusResult.payment_status === "completed" ||
     //             statusResult.status === "success" ||
@@ -130,7 +139,6 @@ const PaymentSuccess = () => {
     //           return;
     //         }
     //       }
-
     //       // Fallback to callback validation
     //       if (
     //         callbackData.payment_status === "completed" ||
@@ -183,7 +191,6 @@ const PaymentSuccess = () => {
     //       console.warn(
     //         "No payment parameters found in URL, checking localStorage"
     //       );
-
     //       const pendingPaymentStr = localStorage.getItem("pendingPayment");
     //       if (pendingPaymentStr) {
     //         try {
@@ -192,14 +199,12 @@ const PaymentSuccess = () => {
     //             "Found pending payment in localStorage:",
     //             pendingPayment
     //           );
-
     //           // Try to check status with stored data
     //           if (pendingPayment.payment_id && pendingPayment.order_id) {
     //             const statusResult = await checkPaymentStatus(
     //               pendingPayment.payment_id,
     //               pendingPayment.order_id
     //             );
-
     //             if (
     //               statusResult.payment_status === "completed" ||
     //               statusResult.status === "success"
@@ -207,7 +212,6 @@ const PaymentSuccess = () => {
     //               setPaymentStatus("success");
     //               setPaymentData(statusResult);
     //               localStorage.removeItem("pendingPayment");
-
     //               // Update invoice status to paid
     //               if (pendingPayment.order_id) {
     //                 await updateInvoiceStatus(pendingPayment.order_id, {
@@ -215,7 +219,6 @@ const PaymentSuccess = () => {
     //                   ...statusResult,
     //                 });
     //               }
-
     //               toast.success(
     //                 t("paymentSuccessful") || "Payment completed successfully!"
     //               );
@@ -226,7 +229,6 @@ const PaymentSuccess = () => {
     //                 ...pendingPayment,
     //                 payment_status: "pending",
     //               });
-
     //               // Update invoice status to paid even if status is pending
     //               if (pendingPayment.order_id) {
     //                 await updateInvoiceStatus(pendingPayment.order_id, {
@@ -234,7 +236,6 @@ const PaymentSuccess = () => {
     //                   ...pendingPayment,
     //                 });
     //               }
-
     //               toast.success(
     //                 t("paymentSuccessful") || "Payment completed successfully!"
     //               );
@@ -244,7 +245,6 @@ const PaymentSuccess = () => {
     //             setPaymentStatus("success");
     //             setPaymentData(pendingPayment);
     //             localStorage.removeItem("pendingPayment");
-
     //             // Update invoice status to paid
     //             if (pendingPayment.order_id) {
     //               await updateInvoiceStatus(pendingPayment.order_id, {
@@ -252,7 +252,6 @@ const PaymentSuccess = () => {
     //                 ...pendingPayment,
     //               });
     //             }
-
     //             toast.success(
     //               t("paymentSuccessful") || "Payment completed successfully!"
     //             );
@@ -273,9 +272,16 @@ const PaymentSuccess = () => {
     //     toast.error("Error processing payment status");
     //   }
     // };
-
     // processPaymentCallback();
-  }, [searchParams, t]);
+    getInvoiceByOrderId(order_id).then((data) => {
+      setInvoiceData(data);
+      setPaymentStatus((data?.status as "Pending" | "Paid") || "loading");
+      checkPaymentStatus(data.trans_id, order_id).then((th) => {
+        console.log("Status Result:", th);
+        setPaymentData(th);
+      });
+    });
+  }, [searchParams, t, order_id]);
 
   const handleGoHome = () => {
     navigate("/");
@@ -318,7 +324,7 @@ const PaymentSuccess = () => {
               </>
             )}
 
-            {paymentStatus === "success" && (
+            {paymentStatus === "Paid" && (
               <>
                 <div className="mx-auto mb-4 w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
                   <CheckCircle className="w-8 h-8 text-green-600" />
@@ -336,7 +342,7 @@ const PaymentSuccess = () => {
               </>
             )}
 
-            {paymentStatus === "failed" && (
+            {paymentStatus === "Pending" && (
               <>
                 <div className="mx-auto mb-4 w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
                   <AlertCircle className="w-8 h-8 text-red-600" />
@@ -353,59 +359,49 @@ const PaymentSuccess = () => {
             )}
           </CardHeader>
 
-          {paymentData && paymentStatus !== "loading" && (
+          {invoiceData && paymentStatus === "Paid" && (
             <CardContent className="space-y-4">
               <div
                 className={`grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg ${
                   language === "ar" ? "text-right" : "text-left"
                 }`}
               >
-                {paymentData.order_id && (
+                {paymentData?.responseBody?.order?.number && (
                   <div>
                     <p className="text-sm font-medium text-gray-500">
                       {language === "ar" ? "رقم الطلب:" : "Order ID:"}
                     </p>
                     <p className="text-sm text-gray-900 font-mono" dir="ltr">
-                      {paymentData.order_id}
+                      {paymentData?.responseBody?.order?.number}
                     </p>
                   </div>
                 )}
 
-                {paymentData.payment_id && (
+                {paymentData?.responseBody?.payment_id && (
                   <div>
                     <p className="text-sm font-medium text-gray-500">
                       {language === "ar" ? "رقم الدفع:" : "Payment ID:"}
                     </p>
                     <p className="text-sm text-gray-900 font-mono">
-                      {paymentData.payment_id}
+                      {paymentData?.responseBody?.payment_id}
                     </p>
                   </div>
                 )}
 
-                {paymentData.amount && (
+                {paymentData?.responseBody?.order?.amount && (
                   <div>
                     <p className="text-sm font-medium text-gray-500">
                       {language === "ar" ? "المبلغ:" : "Amount:"}
                     </p>
                     <p className="text-sm text-gray-900 font-semibold">
-                      {paymentData.amount} {paymentData.currency || "SAR"}
-                    </p>
-                  </div>
-                )}
-
-                {paymentData.transaction_id && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">
-                      {language === "ar" ? "رقم المعاملة:" : "Transaction ID:"}
-                    </p>
-                    <p className="text-sm text-gray-900 font-mono">
-                      {paymentData.transaction_id}
+                      {paymentData?.responseBody?.order?.amount}{" "}
+                      {paymentData?.responseBody?.order?.currency || "SAR"}
                     </p>
                   </div>
                 )}
               </div>
 
-              {paymentData.error_message && (
+              {/* {paymentData.error_message && (
                 <div className="p-4 bg-red-50 rounded-lg">
                   <p className="text-sm text-red-800">
                     <span className="font-medium">
@@ -414,7 +410,7 @@ const PaymentSuccess = () => {
                     {paymentData.error_message}
                   </p>
                 </div>
-              )}
+              )} */}
 
               <div
                 className={`flex gap-4 pt-4 ${

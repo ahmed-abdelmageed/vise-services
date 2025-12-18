@@ -16,6 +16,7 @@ export interface InvoiceItem {
   updated_at?: string | null;
   user_id?: string | null;
   order_id?: string | null;
+  trans_id?: string | null;
 }
 
 export const fetchInvoices = async (status_filter?: string) => {
@@ -506,5 +507,63 @@ export const updateInvoiceStatusToPaidByOrderId = async (
     console.error("Error in updateInvoiceStatusToPaidByOrderId:", error);
     toast.error("Failed to update invoice status");
     throw error;
+  }
+};
+
+/**
+ * Get invoice by order_id
+ */
+export const getInvoiceByOrderId = async (orderId: string): Promise<InvoiceItem | null> => {
+  try {
+    console.log("🚀 ~ Getting invoice for order_id:", orderId);
+
+    // First try to find the invoice by order_id (it's stored in invoice_number)
+    const { data: invoice, error: findError } = await supabase
+      .from("client_invoices")
+      .select("*")
+      .or(`invoice_number.eq.INV-${orderId},invoice_number.like.%${orderId}%`)
+      .single();
+
+    if (!findError && invoice) {
+      console.log("Invoice found by order_id:", invoice);
+      return invoice;
+    }
+
+    console.warn("Invoice not found by order_id, trying to find via visa applications...");
+
+    // Try to find via visa applications table
+    const { data: application, error: appError } = await supabase
+      .from("visa_applications")
+      .select("id, invoice_id")
+      .eq("order_id", orderId)
+      .single();
+
+    if (appError || !application) {
+      console.error("Could not find invoice or application for order_id:", orderId);
+      return null;
+    }
+
+    if (application.invoice_id) {
+      // Get the invoice using the invoice_id from application
+      const { data: invoiceData, error } = await supabase
+        .from("client_invoices")
+        .select("*")
+        .eq("id", application.invoice_id)
+        .single();
+
+      if (error) {
+        console.error("Error getting invoice:", error);
+        return null;
+      }
+
+      console.log("Invoice found via application:", invoiceData);
+      return invoiceData;
+    } else {
+      console.error("Application found but no invoice_id");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error in getInvoiceByOrderId:", error);
+    return null;
   }
 };
