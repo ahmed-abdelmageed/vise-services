@@ -25,256 +25,256 @@ const PaymentSuccess = () => {
   const [paymentData, setPaymentData] = useState<any>(null);
 
   // Function to update invoice status when payment is successful
-  const updateInvoiceStatus = async (orderId: string, paymentInfo: any) => {
-    try {
-      await updateInvoiceStatusToPaidByOrderId(orderId, {});
-    } catch (error) {
-      console.error("Failed to update invoice status:", error);
-      // Don't show error to user as payment was successful
-    }
-  };
+  // const updateInvoiceStatus = async (orderId: string, paymentInfo: any) => {
+  //   try {
+  //     await updateInvoiceStatusToPaidByOrderId(orderId, {});
+  //   } catch (error) {
+  //     console.error("Failed to update invoice status:", error);
+  //     // Don't show error to user as payment was successful
+  //   }
+  // };
 
   useEffect(() => {
-    const processPaymentCallback = async () => {
-      try {
-        // Get all URL parameters
-        const params = Object.fromEntries(searchParams.entries());
-        console.log("Payment callback parameters:", params);
-        console.log("All URL params:", window.location.href);
+    // const processPaymentCallback = async () => {
+    //   try {
+    //     // Get all URL parameters
+    //     const params = Object.fromEntries(searchParams.entries());
+    //     console.log("Payment callback parameters:", params);
+    //     console.log("All URL params:", window.location.href);
 
-        // EdfaPay might send: action, result, status, order_id, trans_id, amount, currency, etc.
-        const orderId = params.order_id || params.order || params.orderid;
-        const transId =
-          params.trans_id || params.payment_id || params.transaction_id;
-        const result = params.result;
-        const status = params.status;
-        const action = params.action;
+    //     // EdfaPay might send: action, result, status, order_id, trans_id, amount, currency, etc.
+    //     const orderId = params.order_id || params.order || params.orderid;
+    //     const transId =
+    //       params.trans_id || params.payment_id || params.transaction_id;
+    //     const result = params.result;
+    //     const status = params.status;
+    //     const action = params.action;
 
-        console.log("Extracted params:", {
-          orderId,
-          transId,
-          result,
-          status,
-          action,
-        });
+    //     console.log("Extracted params:", {
+    //       orderId,
+    //       transId,
+    //       result,
+    //       status,
+    //       action,
+    //     });
 
-        // Check if we have payment data from EdfaPay callback
-        if (orderId || transId || result || status) {
-          // Validate using the callback data
-          const callbackData = validatePaymentCallback(params);
-          console.log("Validated callback data:", callbackData);
+    //     // Check if we have payment data from EdfaPay callback
+    //     if (orderId || transId || result || status) {
+    //       // Validate using the callback data
+    //       const callbackData = validatePaymentCallback(params);
+    //       console.log("Validated callback data:", callbackData);
 
-          // Try to get status from API if we have IDs
-          if (transId && orderId) {
-            try {
-              const statusResult = await checkPaymentStatus(transId, orderId);
-              console.log("Status API result:", statusResult);
+    //       // Try to get status from API if we have IDs
+    //       if (transId && orderId) {
+    //         try {
+    //           const statusResult = await checkPaymentStatus(transId, orderId);
+    //           console.log("Status API result:", statusResult);
 
-              // Check for 406 or PGRST116 error (no invoice found)
-              // Defensive: check for error properties on statusResult (API error shape)
-              const statusResultAny = statusResult as any;
-              if (
-                statusResultAny?.code === "PGRST116" ||
-                statusResultAny?.message ===
-                  "Cannot coerce the result to a single JSON object" ||
-                statusResultAny?.details === "The result contains 0 rows"
-              ) {
-                setPaymentStatus("failed");
-                setPaymentData({
-                  ...statusResult,
-                  order_id: orderId,
-                  payment_id: transId,
-                  error_message: t("paymentFailed") || "Payment failed",
-                });
-                toast.error(t("paymentFailed") || "Payment failed");
-                return;
-              }
+    //           // Check for 406 or PGRST116 error (no invoice found)
+    //           // Defensive: check for error properties on statusResult (API error shape)
+    //           const statusResultAny = statusResult as any;
+    //           if (
+    //             statusResultAny?.code === "PGRST116" ||
+    //             statusResultAny?.message ===
+    //               "Cannot coerce the result to a single JSON object" ||
+    //             statusResultAny?.details === "The result contains 0 rows"
+    //           ) {
+    //             setPaymentStatus("failed");
+    //             setPaymentData({
+    //               ...statusResult,
+    //               order_id: orderId,
+    //               payment_id: transId,
+    //               error_message: t("paymentFailed") || "Payment failed",
+    //             });
+    //             toast.error(t("paymentFailed") || "Payment failed");
+    //             return;
+    //           }
 
-              if (
-                statusResult.payment_status === "completed" ||
-                statusResult.status === "success" ||
-                result === "SUCCESS" ||
-                status === "SETTLED"
-              ) {
-                setPaymentStatus("success");
-                setPaymentData(statusResult);
-                // Update invoice status to paid
-                if (orderId) {
-                  await updateInvoiceStatus(orderId, {
-                    payment_id: transId,
-                    transaction_id: transId,
-                    ...statusResult,
-                  });
-                }
-                toast.success(
-                  t("paymentSuccessful") || "Payment completed successfully!"
-                );
-              } else {
-                setPaymentStatus("failed");
-                setPaymentData(statusResult);
-                toast.error(
-                  statusResult.error_message ||
-                    t("paymentFailed") ||
-                    "Payment failed"
-                );
-              }
-              return;
-            } catch (error) {
-              setPaymentStatus("failed");
-              setPaymentData({
-                order_id: orderId,
-                payment_id: transId,
-                error_message: t("paymentFailed") || "Payment failed",
-              });
-              toast.error(t("paymentFailed") || "Payment failed");
-              return;
-            }
-          }
+    //           if (
+    //             statusResult.payment_status === "completed" ||
+    //             statusResult.status === "success" ||
+    //             result === "SUCCESS" ||
+    //             status === "SETTLED"
+    //           ) {
+    //             setPaymentStatus("success");
+    //             setPaymentData(statusResult);
+    //             // Update invoice status to paid
+    //             if (orderId) {
+    //               await updateInvoiceStatus(orderId, {
+    //                 payment_id: transId,
+    //                 transaction_id: transId,
+    //                 ...statusResult,
+    //               });
+    //             }
+    //             toast.success(
+    //               t("paymentSuccessful") || "Payment completed successfully!"
+    //             );
+    //           } else {
+    //             setPaymentStatus("failed");
+    //             setPaymentData(statusResult);
+    //             toast.error(
+    //               statusResult.error_message ||
+    //                 t("paymentFailed") ||
+    //                 "Payment failed"
+    //             );
+    //           }
+    //           return;
+    //         } catch (error) {
+    //           setPaymentStatus("failed");
+    //           setPaymentData({
+    //             order_id: orderId,
+    //             payment_id: transId,
+    //             error_message: t("paymentFailed") || "Payment failed",
+    //           });
+    //           toast.error(t("paymentFailed") || "Payment failed");
+    //           return;
+    //         }
+    //       }
 
-          // Fallback to callback validation
-          if (
-            callbackData.payment_status === "completed" ||
-            result === "SUCCESS" ||
-            status === "SETTLED" ||
-            status === "success"
-          ) {
-            setPaymentStatus("success");
-            setPaymentData({
-              ...callbackData,
-              order_id: orderId,
-              payment_id: transId,
-              amount: params.amount || callbackData.amount,
-              currency: params.currency || callbackData.currency,
-              transaction_id: transId,
-            });
-            // Update invoice status to paid
-            if (orderId) {
-              await updateInvoiceStatus(orderId, {
-                payment_id: transId,
-                transaction_id: transId,
-                ...callbackData,
-              });
-            }
-            toast.success(
-              t("paymentSuccessful") || "Payment completed successfully!"
-            );
-          } else {
-            // إذا لم تكن الحالة ناجحة
-            setPaymentStatus("failed");
-            setPaymentData({
-              ...callbackData,
-              order_id: orderId,
-              payment_id: transId,
-              error_message:
-                params.decline_reason ||
-                params.error_message ||
-                callbackData.error_message ||
-                t("paymentFailed") ||
-                "Payment failed",
-            });
-            toast.error(
-              callbackData.error_message ||
-                t("paymentFailed") ||
-                "Payment failed"
-            );
-          }
-        } else {
-          // No payment parameters found - check localStorage for pending payment
-          console.warn(
-            "No payment parameters found in URL, checking localStorage"
-          );
+    //       // Fallback to callback validation
+    //       if (
+    //         callbackData.payment_status === "completed" ||
+    //         result === "SUCCESS" ||
+    //         status === "SETTLED" ||
+    //         status === "success"
+    //       ) {
+    //         setPaymentStatus("success");
+    //         setPaymentData({
+    //           ...callbackData,
+    //           order_id: orderId,
+    //           payment_id: transId,
+    //           amount: params.amount || callbackData.amount,
+    //           currency: params.currency || callbackData.currency,
+    //           transaction_id: transId,
+    //         });
+    //         // Update invoice status to paid
+    //         if (orderId) {
+    //           await updateInvoiceStatus(orderId, {
+    //             payment_id: transId,
+    //             transaction_id: transId,
+    //             ...callbackData,
+    //           });
+    //         }
+    //         toast.success(
+    //           t("paymentSuccessful") || "Payment completed successfully!"
+    //         );
+    //       } else {
+    //         // إذا لم تكن الحالة ناجحة
+    //         setPaymentStatus("failed");
+    //         setPaymentData({
+    //           ...callbackData,
+    //           order_id: orderId,
+    //           payment_id: transId,
+    //           error_message:
+    //             params.decline_reason ||
+    //             params.error_message ||
+    //             callbackData.error_message ||
+    //             t("paymentFailed") ||
+    //             "Payment failed",
+    //         });
+    //         toast.error(
+    //           callbackData.error_message ||
+    //             t("paymentFailed") ||
+    //             "Payment failed"
+    //         );
+    //       }
+    //     } else {
+    //       // No payment parameters found - check localStorage for pending payment
+    //       console.warn(
+    //         "No payment parameters found in URL, checking localStorage"
+    //       );
 
-          const pendingPaymentStr = localStorage.getItem("pendingPayment");
-          if (pendingPaymentStr) {
-            try {
-              const pendingPayment = JSON.parse(pendingPaymentStr);
-              console.log(
-                "Found pending payment in localStorage:",
-                pendingPayment
-              );
+    //       const pendingPaymentStr = localStorage.getItem("pendingPayment");
+    //       if (pendingPaymentStr) {
+    //         try {
+    //           const pendingPayment = JSON.parse(pendingPaymentStr);
+    //           console.log(
+    //             "Found pending payment in localStorage:",
+    //             pendingPayment
+    //           );
 
-              // Try to check status with stored data
-              if (pendingPayment.payment_id && pendingPayment.order_id) {
-                const statusResult = await checkPaymentStatus(
-                  pendingPayment.payment_id,
-                  pendingPayment.order_id
-                );
+    //           // Try to check status with stored data
+    //           if (pendingPayment.payment_id && pendingPayment.order_id) {
+    //             const statusResult = await checkPaymentStatus(
+    //               pendingPayment.payment_id,
+    //               pendingPayment.order_id
+    //             );
 
-                if (
-                  statusResult.payment_status === "completed" ||
-                  statusResult.status === "success"
-                ) {
-                  setPaymentStatus("success");
-                  setPaymentData(statusResult);
-                  localStorage.removeItem("pendingPayment");
+    //             if (
+    //               statusResult.payment_status === "completed" ||
+    //               statusResult.status === "success"
+    //             ) {
+    //               setPaymentStatus("success");
+    //               setPaymentData(statusResult);
+    //               localStorage.removeItem("pendingPayment");
 
-                  // Update invoice status to paid
-                  if (pendingPayment.order_id) {
-                    await updateInvoiceStatus(pendingPayment.order_id, {
-                      payment_id: pendingPayment.payment_id,
-                      ...statusResult,
-                    });
-                  }
+    //               // Update invoice status to paid
+    //               if (pendingPayment.order_id) {
+    //                 await updateInvoiceStatus(pendingPayment.order_id, {
+    //                   payment_id: pendingPayment.payment_id,
+    //                   ...statusResult,
+    //                 });
+    //               }
 
-                  toast.success(
-                    t("paymentSuccessful") || "Payment completed successfully!"
-                  );
-                } else {
-                  // Payment might still be processing
-                  setPaymentStatus("success");
-                  setPaymentData({
-                    ...pendingPayment,
-                    payment_status: "pending",
-                  });
+    //               toast.success(
+    //                 t("paymentSuccessful") || "Payment completed successfully!"
+    //               );
+    //             } else {
+    //               // Payment might still be processing
+    //               setPaymentStatus("success");
+    //               setPaymentData({
+    //                 ...pendingPayment,
+    //                 payment_status: "pending",
+    //               });
 
-                  // Update invoice status to paid even if status is pending
-                  if (pendingPayment.order_id) {
-                    await updateInvoiceStatus(pendingPayment.order_id, {
-                      payment_id: pendingPayment.payment_id,
-                      ...pendingPayment,
-                    });
-                  }
+    //               // Update invoice status to paid even if status is pending
+    //               if (pendingPayment.order_id) {
+    //                 await updateInvoiceStatus(pendingPayment.order_id, {
+    //                   payment_id: pendingPayment.payment_id,
+    //                   ...pendingPayment,
+    //                 });
+    //               }
 
-                  toast.success(
-                    t("paymentSuccessful") || "Payment completed successfully!"
-                  );
-                }
-              } else {
-                // Just show success based on localStorage
-                setPaymentStatus("success");
-                setPaymentData(pendingPayment);
-                localStorage.removeItem("pendingPayment");
+    //               toast.success(
+    //                 t("paymentSuccessful") || "Payment completed successfully!"
+    //               );
+    //             }
+    //           } else {
+    //             // Just show success based on localStorage
+    //             setPaymentStatus("success");
+    //             setPaymentData(pendingPayment);
+    //             localStorage.removeItem("pendingPayment");
 
-                // Update invoice status to paid
-                if (pendingPayment.order_id) {
-                  await updateInvoiceStatus(pendingPayment.order_id, {
-                    payment_id: pendingPayment.payment_id,
-                    ...pendingPayment,
-                  });
-                }
+    //             // Update invoice status to paid
+    //             if (pendingPayment.order_id) {
+    //               await updateInvoiceStatus(pendingPayment.order_id, {
+    //                 payment_id: pendingPayment.payment_id,
+    //                 ...pendingPayment,
+    //               });
+    //             }
 
-                toast.success(
-                  t("paymentSuccessful") || "Payment completed successfully!"
-                );
-              }
-            } catch (error) {
-              console.error("Error parsing pending payment:", error);
-              setPaymentStatus("failed");
-              toast.error("No payment information found");
-            }
-          } else {
-            setPaymentStatus("failed");
-            toast.error("No payment information found");
-          }
-        }
-      } catch (error) {
-        console.error("Error processing payment callback:", error);
-        setPaymentStatus("failed");
-        toast.error("Error processing payment status");
-      }
-    };
+    //             toast.success(
+    //               t("paymentSuccessful") || "Payment completed successfully!"
+    //             );
+    //           }
+    //         } catch (error) {
+    //           console.error("Error parsing pending payment:", error);
+    //           setPaymentStatus("failed");
+    //           toast.error("No payment information found");
+    //         }
+    //       } else {
+    //         setPaymentStatus("failed");
+    //         toast.error("No payment information found");
+    //       }
+    //     }
+    //   } catch (error) {
+    //     console.error("Error processing payment callback:", error);
+    //     setPaymentStatus("failed");
+    //     toast.error("Error processing payment status");
+    //   }
+    // };
 
-    processPaymentCallback();
+    // processPaymentCallback();
   }, [searchParams, t]);
 
   const handleGoHome = () => {
