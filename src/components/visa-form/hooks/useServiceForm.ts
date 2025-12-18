@@ -605,7 +605,11 @@ export const useServiceForm = ({
         }
         // Always send payment confirmation email if applicationData exists
         if (applicationData) {
-          await sendPaymentConfirmationEmail(applicationId, applicationData, paymentInfo);
+          await sendPaymentConfirmationEmail(
+            applicationId,
+            applicationData,
+            paymentInfo
+          );
         }
       }
 
@@ -925,14 +929,44 @@ export const useServiceForm = ({
         setApplicationId(appId);
         setOrderId(orderIdForApp); // Store the generated order ID in state
 
-        // لم يعد يتم إنشاء الفاتورة هنا، سيتم إنشاؤها فقط بعد نجاح الدفع
-        toast.success(
-          "Application created! Please complete payment to finalize."
-        );
-        // Send confirmation emails after application creation
-        await sendConfirmationEmail(appId, data[0]);
-        await sendTeamNotificationEmail(appId, data[0]);
-        console.log("Application created (no invoice yet):", { appId });
+        // Create pending invoice using the application ID as client_id
+        const invoiceData = await createPendingVisaInvoice({
+          user_id: user_id,
+          client_id: appId, // Use application ID as client_id
+          service_description: `${selectedService?.title} - Visa Service for ${travellers[0]?.firstName} ${travellers[0]?.lastName}`,
+          customer_email: formData.email,
+          customer_name: `${travellers[0]?.firstName} ${travellers[0]?.lastName}`,
+          amount: totalPrice,
+          currency: "SAR",
+          order_id: orderIdForApp, // Use the generated order ID instead of APP prefix
+        });
+
+        if (invoiceData) {
+          setInvoiceId(invoiceData.id);
+
+          // Update the application with the invoice_id
+          const { error: updateError } = await supabase
+            .from("visa_applications")
+            .update({
+              invoice_id: invoiceData.id,
+            })
+            .eq("id", appId);
+
+          if (updateError) {
+            console.error(
+              "Error updating application with invoice ID:",
+              updateError
+            );
+          }
+
+          toast.success(
+            "Application created! Please complete payment to finalize."
+          );
+
+          // Send confirmation emails after application creation
+          await sendConfirmationEmail(appId, data[0]);
+          await sendTeamNotificationEmail(appId, data[0]);
+        }
       }
     } catch (error) {
       console.error("Error creating application with pending invoice:", error);
