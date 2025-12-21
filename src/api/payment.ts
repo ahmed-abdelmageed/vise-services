@@ -159,7 +159,9 @@ export const initiatePayment = async (
     formData.append("payer_ip", payerIP);
 
     // Set term_url_3ds properly - this is where users return after 3DS authentication
-    let termUrl = `https://gvisaksa.com/#/payment/success`;
+    let termUrl = `https://gvisaksa.com/#/payment/success?order_id=${encodeURIComponent(
+      paymentData.order_id
+    )}`;
 
     // For development, you can use local URL
     // if (
