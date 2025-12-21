@@ -33,7 +33,7 @@ const PaymentSuccess = () => {
   const pendingPayment = localStorage.getItem("pendingPayment") || "";
   console.log("🚀 ~ PaymentSuccess ~ pendingPayment:", pendingPayment);
 
-  const order_id = JSON.parse(pendingPayment).order_id || null;
+  const order_id = searchParams.get("order_id") || "";
   console.log("🚀 ~ PaymentSuccess ~ order_id:", order_id);
 
   // Function to update invoice status when payment is successful
